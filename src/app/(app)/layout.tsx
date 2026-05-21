@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { BottomNav } from "@/components/BottomNav";
 import { TopBar } from "@/components/TopBar";
+import { SideNav } from "@/components/SideNav";
 import { calcStats } from "@/lib/calc";
 
 export default async function AppLayout({
@@ -26,13 +27,22 @@ export default async function AppLayout({
   const stats = calcStats(profile, profile.workout_mode === "gym" ? "gym" : "home");
 
   return (
-    <div className="min-h-svh pb-24">
-      <TopBar
+    <div className="min-h-svh md:flex">
+      <SideNav
         weight={profile.current_weight}
         goalWeight={profile.goal_weight}
         weeklyLoss={stats.weeklyLoss}
       />
-      <main className="mx-auto max-w-3xl px-4 py-5">{children}</main>
+      <div className="flex-1 pb-24 md:pb-0">
+        <TopBar
+          weight={profile.current_weight}
+          goalWeight={profile.goal_weight}
+          weeklyLoss={stats.weeklyLoss}
+        />
+        <main className="mx-auto w-full max-w-3xl px-4 py-5 md:max-w-5xl md:px-8 md:py-8 lg:max-w-6xl">
+          {children}
+        </main>
+      </div>
       <BottomNav />
     </div>
   );
