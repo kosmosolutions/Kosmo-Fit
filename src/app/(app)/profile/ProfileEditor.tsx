@@ -1,0 +1,321 @@
+"use client";
+
+import { useMemo, useState, useTransition } from "react";
+import { LogOut, Sparkles } from "lucide-react";
+import { LIFESTYLE, calcStats } from "@/lib/calc";
+import { saveProfile } from "@/lib/actions/profile";
+import type { Profile } from "@/lib/types";
+import { Ring } from "@/components/Ring";
+import { cn } from "@/lib/cn";
+
+const TIMEFRAMES = [12, 16, 20, 24, 30, 40, 52];
+
+export function ProfileEditor({
+  profile,
+  email,
+}: {
+  profile: Profile;
+  email: string;
+}) {
+  const [pending, start] = useTransition();
+  const [saved, setSaved] = useState(false);
+  const [f, setF] = useState({
+    full_name: profile.full_name ?? "",
+    sex: profile.sex,
+    age: profile.age,
+    height_ft: profile.height_ft,
+    height_in: profile.height_in,
+    current_weight: profile.current_weight,
+    goal_weight: profile.goal_weight,
+    weeks_to_goal: profile.weeks_to_goal,
+    lifestyle: profile.lifestyle,
+    workout_mode: profile.workout_mode,
+    daily_step_goal: profile.daily_step_goal,
+    notes: profile.notes ?? "",
+  });
+
+  const stats = useMemo(
+    () =>
+      calcStats(
+        {
+          current_weight: f.current_weight,
+          goal_weight: f.goal_weight,
+          height_ft: f.height_ft,
+          height_in: f.height_in,
+          age: f.age,
+          sex: f.sex,
+          lifestyle: f.lifestyle,
+          weeks_to_goal: f.weeks_to_goal,
+        },
+        f.workout_mode === "gym" ? "gym" : "home",
+      ),
+    [f],
+  );
+
+  function save() {
+    start(async () => {
+      await saveProfile(f);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+    });
+  }
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <div className="label-tiny">Profile</div>
+        <h1 className="text-2xl font-extrabold tracking-tight text-chalk-50">
+          {f.full_name || "Your account"}
+        </h1>
+        <div className="mt-1 text-xs text-chalk-400">{email}</div>
+      </div>
+
+      {/* Live summary */}
+      <div className="card-elev p-5">
+        <div className="flex items-center gap-4">
+          <Ring
+            pct={Math.min(1, (profile.current_weight - f.goal_weight) /
+              Math.max(1, profile.current_weight - f.goal_weight + 0.001))}
+            color="#22d3ee"
+            size={68}
+            stroke={7}
+          />
+          <div>
+            <div className="flex items-center gap-1 text-accent-cyan">
+              <Sparkles className="h-3.5 w-3.5" />
+              <div className="label-tiny text-accent-cyan">Plan summary</div>
+            </div>
+            <div className="text-sm text-chalk-300">
+              {stats.lbsToLose} lbs to lose in{" "}
+              <span className="font-bold text-chalk-50">
+                {f.weeks_to_goal}w
+              </span>{" "}
+              · {stats.weeklyLoss} lbs/wk
+              {stats.aggressive ? (
+                <span className="ml-1 text-accent-orange">⚠ aggressive</span>
+              ) : null}
+            </div>
+            <div className="mt-1 text-xs text-chalk-400">
+              Workout days: {Math.min(...stats.dayTargets).toLocaleString()}–
+              {Math.max(...stats.dayTargets).toLocaleString()} cal · Rest:{" "}
+              {stats.restTarget.toLocaleString()} cal
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Name & basics */}
+      <Section title="About you">
+        <label className="block">
+          <span className="label-tiny">Full name</span>
+          <input
+            value={f.full_name}
+            onChange={(e) => setF({ ...f, full_name: e.target.value })}
+            className="field mt-1"
+          />
+        </label>
+        <div className="grid grid-cols-3 gap-2">
+          {(["male", "female", "other"] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setF({ ...f, sex: s })}
+              className={cn(
+                "btn-secondary capitalize",
+                f.sex === s &&
+                  "border-accent-cyan/60 bg-accent-cyan/10 text-accent-cyan",
+              )}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </Section>
+
+      {/* Body */}
+      <Section title="Body">
+        <div className="grid grid-cols-3 gap-2">
+          <Num label="Age" unit="yrs" v={f.age} min={13} max={100}
+            onChange={(v) => setF({ ...f, age: v })} />
+          <Num label="Height" unit="ft" v={f.height_ft} min={4} max={7}
+            onChange={(v) => setF({ ...f, height_ft: v })} />
+          <Num label="Height" unit="in" v={f.height_in} min={0} max={11}
+            onChange={(v) => setF({ ...f, height_in: v })} />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Num label="Current weight" unit="lbs" v={f.current_weight}
+            min={80} max={500} step={0.5}
+            onChange={(v) => setF({ ...f, current_weight: v })} />
+          <Num label="Goal weight" unit="lbs" v={f.goal_weight}
+            min={80} max={500} step={0.5} accent
+            onChange={(v) => setF({ ...f, goal_weight: v })} />
+        </div>
+      </Section>
+
+      {/* Goal & timeframe */}
+      <Section title="Timeframe">
+        <div className="flex flex-wrap gap-1.5">
+          {TIMEFRAMES.map((w) => (
+            <button
+              key={w}
+              type="button"
+              onClick={() => setF({ ...f, weeks_to_goal: w })}
+              className={cn(
+                "rounded-lg border px-3 py-1.5 text-sm font-bold",
+                f.weeks_to_goal === w
+                  ? "border-accent-cyan bg-accent-cyan text-ink-950"
+                  : "border-white/10 bg-white/[0.03] text-chalk-300",
+              )}
+            >
+              {w}w
+            </button>
+          ))}
+        </div>
+      </Section>
+
+      {/* Lifestyle & workout mode */}
+      <Section title="Lifestyle">
+        <div className="space-y-2">
+          {(Object.keys(LIFESTYLE) as Array<keyof typeof LIFESTYLE>).map((k) => {
+            const opt = LIFESTYLE[k];
+            const sel = f.lifestyle === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setF({ ...f, lifestyle: k })}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition",
+                  sel
+                    ? "border-accent-cyan/50 bg-accent-cyan/10"
+                    : "border-white/10 bg-white/[0.025] hover:bg-white/[0.05]",
+                )}
+              >
+                <div>
+                  <div className={cn(
+                    "text-sm font-bold",
+                    sel ? "text-accent-cyan" : "text-chalk-100",
+                  )}>
+                    {opt.label}
+                  </div>
+                  <div className="text-xs text-chalk-400">{opt.desc}</div>
+                </div>
+                <div className="text-xs text-chalk-400">×{opt.multiplier}</div>
+              </button>
+            );
+          })}
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {(["home", "gym", "both"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setF({ ...f, workout_mode: m })}
+              className={cn(
+                "btn-secondary capitalize",
+                f.workout_mode === m &&
+                  "border-accent-cyan/60 bg-accent-cyan/10 text-accent-cyan",
+              )}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+        <Num
+          label="Daily step goal"
+          unit="steps"
+          v={f.daily_step_goal}
+          min={2000}
+          max={20000}
+          step={500}
+          onChange={(v) => setF({ ...f, daily_step_goal: v })}
+        />
+      </Section>
+
+      <Section title="Notes">
+        <textarea
+          rows={3}
+          value={f.notes}
+          onChange={(e) => setF({ ...f, notes: e.target.value })}
+          placeholder="Anything else — injuries, dietary preferences, motivation…"
+          className="field resize-y"
+        />
+      </Section>
+
+      <button onClick={save} disabled={pending} className="btn-primary w-full py-3">
+        {pending ? "Saving…" : saved ? "Saved ✓" : "Save profile"}
+      </button>
+
+      <a
+        href="/auth/logout"
+        className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.025] p-3 text-sm font-bold text-chalk-300 hover:bg-white/[0.05]"
+      >
+        <LogOut className="h-4 w-4" /> Sign out
+      </a>
+    </div>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <div className="label-tiny">{title}</div>
+      <div className="space-y-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function Num({
+  label,
+  unit,
+  v,
+  min,
+  max,
+  step = 1,
+  accent,
+  onChange,
+}: {
+  label: string;
+  unit: string;
+  v: number;
+  min: number;
+  max: number;
+  step?: number;
+  accent?: boolean;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <div className={cn(
+      "rounded-xl border p-3",
+      accent
+        ? "border-accent-cyan/30 bg-accent-cyan/5"
+        : "border-white/10 bg-white/[0.03]",
+    )}>
+      <div className="label-tiny">{label}</div>
+      <div className="mt-1 flex items-baseline gap-1">
+        <input
+          type="number"
+          inputMode="decimal"
+          value={v}
+          min={min}
+          max={max}
+          step={step}
+          onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+          className={cn(
+            "w-full border-none bg-transparent p-0 text-2xl font-extrabold outline-none",
+            accent ? "text-accent-cyan" : "text-chalk-50",
+          )}
+        />
+        <span className="text-[10px] text-chalk-400">{unit}</span>
+      </div>
+    </div>
+  );
+}

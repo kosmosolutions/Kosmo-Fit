@@ -1,46 +1,96 @@
-# FitPlan Pro — PWA Setup Guide
+# PocketCoach
 
-## Your Files
-- `index.html` — the full app
-- `manifest.json` — makes it installable
-- `sw.js` — enables offline use
-- `icon-192.png` — app icon (Android / PWA)
-- `icon-512.png` — app icon (large)
-- `apple-touch-icon.png` — app icon (iPhone home screen)
+Your fitness OS: a SaaS-style personal workout, nutrition and self-care
+tracker. Built with **Next.js 15 (App Router)** + **Supabase**, designed to
+deploy to **Vercel**.
 
----
+## Features
 
-## How to Deploy (Free — 5 minutes)
+- **Overview** — daily target ring, macros, calendar of past entries,
+  weight/steps/cardio/water/sleep/mood tracker, and a *gap-meter* that tells
+  you how many minutes to walk (or steps to take, or cardio minutes to do)
+  when you go over your calorie target for the day.
+- **Diet** — meals split across breakfast / snack / lunch / dinner. Save any
+  meal as a reusable recipe and one-tap log it next time.
+- **Workout** — toggle between Home and Gym. Six-day split with a polished
+  exercise list, sets, notes, EPOC flags, and a "Watch demo" button that
+  opens YouTube for every exercise. (Set `youtubeId` per exercise in
+  `src/data/workouts.ts` to embed a specific video inline.)
+- **Profile / onboarding** — multi-step setup captures body, goals,
+  timeframe, lifestyle, home-vs-gym preference, and step goal. Computes BMR,
+  TDEE, daily deficit, per-day calorie targets, and macros.
 
-### Option A: Netlify Drop (Easiest — no account needed)
-1. Go to **https://app.netlify.com/drop**
-2. Drag and drop the entire folder onto the page
-3. Netlify gives you a live URL instantly (e.g. `https://abc123.netlify.app`)
-4. Open that URL in Safari on your iPhone
+## Tech stack
 
-### Option B: GitHub Pages (Free, permanent)
-1. Create a free account at **https://github.com**
-2. Create a new repository (e.g. `fitplan-pro`)
-3. Upload all 6 files to the repo
-4. Go to **Settings → Pages → Source → main branch → Save**
-5. Your URL will be `https://yourusername.github.io/fitplan-pro`
+| Layer        | Choice                            |
+|--------------|-----------------------------------|
+| Framework    | Next.js 15 (App Router)           |
+| UI           | Tailwind v3 + lucide-react        |
+| Auth + DB    | Supabase (Postgres + RLS)         |
+| Hosting      | Vercel                            |
+| PWA          | manifest + theme color            |
 
----
+## Setup
 
-## How to Add to iPhone Home Screen
+### 1. Install
 
-1. Open the URL in **Safari** (must be Safari, not Chrome)
-2. Tap the **Share** button (box with arrow pointing up)
-3. Scroll down and tap **"Add to Home Screen"**
-4. Name it **FitPlan Pro** → tap **Add**
-5. It now appears on your home screen like a real app ✓
+```bash
+pnpm install   # or `npm install`
+```
 
-The app opens full screen with no browser bar, works offline,
-and your settings are saved between sessions.
+### 2. Supabase
 
----
+1. Create a project at <https://supabase.com>.
+2. Open **SQL editor** → paste the contents of
+   `supabase/migrations/001_init.sql` → run.
+3. **Authentication → Providers** — enable Email/Password (and optionally
+   Google or others). Disable "Confirm email" while developing if you want
+   logins to work immediately.
+4. **Project settings → API** — copy the project URL and `anon` public key.
 
-## Notes
-- Must use **Safari** on iPhone for "Add to Home Screen"
-- Requires HTTPS to work as a PWA (both Netlify and GitHub Pages provide this free)
-- All data stays on your device — nothing is sent to any server
+### 3. Environment
+
+Copy `.env.example` to `.env.local` and fill in:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR-ANON-KEY
+```
+
+### 4. Run
+
+```bash
+pnpm dev
+```
+
+Open <http://localhost:3000>.
+
+### 5. Deploy to Vercel
+
+1. Push this repo to GitHub.
+2. <https://vercel.com/new> → import → add the two env vars above.
+3. Deploy. Add your Vercel preview/production URLs to Supabase
+   **Authentication → URL Configuration → Site URL** so auth emails redirect
+   correctly.
+
+## Curating exercise videos
+
+Each exercise in `src/data/workouts.ts` carries a `searchQuery` (always set)
+and an optional `youtubeId`. When `youtubeId` is set the demo modal embeds
+that exact video; otherwise the modal links out to a YouTube search for the
+query. Edit the file to pin specific videos to specific exercises — nothing
+else has to change.
+
+## Calorie math (in one line)
+
+```
+daily target = LifeTDEE + today's workout burn − daily deficit
+```
+
+Net result is always the same deficit. The workout earns you more food. If
+you go over your eat-target, the **gap-meter** on /overview tells you how
+many minutes to walk (or cardio) to bring the day back to the target.
+
+## License
+
+Personal use.
