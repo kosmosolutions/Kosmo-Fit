@@ -10,7 +10,7 @@ interface TopBarProps {
 export function TopBar({ weight, goalWeight, weeklyLoss }: TopBarProps) {
   return (
     <header
-      className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/90 backdrop-blur-xl"
+      className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/90 backdrop-blur-xl md:hidden"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
