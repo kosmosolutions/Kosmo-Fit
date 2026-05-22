@@ -191,6 +191,48 @@ export async function removeExerciseFromDay(
   revalidatePath("/workout");
 }
 
+export interface ReplaceExerciseInput {
+  mode: WorkoutMode;
+  day_index: number;
+  position: number;
+  catalog_id: string | null;
+  name: string;
+  sets?: string;
+  note?: string | null;
+  images?: string[] | null;
+  search_query: string;
+}
+
+export async function replaceExerciseInDay(
+  input: ReplaceExerciseInput,
+): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  await forkDayIfPristine(supabase, user.id, input.mode, input.day_index);
+
+  const { error } = await supabase
+    .from("user_workout_exercises")
+    .update({
+      catalog_id: input.catalog_id,
+      name: input.name,
+      sets: input.sets ?? "3 x 10",
+      note: input.note ?? null,
+      images: input.images ?? null,
+      search_query: input.search_query,
+    })
+    .eq("user_id", user.id)
+    .eq("mode", input.mode)
+    .eq("day_index", input.day_index)
+    .eq("position", input.position);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/workout");
+}
+
 export async function resetDayToDefaults(
   mode: WorkoutMode,
   dayIndex: number,
