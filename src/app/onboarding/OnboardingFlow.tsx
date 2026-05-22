@@ -87,7 +87,7 @@ export function OnboardingFlow({
         {step === 0 && (
           <div className="space-y-5">
             <h1 className="text-3xl font-extrabold tracking-tight">
-              Welcome to PocketCoach.
+              Welcome to Kosmo Fitness.
             </h1>
             <p className="text-sm text-chalk-300">
               We&apos;ll build your daily plan in under two minutes. Everything

@@ -1,6 +1,6 @@
 {
-  "name": "PocketCoach",
-  "short_name": "PocketCoach",
+  "name": "Kosmo Fitness",
+  "short_name": "Kosmo Fitness",
   "description": "Personal workout, nutrition and self-care tracker",
   "start_url": "/",
   "display": "standalone",

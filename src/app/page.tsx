@@ -49,7 +49,7 @@ export default async function Landing() {
               every day.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-pretty text-base text-chalk-300 sm:text-lg">
-              PocketCoach builds your daily calorie target from your body and
+              Kosmo Fitness builds your daily calorie target from your body and
               goals, then tells you exactly what to eat and how to move — even
               suggesting walks or cardio to close the gap when you go over.
             </p>
@@ -111,7 +111,7 @@ export default async function Landing() {
               <p className="mt-2 max-w-2xl text-sm text-chalk-300">
                 Your daily calorie target = Life TDEE + today&apos;s workout burn −
                 your deficit. Net result is always the same deficit — the gym
-                just earns you more food. Miss a workout? PocketCoach tells you
+                just earns you more food. Miss a workout? Kosmo Fitness tells you
                 how many minutes to walk to keep the day balanced.
               </p>
             </div>
@@ -120,7 +120,7 @@ export default async function Landing() {
       </main>
 
       <footer className="border-t border-white/[0.05] py-8 text-center text-xs text-chalk-500">
-        © {new Date().getFullYear()} PocketCoach
+        © {new Date().getFullYear()} Kosmo Fitness
       </footer>
     </div>
   );

@@ -16,7 +16,7 @@ export default async function LoginPage({
       <div className="mt-12">
         <h1 className="text-3xl font-extrabold tracking-tight">Welcome back</h1>
         <p className="mt-2 text-sm text-chalk-300">
-          Log in to your PocketCoach account.
+          Log in to your Kosmo Fitness account.
         </p>
       </div>
 

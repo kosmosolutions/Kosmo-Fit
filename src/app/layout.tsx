@@ -2,14 +2,14 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PocketCoach — your fitness OS",
+  title: "Kosmo Fitness — your fitness OS",
   description:
     "Track workouts, plan nutrition, and close your daily calorie gap with personal targets that adapt to your body.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "PocketCoach",
+    title: "Kosmo Fitness",
   },
   icons: {
     icon: [
