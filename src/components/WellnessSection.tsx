@@ -19,20 +19,6 @@ const LEVEL_LABEL: Record<WellnessLevel["level"], string> = {
   advanced: "Advanced",
 };
 
-function embedSrc(level: WellnessLevel): string {
-  if (level.youtubeId) {
-    return `https://www.youtube.com/embed/${level.youtubeId}?modestbranding=1&rel=0&autoplay=1`;
-  }
-  return `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(level.searchQuery ?? level.title)}`;
-}
-
-function openOnYouTubeUrl(level: WellnessLevel): string {
-  if (level.youtubeId) {
-    return `https://www.youtube.com/watch?v=${level.youtubeId}`;
-  }
-  return `https://www.youtube.com/results?search_query=${encodeURIComponent(level.searchQuery ?? level.title)}`;
-}
-
 export function WellnessSection() {
   const [active, setActive] = useState<Selection | null>(null);
 
@@ -48,24 +34,14 @@ export function WellnessSection() {
               borderColor: `${r.color}33`,
             }}
           >
-            {/* Thumbnail uses the intermediate video as the visual preview.
-                Falls back to a gradient if intermediate has no youtubeId. */}
-            <div
-              className="relative aspect-video w-full overflow-hidden"
-              style={{
-                background: r.levels[1].youtubeId
-                  ? "#000"
-                  : `linear-gradient(135deg, ${r.color}55, ${r.color}11)`,
-              }}
-            >
-              {r.levels[1].youtubeId ? (
-                <img
-                  src={`https://i.ytimg.com/vi/${r.levels[1].youtubeId}/hqdefault.jpg`}
-                  alt=""
-                  className="h-full w-full object-cover opacity-80"
-                  loading="lazy"
-                />
-              ) : null}
+            {/* Thumbnail uses the intermediate video as the visual preview */}
+            <div className="relative aspect-video w-full overflow-hidden bg-black">
+              <img
+                src={`https://i.ytimg.com/vi/${r.levels[1].youtubeId}/hqdefault.jpg`}
+                alt=""
+                className="h-full w-full object-cover opacity-80"
+                loading="lazy"
+              />
               <div className="absolute left-3 top-3 flex items-center gap-2 rounded-full bg-black/60 px-2.5 py-1 backdrop-blur">
                 <span className="text-base leading-none">{r.icon}</span>
                 <span
@@ -150,7 +126,7 @@ export function WellnessSection() {
             <div className="aspect-video w-full bg-black">
               <iframe
                 className="h-full w-full"
-                src={embedSrc(active.level)}
+                src={`https://www.youtube.com/embed/${active.level.youtubeId}?modestbranding=1&rel=0&autoplay=1`}
                 title={active.level.title}
                 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -158,13 +134,12 @@ export function WellnessSection() {
             </div>
             <div className="flex items-center justify-between border-t border-white/10 px-4 py-3">
               <a
-                href={openOnYouTubeUrl(active.level)}
+                href={`https://www.youtube.com/watch?v=${active.level.youtubeId}`}
                 target="_blank"
                 rel="noreferrer noopener"
                 className="inline-flex items-center gap-1 text-xs font-bold text-chalk-400 hover:text-chalk-100"
               >
-                <ExternalLink className="h-3 w-3" />{" "}
-                {active.level.youtubeId ? "Open on YouTube" : "Search on YouTube"}
+                <ExternalLink className="h-3 w-3" /> Open on YouTube
               </a>
               <a
                 href={`https://www.youtube.com/results?search_query=${encodeURIComponent(active.level.title)}`}
