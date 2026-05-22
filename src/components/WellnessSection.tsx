@@ -25,7 +25,7 @@ export function WellnessSection() {
             <div className="relative aspect-video w-full overflow-hidden bg-black">
               <img
                 src={
-                  r.gifUrl ??
+                  r.images?.[0] ??
                   `https://i.ytimg.com/vi/${r.youtubeId}/hqdefault.jpg`
                 }
                 alt=""

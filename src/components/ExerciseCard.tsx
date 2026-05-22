@@ -1,8 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Play, ExternalLink, X } from "lucide-react";
 import type { Exercise } from "@/data/workouts";
+
+function useFrameCycle(frameCount: number, intervalMs = 700) {
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    if (frameCount < 2) return;
+    const id = setInterval(
+      () => setFrame((f) => (f + 1) % frameCount),
+      intervalMs,
+    );
+    return () => clearInterval(id);
+  }, [frameCount, intervalMs]);
+  return frame;
+}
+
+function FrameLoop({
+  images,
+  alt,
+  className,
+}: {
+  images: string[];
+  alt: string;
+  className?: string;
+}) {
+  const frame = useFrameCycle(images.length);
+  return (
+    <div className={`relative ${className ?? ""}`}>
+      {images.map((src, i) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={src}
+          src={src}
+          alt={i === 0 ? alt : ""}
+          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-150"
+          style={{ opacity: i === frame ? 1 : 0 }}
+          loading="lazy"
+        />
+      ))}
+    </div>
+  );
+}
 
 export function ExerciseCard({
   index,
@@ -20,11 +60,10 @@ export function ExerciseCard({
   const watchUrl = exercise.youtubeId
     ? `https://www.youtube.com/watch?v=${exercise.youtubeId}`
     : searchUrl;
-  const thumbUrl = exercise.gifUrl
-    ? exercise.gifUrl
-    : exercise.youtubeId
-      ? `https://i.ytimg.com/vi/${exercise.youtubeId}/hqdefault.jpg`
-      : null;
+  const hasImages = (exercise.images?.length ?? 0) > 0;
+  const ytThumb = exercise.youtubeId
+    ? `https://i.ytimg.com/vi/${exercise.youtubeId}/hqdefault.jpg`
+    : null;
 
   return (
     <>
@@ -67,10 +106,16 @@ export function ExerciseCard({
             className="group relative mt-2 block aspect-video w-full max-w-[200px] overflow-hidden rounded-lg border border-white/10 bg-ink-900 transition hover:border-white/30"
             aria-label={`Watch demo: ${exercise.name}`}
           >
-            {thumbUrl ? (
+            {hasImages ? (
+              <FrameLoop
+                images={exercise.images!}
+                alt={exercise.name}
+                className="h-full w-full"
+              />
+            ) : ytThumb ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={thumbUrl}
+                src={ytThumb}
                 alt=""
                 className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100"
                 loading="lazy"
@@ -116,12 +161,11 @@ export function ExerciseCard({
               </button>
             </div>
             <div className="aspect-video w-full bg-black">
-              {exercise.gifUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={exercise.gifUrl}
+              {hasImages ? (
+                <FrameLoop
+                  images={exercise.images!}
                   alt={exercise.name}
-                  className="h-full w-full object-contain"
+                  className="h-full w-full"
                 />
               ) : (
                 <iframe
