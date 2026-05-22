@@ -3,6 +3,8 @@ export type WorkoutMode = "home" | "gym";
 export type MealType = "breakfast" | "snack" | "lunch" | "dinner";
 export type Sex = "male" | "female" | "other";
 export type Mood = "great" | "good" | "meh" | "bad";
+export type FitnessExperience = "beginner" | "intermediate" | "advanced";
+export type PrimaryGoal = "lose_fat" | "build_muscle" | "maintain" | "recomp";
 
 export interface Profile {
   user_id: string;
@@ -17,6 +19,8 @@ export interface Profile {
   workout_mode: "home" | "gym" | "both";
   weeks_to_goal: number;
   daily_step_goal: number;
+  fitness_experience: FitnessExperience | null;
+  primary_goal: PrimaryGoal | null;
   notes: string | null;
   onboarded_at: string | null;
   created_at: string;

@@ -2,14 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LogoMark } from "@/components/LogoMark";
-import {
-  ArrowRight,
-  CalendarDays,
-  Dumbbell,
-  LineChart,
-  Salad,
-  ShieldCheck,
-} from "lucide-react";
+import { FeatureCarousel } from "@/components/landing/FeatureCarousel";
+import { ArrowRight, LineChart, ShieldCheck } from "lucide-react";
 
 export default async function Landing() {
   const supabase = await createClient();
@@ -68,36 +62,20 @@ export default async function Landing() {
           </div>
         </section>
 
-        {/* Feature grid */}
-        <section className="grid grid-cols-1 gap-4 pb-20 sm:grid-cols-3">
-          {[
-            {
-              Icon: CalendarDays,
-              color: "text-accent-cyan",
-              title: "Daily overview",
-              body: "Rings for calories, protein, steps and water. A calendar tells the story of your week, month and year.",
-            },
-            {
-              Icon: Salad,
-              color: "text-accent-green",
-              title: "Diet that tracks",
-              body: "Split entries across breakfast, snack, lunch and dinner. Save meals as reusable recipes for one-tap logging.",
-            },
-            {
-              Icon: Dumbbell,
-              color: "text-accent-violet",
-              title: "Home & gym",
-              body: "A polished 6-day split, with home-friendly dumbbell swaps and a tap-to-watch demo for every exercise.",
-            },
-          ].map(({ Icon, color, title, body }) => (
-            <div key={title} className="card-elev p-6">
-              <Icon className={`h-6 w-6 ${color}`} />
-              <h3 className="mt-4 text-lg font-bold text-chalk-50">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-chalk-300">
-                {body}
-              </p>
+        {/* Feature carousel */}
+        <section className="pb-16">
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <div>
+              <div className="label-tiny mb-1">Inside Kosmo Fitness</div>
+              <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+                Built for the whole stack.
+              </h2>
             </div>
-          ))}
+            <div className="hidden text-xs text-chalk-400 sm:block">
+              Swipe or use the arrows →
+            </div>
+          </div>
+          <FeatureCarousel />
         </section>
 
         {/* Math card */}
