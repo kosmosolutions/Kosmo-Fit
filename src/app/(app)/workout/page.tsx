@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { calcStats, dayIndexForDate } from "@/lib/calc";
 import { WorkoutClient } from "@/components/WorkoutClient";
+import { getUserPlanRows } from "@/lib/actions/workout-plan";
 import type { WorkoutMode } from "@/lib/types";
 
 export default async function WorkoutPage() {
@@ -26,6 +27,13 @@ export default async function WorkoutPage() {
   const dayIdx = dayIndexForDate(today);
   const initialDay = dayIdx >= 0 ? dayIdx : 0;
 
+  // Fetch both modes up-front so the user can switch home<->gym without
+  // a network round-trip. Both lists are typically <50 rows total.
+  const [homePlan, gymPlan] = await Promise.all([
+    getUserPlanRows("home"),
+    getUserPlanRows("gym"),
+  ]);
+
   return (
     <WorkoutClient
       initialMode={initialMode}
@@ -37,6 +45,8 @@ export default async function WorkoutPage() {
       dailyDeficit={stats.dailyDeficit}
       lifeTDEE={stats.lifeTDEE}
       weekTargets={stats.dayTargets}
+      homePlan={homePlan}
+      gymPlan={gymPlan}
     />
   );
 }

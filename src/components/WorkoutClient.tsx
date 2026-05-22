@@ -1,13 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { House, Building, Sparkles } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import Link from "next/link";
+import {
+  House,
+  Building,
+  Sparkles,
+  Library,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import { ExerciseCard } from "./ExerciseCard";
 import { WellnessSection } from "./WellnessSection";
 import { SessionTimer } from "./SessionTimer";
-import { GYM_DAYS, HOME_DAYS, type WorkoutDay } from "@/data/workouts";
+import { AddExerciseSheet } from "./AddExerciseSheet";
+import {
+  GYM_DAYS,
+  HOME_DAYS,
+  type Exercise,
+  type WorkoutDay,
+} from "@/data/workouts";
 import { cn } from "@/lib/cn";
 import type { WorkoutMode } from "@/lib/types";
+import {
+  removeExerciseFromDay,
+  resetDayToDefaults,
+  type UserExerciseRow,
+} from "@/lib/actions/workout-plan";
 
 interface Props {
   initialMode: WorkoutMode;
@@ -17,6 +38,20 @@ interface Props {
   dailyDeficit: number;
   lifeTDEE: number;
   weekTargets: number[];
+  homePlan: UserExerciseRow[];
+  gymPlan: UserExerciseRow[];
+}
+
+type DisplayExercise = { exercise: Exercise; position: number };
+
+function rowToExercise(r: UserExerciseRow): Exercise {
+  return {
+    name: r.name,
+    sets: r.sets,
+    note: r.note ?? undefined,
+    images: r.images ?? undefined,
+    searchQuery: r.search_query ?? `${r.name} proper form tutorial`,
+  };
 }
 
 export function WorkoutClient({
@@ -27,14 +62,55 @@ export function WorkoutClient({
   dailyDeficit,
   lifeTDEE,
   weekTargets,
+  homePlan,
+  gymPlan,
 }: Props) {
   const [view, setView] = useState<"training" | "wellness">("training");
   const [mode, setMode] = useState<WorkoutMode>(initialMode);
   const [wDay, setWDay] = useState(Math.max(0, initialDay));
   const [expanded, setExpanded] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [addingOpen, setAddingOpen] = useState(false);
+  const [mutPending, startMut] = useTransition();
   const days = mode === "gym" ? GYM_DAYS : HOME_DAYS;
   const d: WorkoutDay = days[wDay];
   const todayDayTarget = weekTargets[wDay] ?? todayTarget;
+  const planRows = mode === "gym" ? gymPlan : homePlan;
+
+  // Per (mode, dayIndex), if the user has ANY rows we treat the day as
+  // customized and render only those rows. Otherwise we render the
+  // hardcoded defaults from GYM_DAYS / HOME_DAYS.
+  const { displayExercises, customized } = useMemo(() => {
+    const userForThisDay = planRows.filter((r) => r.day_index === wDay);
+    if (userForThisDay.length > 0) {
+      return {
+        displayExercises: userForThisDay.map<DisplayExercise>((r) => ({
+          exercise: rowToExercise(r),
+          position: r.position,
+        })),
+        customized: true,
+      };
+    }
+    return {
+      displayExercises: d.exercises.map<DisplayExercise>((ex, i) => ({
+        exercise: ex,
+        position: i,
+      })),
+      customized: false,
+    };
+  }, [planRows, wDay, d.exercises]);
+
+  function handleDelete(position: number) {
+    startMut(async () => {
+      await removeExerciseFromDay(mode, wDay, position);
+    });
+  }
+
+  function handleReset() {
+    startMut(async () => {
+      await resetDayToDefaults(mode, wDay);
+    });
+  }
 
   return (
     <div className="space-y-4">
@@ -81,6 +157,31 @@ export function WorkoutClient({
           >
             <Sparkles className="h-3.5 w-3.5" />
             Wellness
+          </button>
+          <Link
+            href="/workout/catalog"
+            className="flex items-center gap-1.5 rounded-xl bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-chalk-400 transition hover:text-chalk-200"
+            aria-label="Browse exercise library"
+          >
+            <Library className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Library</span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              setEditMode((v) => !v);
+              setView("training");
+            }}
+            className={cn(
+              "flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition",
+              editMode
+                ? "bg-accent-cyan/20 text-accent-cyan ring-1 ring-accent-cyan/40"
+                : "bg-white/[0.06] text-chalk-400 hover:text-chalk-200",
+            )}
+            aria-pressed={editMode}
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{editMode ? "Done" : "Edit"}</span>
           </button>
         </div>
       </div>
@@ -232,14 +333,62 @@ export function WorkoutClient({
           </div>
         </div>
         <div className="rounded-b-2xl bg-ink-850 px-4 py-2">
-          {d.exercises.map((ex, i) => (
-            <ExerciseCard
-              key={`${ex.name}-${i}`}
-              index={i}
-              exercise={ex}
-              color={d.color}
-            />
+          {displayExercises.map((row, i) => (
+            <div
+              key={`${row.exercise.name}-${row.position}`}
+              className="relative"
+            >
+              <ExerciseCard
+                index={i}
+                exercise={row.exercise}
+                color={d.color}
+              />
+              {editMode && (
+                <button
+                  type="button"
+                  onClick={() => handleDelete(row.position)}
+                  disabled={mutPending}
+                  aria-label={`Remove ${row.exercise.name}`}
+                  className="absolute right-0 top-3 grid h-7 w-7 place-items-center rounded-lg border border-accent-rose/30 bg-accent-rose/10 text-accent-rose transition hover:bg-accent-rose/20 disabled:opacity-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
           ))}
+
+          {editMode && (
+            <div className="flex flex-wrap items-center gap-2 border-t border-white/[0.05] pt-3 pb-2">
+              <button
+                type="button"
+                onClick={() => setAddingOpen(true)}
+                disabled={mutPending}
+                className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition disabled:opacity-50"
+                style={{
+                  color: d.color,
+                  borderColor: `${d.color}55`,
+                  background: `${d.color}1a`,
+                }}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add exercise
+              </button>
+              {customized && (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  disabled={mutPending}
+                  className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-chalk-300 transition hover:bg-white/[0.08] disabled:opacity-50"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Reset to default
+                </button>
+              )}
+              <span className="text-[10px] uppercase tracking-wider text-chalk-500">
+                {customized ? "Custom" : "Default"}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -257,6 +406,16 @@ export function WorkoutClient({
         </div>
       ) : null}
       </>}
+
+      {addingOpen && (
+        <AddExerciseSheet
+          mode={mode}
+          dayIndex={wDay}
+          dayLabel={`${d.day} · ${d.focus}`}
+          dayColor={d.color}
+          onClose={() => setAddingOpen(false)}
+        />
+      )}
     </div>
   );
 }
