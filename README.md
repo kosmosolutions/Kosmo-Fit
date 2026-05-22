@@ -1,4 +1,4 @@
-# PocketCoach
+# Kosmo Fitness
 
 Your fitness OS: a SaaS-style personal workout, nutrition and self-care
 tracker. Built with **Next.js 15 (App Router)** + **Supabase**, designed to
