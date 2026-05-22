@@ -47,8 +47,8 @@ export const GYM_DAYS: WorkoutDay[] = [
     epoc: false,
     calNote: "Shoulder isolation — moderate intensity. Abs add little.",
     exercises: [
-      { name: "Seated Shoulder Press", sets: "10, 8, 8, 6", searchQuery: sq("Seated Dumbbell Shoulder Press") },
-      { name: "DB Lateral Raise", sets: "15, 12, 12, 10", searchQuery: sq("Dumbbell Lateral Raise") },
+      { name: "Seated Shoulder Press", sets: "10, 8, 8, 6", youtubeId: "fHsKn4iUOhU", searchQuery: sq("Seated Dumbbell Shoulder Press") },
+      { name: "DB Lateral Raise", sets: "15, 12, 12, 10", youtubeId: "3VcKaXpzqRo", searchQuery: sq("Dumbbell Lateral Raise") },
       { name: "Reverse Pec Deck", sets: "15, 12, 12, 10", searchQuery: sq("Reverse Pec Deck rear delt fly") },
       { name: "Upright Row", sets: "10, 10, 8", searchQuery: sq("Barbell Upright Row") },
       { name: "Hanging Leg Raise", sets: "15, 15, 12", searchQuery: sq("Hanging Leg Raise") },
@@ -65,8 +65,8 @@ export const GYM_DAYS: WorkoutDay[] = [
     epoc: true,
     calNote: "Large back muscles = high burn. EPOC adds 10–15% for hours after.",
     exercises: [
-      { name: "Pull-Ups / Lat Pulldown", sets: "12, 10, 10, 8", searchQuery: sq("Lat Pulldown") },
-      { name: "Barbell Row", sets: "10, 8, 8, 6", searchQuery: sq("Barbell Bent Over Row") },
+      { name: "Pull-Ups / Lat Pulldown", sets: "12, 10, 10, 8", youtubeId: "O94yEoGXtBY", searchQuery: sq("Lat Pulldown") },
+      { name: "Barbell Row", sets: "10, 8, 8, 6", youtubeId: "vT2GjY_Umpw", searchQuery: sq("Barbell Bent Over Row") },
       { name: "Seated Cable Row", sets: "12, 10, 8, 8", searchQuery: sq("Seated Cable Row") },
       { name: "Dumbbell Pullover", sets: "12, 10, 8", searchQuery: sq("Dumbbell Pullover lat") },
       { name: "Barbell Curl", sets: "10, 8, 8, 6", searchQuery: sq("Barbell Bicep Curl") },
@@ -83,8 +83,8 @@ export const GYM_DAYS: WorkoutDay[] = [
     epoc: true,
     calNote: "Compound pressing is energy-demanding. EPOC afterburn applies.",
     exercises: [
-      { name: "Flat Bench Press", sets: "8, 10, 8, 6", searchQuery: sq("Flat Barbell Bench Press") },
-      { name: "Incline Dumbbell Press", sets: "10, 10, 8, 8", searchQuery: sq("Incline Dumbbell Press") },
+      { name: "Flat Bench Press", sets: "8, 10, 8, 6", youtubeId: "vthMCtgVtFw", searchQuery: sq("Flat Barbell Bench Press") },
+      { name: "Incline Dumbbell Press", sets: "10, 10, 8, 8", youtubeId: "8iPEnn-ltC8", searchQuery: sq("Incline Dumbbell Press") },
       { name: "Cable Fly / Pec Deck", sets: "15, 12, 12, 10", searchQuery: sq("Cable Chest Fly") },
       { name: "Tricep Pushdown", sets: "12, 10, 10, 8", searchQuery: sq("Tricep Pushdown") },
       { name: "Overhead DB Extension", sets: "12, 10, 8", searchQuery: sq("Overhead Dumbbell Tricep Extension") },
@@ -120,11 +120,11 @@ export const GYM_DAYS: WorkoutDay[] = [
     calNote:
       "Highest burn — squats, lunges & RDLs crush your biggest muscles. EPOC adds 10–15% after.",
     exercises: [
-      { name: "Barbell Squat / Leg Press", sets: "10, 8, 8, 6", searchQuery: sq("Barbell Back Squat") },
+      { name: "Barbell Squat / Leg Press", sets: "10, 8, 8, 6", youtubeId: "bEv6CCg2BC8", searchQuery: sq("Barbell Back Squat") },
       { name: "Walking Lunges", sets: "12 each leg x 3", searchQuery: sq("Walking Dumbbell Lunges") },
       { name: "Leg Extension", sets: "15, 12, 10, 10", searchQuery: sq("Leg Extension machine") },
       { name: "Lying Leg Curl", sets: "12, 10, 10, 8", searchQuery: sq("Lying Leg Curl hamstring") },
-      { name: "Romanian Deadlift", sets: "10, 8, 8", searchQuery: sq("Romanian Deadlift RDL barbell") },
+      { name: "Romanian Deadlift", sets: "10, 8, 8", youtubeId: "5zmlnbWb-g4", searchQuery: sq("Romanian Deadlift RDL barbell") },
       { name: "Standing Calf Raise", sets: "20, 15, 15", searchQuery: sq("Standing Calf Raise") },
     ],
   },
@@ -151,7 +151,7 @@ export const HOME_DAYS: WorkoutDay[] = [
     calNote: "Shoulder isolation — moderate intensity.",
     exercises: [
       { name: "DB Seated Shoulder Press", sets: "10, 8, 8, 6", note: "Bench upright", searchQuery: sq("Dumbbell Seated Shoulder Press") },
-      { name: "DB Lateral Raise", sets: "15, 12, 12, 10", note: "Slow & controlled", searchQuery: sq("Dumbbell Lateral Raise") },
+      { name: "DB Lateral Raise", sets: "15, 12, 12, 10", note: "Slow & controlled", youtubeId: "3VcKaXpzqRo", searchQuery: sq("Dumbbell Lateral Raise") },
       { name: "DB Front Raise", sets: "15, 12, 12, 10", note: "Replaces Pec Deck", searchQuery: sq("Dumbbell Front Raise shoulder") },
       { name: "DB Upright Row", sets: "10, 10, 8", note: "Wide grip", searchQuery: sq("Dumbbell Upright Row") },
       { name: "Lying Leg Raise", sets: "15, 15, 12", note: "Bench or floor", searchQuery: sq("Lying Leg Raise abs") },
@@ -178,8 +178,8 @@ export const HOME_DAYS: WorkoutDay[] = [
     cardio: "10–15 min bike · +80–110 cal",
     calNote: "DB pressing and compound movements are energy-demanding.",
     exercises: [
-      { name: "DB Flat Bench Press", sets: "8, 10, 8, 6", note: "Full ROM", searchQuery: sq("Dumbbell Flat Bench Press") },
-      { name: "DB Incline Bench Press", sets: "10, 10, 8, 8", note: "30–45° angle", searchQuery: sq("Incline Dumbbell Bench Press") },
+      { name: "DB Flat Bench Press", sets: "8, 10, 8, 6", note: "Full ROM", youtubeId: "SHsUIZiNdeY", searchQuery: sq("Dumbbell Flat Bench Press") },
+      { name: "DB Incline Bench Press", sets: "10, 10, 8, 8", note: "30–45° angle", youtubeId: "8iPEnn-ltC8", searchQuery: sq("Incline Dumbbell Bench Press") },
       { name: "DB Chest Fly", sets: "15, 12, 12, 10", note: "Replaces Cable Fly", searchQuery: sq("Dumbbell Chest Fly") },
       { name: "DB Tricep Kickback", sets: "12, 10, 10, 8", note: "Replaces Pushdown", searchQuery: sq("Dumbbell Tricep Kickback") },
       { name: "DB Overhead Tricep Extension", sets: "12, 10, 8", note: "Both hands on DB", searchQuery: sq("Overhead Dumbbell Tricep Extension") },
@@ -206,7 +206,7 @@ export const HOME_DAYS: WorkoutDay[] = [
     cardio: "15–20 min bike · +100–140 cal",
     calNote: "Highest burn — goblet squats, lunges & RDLs. EPOC adds 10–15% after.",
     exercises: [
-      { name: "DB Goblet Squat", sets: "10, 8, 8, 6", note: "Replaces Barbell Squat", searchQuery: sq("Goblet Squat dumbbell") },
+      { name: "DB Goblet Squat", sets: "10, 8, 8, 6", note: "Replaces Barbell Squat", youtubeId: "MeIiIdhvXT4", searchQuery: sq("Goblet Squat dumbbell") },
       { name: "DB Walking Lunges", sets: "12 each leg x 3", note: "DBs at sides", searchQuery: sq("Dumbbell Walking Lunges") },
       { name: "DB Bulgarian Split Squat", sets: "15, 12, 10, 10", note: "Rear foot on bench", searchQuery: sq("Bulgarian Split Squat dumbbell") },
       { name: "DB Romanian Deadlift", sets: "12, 10, 10, 8", note: "Feel hamstring stretch", searchQuery: sq("Dumbbell Romanian Deadlift") },
