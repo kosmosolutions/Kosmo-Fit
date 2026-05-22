@@ -4,6 +4,7 @@ import { useState } from "react";
 import { House, Building, Sparkles } from "lucide-react";
 import { ExerciseCard } from "./ExerciseCard";
 import { WellnessSection } from "./WellnessSection";
+import { SessionTimer } from "./SessionTimer";
 import { GYM_DAYS, HOME_DAYS, type WorkoutDay } from "@/data/workouts";
 import { cn } from "@/lib/cn";
 import type { WorkoutMode } from "@/lib/types";
@@ -187,6 +188,9 @@ export function WorkoutClient({
           ) : null}
         </div>
       </button>
+
+      {/* Session timer */}
+      <SessionTimer color={d.color} />
 
       {/* Day card with exercises */}
       <div
