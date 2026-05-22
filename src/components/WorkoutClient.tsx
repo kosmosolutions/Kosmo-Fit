@@ -7,15 +7,17 @@ import {
   Building,
   Sparkles,
   Library,
-  Pencil,
   Plus,
   RotateCcw,
   Trash2,
+  Repeat,
+  MoreVertical,
 } from "lucide-react";
 import { ExerciseCard } from "./ExerciseCard";
 import { WellnessSection } from "./WellnessSection";
 import { SessionTimer } from "./SessionTimer";
 import { AddExerciseSheet } from "./AddExerciseSheet";
+import { SwipeableRow } from "./SwipeableRow";
 import {
   GYM_DAYS,
   HOME_DAYS,
@@ -29,6 +31,10 @@ import {
   resetDayToDefaults,
   type UserExerciseRow,
 } from "@/lib/actions/workout-plan";
+
+type AddTarget =
+  | { kind: "add" }
+  | { kind: "replace"; position: number; name: string };
 
 interface Props {
   initialMode: WorkoutMode;
@@ -69,8 +75,8 @@ export function WorkoutClient({
   const [mode, setMode] = useState<WorkoutMode>(initialMode);
   const [wDay, setWDay] = useState(Math.max(0, initialDay));
   const [expanded, setExpanded] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [addingOpen, setAddingOpen] = useState(false);
+  const [addTarget, setAddTarget] = useState<AddTarget | null>(null);
+  const [openPos, setOpenPos] = useState<number | null>(null);
   const [mutPending, startMut] = useTransition();
   const days = mode === "gym" ? GYM_DAYS : HOME_DAYS;
   const d: WorkoutDay = days[wDay];
@@ -101,9 +107,15 @@ export function WorkoutClient({
   }, [planRows, wDay, d.exercises]);
 
   function handleDelete(position: number) {
+    setOpenPos(null);
     startMut(async () => {
       await removeExerciseFromDay(mode, wDay, position);
     });
+  }
+
+  function handleReplace(position: number, name: string) {
+    setOpenPos(null);
+    setAddTarget({ kind: "replace", position, name });
   }
 
   function handleReset() {
@@ -166,23 +178,6 @@ export function WorkoutClient({
             <Library className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Library</span>
           </Link>
-          <button
-            type="button"
-            onClick={() => {
-              setEditMode((v) => !v);
-              setView("training");
-            }}
-            className={cn(
-              "flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition",
-              editMode
-                ? "bg-accent-cyan/20 text-accent-cyan ring-1 ring-accent-cyan/40"
-                : "bg-white/[0.06] text-chalk-400 hover:text-chalk-200",
-            )}
-            aria-pressed={editMode}
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">{editMode ? "Done" : "Edit"}</span>
-          </button>
         </div>
       </div>
 
@@ -332,63 +327,100 @@ export function WorkoutClient({
             </div>
           </div>
         </div>
-        <div className="rounded-b-2xl bg-ink-850 px-4 py-2">
+        <div className="rounded-b-2xl bg-ink-850 px-1 py-1">
           {displayExercises.map((row, i) => (
-            <div
+            <SwipeableRow
               key={`${row.exercise.name}-${row.position}`}
-              className="relative"
+              forceOpen={openPos === row.position}
+              onOpen={() => setOpenPos(row.position)}
+              actions={
+                <div className="flex h-full w-full">
+                  <button
+                    type="button"
+                    onClick={() => handleReplace(row.position, row.exercise.name)}
+                    disabled={mutPending}
+                    className="flex h-full flex-1 flex-col items-center justify-center gap-1 bg-accent-cyan/90 text-[11px] font-extrabold uppercase tracking-wider text-ink-950 transition hover:bg-accent-cyan disabled:opacity-60"
+                    aria-label={`Replace ${row.exercise.name}`}
+                  >
+                    <Repeat className="h-4 w-4" />
+                    Replace
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(row.position)}
+                    disabled={mutPending}
+                    className="flex h-full flex-1 flex-col items-center justify-center gap-1 bg-accent-rose/90 text-[11px] font-extrabold uppercase tracking-wider text-ink-950 transition hover:bg-accent-rose disabled:opacity-60"
+                    aria-label={`Delete ${row.exercise.name}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                </div>
+              }
             >
-              <ExerciseCard
-                index={i}
-                exercise={row.exercise}
-                color={d.color}
-              />
-              {editMode && (
+              <div className="relative pr-7 pl-3">
+                <ExerciseCard
+                  index={i}
+                  exercise={row.exercise}
+                  color={d.color}
+                />
                 <button
                   type="button"
-                  onClick={() => handleDelete(row.position)}
-                  disabled={mutPending}
-                  aria-label={`Remove ${row.exercise.name}`}
-                  className="absolute right-0 top-3 grid h-7 w-7 place-items-center rounded-lg border border-accent-rose/30 bg-accent-rose/10 text-accent-rose transition hover:bg-accent-rose/20 disabled:opacity-50"
+                  onClick={() =>
+                    setOpenPos(openPos === row.position ? null : row.position)
+                  }
+                  aria-label={`Options for ${row.exercise.name}`}
+                  aria-expanded={openPos === row.position}
+                  className="absolute right-0 top-3 grid h-8 w-8 place-items-center rounded-lg text-chalk-400 transition hover:bg-white/[0.06] hover:text-chalk-100"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <MoreVertical className="h-4 w-4" />
                 </button>
-              )}
-            </div>
+              </div>
+            </SwipeableRow>
           ))}
+        </div>
+      </div>
 
-          {editMode && (
-            <div className="flex flex-wrap items-center gap-2 border-t border-white/[0.05] pt-3 pb-2">
+      {/* Day-card footer: prominent Add CTA + Reset (when customized).
+          Swipe left on any exercise above for Replace / Delete. */}
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => setAddTarget({ kind: "add" })}
+          disabled={mutPending}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-4 text-sm font-extrabold transition disabled:opacity-50"
+          style={{
+            color: d.color,
+            borderColor: `${d.color}66`,
+            background: `${d.color}10`,
+          }}
+        >
+          <Plus className="h-5 w-5" />
+          Add exercise to {d.day}
+        </button>
+
+        <div className="flex items-center justify-between gap-2 px-1 text-[10px] uppercase tracking-wider text-chalk-500">
+          <span className="hidden sm:inline">
+            Swipe a row left for Replace / Delete · or tap{" "}
+            <MoreVertical className="inline h-3 w-3 -translate-y-px" />
+          </span>
+          <span className="sm:hidden">
+            Swipe ← on a row for options
+          </span>
+          <div className="flex items-center gap-2">
+            <span>{customized ? "Custom" : "Default"}</span>
+            {customized && (
               <button
                 type="button"
-                onClick={() => setAddingOpen(true)}
+                onClick={handleReset}
                 disabled={mutPending}
-                className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition disabled:opacity-50"
-                style={{
-                  color: d.color,
-                  borderColor: `${d.color}55`,
-                  background: `${d.color}1a`,
-                }}
+                className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px] font-bold text-chalk-300 transition hover:bg-white/[0.08] disabled:opacity-50"
               >
-                <Plus className="h-3.5 w-3.5" />
-                Add exercise
+                <RotateCcw className="h-3 w-3" />
+                Reset
               </button>
-              {customized && (
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  disabled={mutPending}
-                  className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-chalk-300 transition hover:bg-white/[0.08] disabled:opacity-50"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  Reset to default
-                </button>
-              )}
-              <span className="text-[10px] uppercase tracking-wider text-chalk-500">
-                {customized ? "Custom" : "Default"}
-              </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -407,13 +439,18 @@ export function WorkoutClient({
       ) : null}
       </>}
 
-      {addingOpen && (
+      {addTarget && (
         <AddExerciseSheet
           mode={mode}
           dayIndex={wDay}
           dayLabel={`${d.day} · ${d.focus}`}
           dayColor={d.color}
-          onClose={() => setAddingOpen(false)}
+          replaceTarget={
+            addTarget.kind === "replace"
+              ? { position: addTarget.position, name: addTarget.name }
+              : undefined
+          }
+          onClose={() => setAddTarget(null)}
         />
       )}
     </div>

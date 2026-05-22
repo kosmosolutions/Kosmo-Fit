@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { Dumbbell, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { addExerciseToDay } from "@/lib/actions/workout-plan";
+import {
+  addExerciseToDay,
+  replaceExerciseInDay,
+} from "@/lib/actions/workout-plan";
 import type { WorkoutMode } from "@/lib/types";
 
 const FED_BASE =
@@ -61,12 +64,18 @@ export function AddExerciseSheet({
   dayIndex,
   dayLabel,
   dayColor,
+  replaceTarget,
   onClose,
 }: {
   mode: WorkoutMode;
   dayIndex: number;
   dayLabel: string;
   dayColor: string;
+  /**
+   * If set, picking an exercise replaces the row at this position
+   * instead of appending a new one. `name` is shown in the header.
+   */
+  replaceTarget?: { position: number; name: string };
   onClose: () => void;
 }) {
   const [all, setAll] = useState<CatalogExercise[] | null>(null);
@@ -136,14 +145,22 @@ export function AddExerciseSheet({
     setAdding(ex.id);
     start(async () => {
       try {
-        await addExerciseToDay({
+        const payload = {
           mode,
           day_index: dayIndex,
           catalog_id: ex.id,
           name: ex.name,
           search_query: `${ex.name} proper form tutorial`,
           images: ex.images.map((p) => `${FED_BASE}/${p}`),
-        });
+        };
+        if (replaceTarget) {
+          await replaceExerciseInDay({
+            ...payload,
+            position: replaceTarget.position,
+          });
+        } else {
+          await addExerciseToDay(payload);
+        }
         onClose();
       } finally {
         setAdding(null);
@@ -170,7 +187,7 @@ export function AddExerciseSheet({
               className="text-[10px] font-bold uppercase tracking-[2px]"
               style={{ color: dayColor }}
             >
-              Add to {dayLabel}
+              {replaceTarget ? `Replace ${replaceTarget.name}` : `Add to ${dayLabel}`}
             </div>
             <div className="text-sm font-bold text-chalk-50">
               {mode === "home" ? "Home library" : "Full library"} ·{" "}
