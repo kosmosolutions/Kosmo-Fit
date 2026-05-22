@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, BookOpen, Plus, Star } from "lucide-react";
+import { ArrowLeft, BookOpen, Library, Plus, Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteRecipeButton } from "./DeleteRecipeButton";
 import type { Recipe } from "@/lib/types";
@@ -23,7 +23,7 @@ export default async function RecipesPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <Link
           href="/diet"
           className="flex items-center gap-1 text-sm font-bold text-chalk-300 hover:text-chalk-50"
@@ -31,9 +31,16 @@ export default async function RecipesPage() {
           <ArrowLeft className="h-4 w-4" />
           Back
         </Link>
-        <Link href="/diet/recipes/new" className="btn-primary">
-          <Plus className="h-4 w-4" /> New recipe
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/diet/recipes/catalog" className="btn-secondary">
+            <Library className="h-4 w-4" />
+            <span className="hidden sm:inline">Browse catalog</span>
+            <span className="sm:hidden">Library</span>
+          </Link>
+          <Link href="/diet/recipes/new" className="btn-primary">
+            <Plus className="h-4 w-4" /> New
+          </Link>
+        </div>
       </div>
 
       <div>
