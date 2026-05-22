@@ -3,23 +3,33 @@
  *
  * Each exercise has a `searchQuery` that opens a YouTube search in a new tab.
  *
- * For inline demos, prefer `gifUrl` — a short looping GIF (Giphy or self-hosted
- * under `/public/gifs/...`) is lighter than a YouTube embed and starts instantly.
- * Fall back to `youtubeId` for longer-form demos that need a full player.
- * Resolution order at render time: gifUrl > youtubeId > searchQuery link.
+ * For inline demos, `images` (an array of frame URLs) is preferred over
+ * `youtubeId` — frames cycle to produce a lightweight movement loop without
+ * any iframe overhead. Two frames (start + end pose) is the typical case.
+ * Self-hosted assets under `/public/gifs/*` and remote URLs both work.
  *
- *   { name: "Flat Bench Press", sets: "8, 10, 8, 6",
- *     gifUrl: "/gifs/flat-bench-press.gif",
- *     searchQuery: "Flat Barbell Bench Press tutorial" }
+ * Frames here come from the free-exercise-db dataset (CC0):
+ *   https://github.com/yuhonas/free-exercise-db
+ * Each exercise has `0.jpg` (start) and `1.jpg` (end) under its ID folder.
+ *
+ * Resolution order at render time: images > youtubeId > searchQuery link.
  */
 
 import type { WorkoutMode } from "@/lib/types";
+
+const FED_BASE =
+  "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises";
+
+const fed = (id: string): string[] => [
+  `${FED_BASE}/${id}/0.jpg`,
+  `${FED_BASE}/${id}/1.jpg`,
+];
 
 export interface Exercise {
   name: string;
   sets: string;
   note?: string;
-  gifUrl?: string;
+  images?: string[];
   youtubeId?: string;
   searchQuery: string;
 }
@@ -50,12 +60,12 @@ export const GYM_DAYS: WorkoutDay[] = [
     epoc: false,
     calNote: "Shoulder isolation — moderate intensity. Abs add little.",
     exercises: [
-      { name: "Seated Shoulder Press", sets: "10, 8, 8, 6", youtubeId: "fHsKn4iUOhU", searchQuery: sq("Seated Dumbbell Shoulder Press") },
-      { name: "DB Lateral Raise", sets: "15, 12, 12, 10", youtubeId: "3VcKaXpzqRo", searchQuery: sq("Dumbbell Lateral Raise") },
-      { name: "Reverse Pec Deck", sets: "15, 12, 12, 10", searchQuery: sq("Reverse Pec Deck rear delt fly") },
-      { name: "Upright Row", sets: "10, 10, 8", searchQuery: sq("Barbell Upright Row") },
-      { name: "Hanging Leg Raise", sets: "15, 15, 12", searchQuery: sq("Hanging Leg Raise") },
-      { name: "Cable Crunch", sets: "20, 15, 15", searchQuery: sq("Cable Crunch abs") },
+      { name: "Seated Shoulder Press", sets: "10, 8, 8, 6", images: fed("Dumbbell_Shoulder_Press"), youtubeId: "fHsKn4iUOhU", searchQuery: sq("Seated Dumbbell Shoulder Press") },
+      { name: "DB Lateral Raise", sets: "15, 12, 12, 10", images: fed("Side_Lateral_Raise"), youtubeId: "3VcKaXpzqRo", searchQuery: sq("Dumbbell Lateral Raise") },
+      { name: "Reverse Pec Deck", sets: "15, 12, 12, 10", images: fed("Reverse_Flyes"), searchQuery: sq("Reverse Pec Deck rear delt fly") },
+      { name: "Upright Row", sets: "10, 10, 8", images: fed("Upright_Barbell_Row"), searchQuery: sq("Barbell Upright Row") },
+      { name: "Hanging Leg Raise", sets: "15, 15, 12", images: fed("Hanging_Leg_Raise"), searchQuery: sq("Hanging Leg Raise") },
+      { name: "Cable Crunch", sets: "20, 15, 15", images: fed("Cable_Crunch"), searchQuery: sq("Cable Crunch abs") },
     ],
   },
   {
@@ -68,12 +78,12 @@ export const GYM_DAYS: WorkoutDay[] = [
     epoc: true,
     calNote: "Large back muscles = high burn. EPOC adds 10–15% for hours after.",
     exercises: [
-      { name: "Pull-Ups / Lat Pulldown", sets: "12, 10, 10, 8", youtubeId: "O94yEoGXtBY", searchQuery: sq("Lat Pulldown") },
-      { name: "Barbell Row", sets: "10, 8, 8, 6", youtubeId: "vT2GjY_Umpw", searchQuery: sq("Barbell Bent Over Row") },
-      { name: "Seated Cable Row", sets: "12, 10, 8, 8", searchQuery: sq("Seated Cable Row") },
-      { name: "Dumbbell Pullover", sets: "12, 10, 8", searchQuery: sq("Dumbbell Pullover lat") },
-      { name: "Barbell Curl", sets: "10, 8, 8, 6", searchQuery: sq("Barbell Bicep Curl") },
-      { name: "Incline Dumbbell Curl", sets: "12, 10, 8", searchQuery: sq("Incline Dumbbell Curl") },
+      { name: "Pull-Ups / Lat Pulldown", sets: "12, 10, 10, 8", images: fed("Wide-Grip_Lat_Pulldown"), youtubeId: "O94yEoGXtBY", searchQuery: sq("Lat Pulldown") },
+      { name: "Barbell Row", sets: "10, 8, 8, 6", images: fed("Bent_Over_Barbell_Row"), youtubeId: "vT2GjY_Umpw", searchQuery: sq("Barbell Bent Over Row") },
+      { name: "Seated Cable Row", sets: "12, 10, 8, 8", images: fed("Seated_Cable_Rows"), searchQuery: sq("Seated Cable Row") },
+      { name: "Dumbbell Pullover", sets: "12, 10, 8", images: fed("Straight-Arm_Dumbbell_Pullover"), searchQuery: sq("Dumbbell Pullover lat") },
+      { name: "Barbell Curl", sets: "10, 8, 8, 6", images: fed("Barbell_Curl"), searchQuery: sq("Barbell Bicep Curl") },
+      { name: "Incline Dumbbell Curl", sets: "12, 10, 8", images: fed("Incline_Dumbbell_Curl"), searchQuery: sq("Incline Dumbbell Curl") },
     ],
   },
   {
@@ -86,12 +96,12 @@ export const GYM_DAYS: WorkoutDay[] = [
     epoc: true,
     calNote: "Compound pressing is energy-demanding. EPOC afterburn applies.",
     exercises: [
-      { name: "Flat Bench Press", sets: "8, 10, 8, 6", youtubeId: "vthMCtgVtFw", searchQuery: sq("Flat Barbell Bench Press") },
-      { name: "Incline Dumbbell Press", sets: "10, 10, 8, 8", youtubeId: "8iPEnn-ltC8", searchQuery: sq("Incline Dumbbell Press") },
-      { name: "Cable Fly / Pec Deck", sets: "15, 12, 12, 10", searchQuery: sq("Cable Chest Fly") },
-      { name: "Tricep Pushdown", sets: "12, 10, 10, 8", searchQuery: sq("Tricep Pushdown") },
-      { name: "Overhead DB Extension", sets: "12, 10, 8", searchQuery: sq("Overhead Dumbbell Tricep Extension") },
-      { name: "Dips", sets: "3 sets to failure", searchQuery: sq("Tricep Dips bodyweight") },
+      { name: "Flat Bench Press", sets: "8, 10, 8, 6", images: fed("Barbell_Bench_Press_-_Medium_Grip"), youtubeId: "vthMCtgVtFw", searchQuery: sq("Flat Barbell Bench Press") },
+      { name: "Incline Dumbbell Press", sets: "10, 10, 8, 8", images: fed("Incline_Dumbbell_Press"), youtubeId: "8iPEnn-ltC8", searchQuery: sq("Incline Dumbbell Press") },
+      { name: "Cable Fly / Pec Deck", sets: "15, 12, 12, 10", images: fed("Cable_Crossover"), searchQuery: sq("Cable Chest Fly") },
+      { name: "Tricep Pushdown", sets: "12, 10, 10, 8", images: fed("Triceps_Pushdown"), searchQuery: sq("Tricep Pushdown") },
+      { name: "Overhead DB Extension", sets: "12, 10, 8", images: fed("Seated_Triceps_Press"), searchQuery: sq("Overhead Dumbbell Tricep Extension") },
+      { name: "Dips", sets: "3 sets to failure", images: fed("Dips_-_Triceps_Version"), searchQuery: sq("Tricep Dips bodyweight") },
     ],
   },
   {
@@ -104,12 +114,12 @@ export const GYM_DAYS: WorkoutDay[] = [
     epoc: false,
     calNote: "Isolation exercises use smaller muscles — lowest burn day.",
     exercises: [
-      { name: "Close-Grip Bench Press", sets: "10, 8, 8, 6", searchQuery: sq("Close Grip Bench Press triceps") },
-      { name: "Tricep Pushdown", sets: "12, 10, 10, 8", searchQuery: sq("Tricep Pushdown") },
-      { name: "Skull Crushers", sets: "10, 8, 8", searchQuery: sq("Skull Crushers EZ bar") },
-      { name: "Barbell Curl", sets: "10, 8, 8, 6", searchQuery: sq("Barbell Bicep Curl") },
-      { name: "Hammer Curl", sets: "12, 10, 10", searchQuery: sq("Dumbbell Hammer Curl") },
-      { name: "Preacher Curl", sets: "12, 10, 8", searchQuery: sq("Preacher Curl bicep") },
+      { name: "Close-Grip Bench Press", sets: "10, 8, 8, 6", images: fed("Close-Grip_Barbell_Bench_Press"), searchQuery: sq("Close Grip Bench Press triceps") },
+      { name: "Tricep Pushdown", sets: "12, 10, 10, 8", images: fed("Triceps_Pushdown"), searchQuery: sq("Tricep Pushdown") },
+      { name: "Skull Crushers", sets: "10, 8, 8", images: fed("EZ-Bar_Skullcrusher"), searchQuery: sq("Skull Crushers EZ bar") },
+      { name: "Barbell Curl", sets: "10, 8, 8, 6", images: fed("Barbell_Curl"), searchQuery: sq("Barbell Bicep Curl") },
+      { name: "Hammer Curl", sets: "12, 10, 10", images: fed("Hammer_Curls"), searchQuery: sq("Dumbbell Hammer Curl") },
+      { name: "Preacher Curl", sets: "12, 10, 8", images: fed("Preacher_Curl"), searchQuery: sq("Preacher Curl bicep") },
     ],
   },
   {
@@ -123,12 +133,12 @@ export const GYM_DAYS: WorkoutDay[] = [
     calNote:
       "Highest burn — squats, lunges & RDLs crush your biggest muscles. EPOC adds 10–15% after.",
     exercises: [
-      { name: "Barbell Squat / Leg Press", sets: "10, 8, 8, 6", youtubeId: "bEv6CCg2BC8", searchQuery: sq("Barbell Back Squat") },
-      { name: "Walking Lunges", sets: "12 each leg x 3", searchQuery: sq("Walking Dumbbell Lunges") },
-      { name: "Leg Extension", sets: "15, 12, 10, 10", searchQuery: sq("Leg Extension machine") },
-      { name: "Lying Leg Curl", sets: "12, 10, 10, 8", searchQuery: sq("Lying Leg Curl hamstring") },
-      { name: "Romanian Deadlift", sets: "10, 8, 8", youtubeId: "5zmlnbWb-g4", searchQuery: sq("Romanian Deadlift RDL barbell") },
-      { name: "Standing Calf Raise", sets: "20, 15, 15", searchQuery: sq("Standing Calf Raise") },
+      { name: "Barbell Squat / Leg Press", sets: "10, 8, 8, 6", images: fed("Barbell_Squat"), youtubeId: "bEv6CCg2BC8", searchQuery: sq("Barbell Back Squat") },
+      { name: "Walking Lunges", sets: "12 each leg x 3", images: fed("Dumbbell_Lunges"), searchQuery: sq("Walking Dumbbell Lunges") },
+      { name: "Leg Extension", sets: "15, 12, 10, 10", images: fed("Leg_Extensions"), searchQuery: sq("Leg Extension machine") },
+      { name: "Lying Leg Curl", sets: "12, 10, 10, 8", images: fed("Lying_Leg_Curls"), searchQuery: sq("Lying Leg Curl hamstring") },
+      { name: "Romanian Deadlift", sets: "10, 8, 8", images: fed("Romanian_Deadlift"), youtubeId: "5zmlnbWb-g4", searchQuery: sq("Romanian Deadlift RDL barbell") },
+      { name: "Standing Calf Raise", sets: "20, 15, 15", images: fed("Standing_Calf_Raises"), searchQuery: sq("Standing Calf Raise") },
     ],
   },
   {
@@ -153,12 +163,12 @@ export const HOME_DAYS: WorkoutDay[] = [
     cardio: "10–15 min bike · +80–110 cal",
     calNote: "Shoulder isolation — moderate intensity.",
     exercises: [
-      { name: "DB Seated Shoulder Press", sets: "10, 8, 8, 6", note: "Bench upright", searchQuery: sq("Dumbbell Seated Shoulder Press") },
-      { name: "DB Lateral Raise", sets: "15, 12, 12, 10", note: "Slow & controlled", youtubeId: "3VcKaXpzqRo", searchQuery: sq("Dumbbell Lateral Raise") },
-      { name: "DB Front Raise", sets: "15, 12, 12, 10", note: "Replaces Pec Deck", searchQuery: sq("Dumbbell Front Raise shoulder") },
-      { name: "DB Upright Row", sets: "10, 10, 8", note: "Wide grip", searchQuery: sq("Dumbbell Upright Row") },
-      { name: "Lying Leg Raise", sets: "15, 15, 12", note: "Bench or floor", searchQuery: sq("Lying Leg Raise abs") },
-      { name: "DB Weighted Crunch", sets: "20, 15, 15", note: "DB on chest", searchQuery: sq("Weighted Crunch dumbbell") },
+      { name: "DB Seated Shoulder Press", sets: "10, 8, 8, 6", note: "Bench upright", images: fed("Dumbbell_Shoulder_Press"), searchQuery: sq("Dumbbell Seated Shoulder Press") },
+      { name: "DB Lateral Raise", sets: "15, 12, 12, 10", note: "Slow & controlled", images: fed("Side_Lateral_Raise"), youtubeId: "3VcKaXpzqRo", searchQuery: sq("Dumbbell Lateral Raise") },
+      { name: "DB Front Raise", sets: "15, 12, 12, 10", note: "Replaces Pec Deck", images: fed("Front_Dumbbell_Raise"), searchQuery: sq("Dumbbell Front Raise shoulder") },
+      { name: "DB Upright Row", sets: "10, 10, 8", note: "Wide grip", images: fed("Dumbbell_One-Arm_Upright_Row"), searchQuery: sq("Dumbbell Upright Row") },
+      { name: "Lying Leg Raise", sets: "15, 15, 12", note: "Bench or floor", images: fed("Flat_Bench_Lying_Leg_Raise"), searchQuery: sq("Lying Leg Raise abs") },
+      { name: "DB Weighted Crunch", sets: "20, 15, 15", note: "DB on chest", images: fed("Weighted_Crunches"), searchQuery: sq("Weighted Crunch dumbbell") },
     ],
   },
   {
@@ -167,12 +177,12 @@ export const HOME_DAYS: WorkoutDay[] = [
     cardio: "10–15 min bike · +80–110 cal",
     calNote: "Large back muscles = high burn. EPOC adds 10–15% after.",
     exercises: [
-      { name: "DB Bent-Over Row", sets: "12, 10, 10, 8", note: "Replaces Lat Pulldown", searchQuery: sq("Dumbbell Bent Over Row") },
-      { name: "Single-Arm DB Row", sets: "10, 8, 8, 6", note: "Brace on bench", searchQuery: sq("Single Arm Dumbbell Row") },
-      { name: "DB Seal Row", sets: "12, 10, 8, 8", note: "Face down on bench", searchQuery: sq("Dumbbell Seal Row chest supported") },
-      { name: "DB Pullover", sets: "12, 10, 8", note: "Full stretch", searchQuery: sq("Dumbbell Pullover") },
-      { name: "DB Bicep Curl", sets: "10, 8, 8, 6", note: "Slow eccentric", searchQuery: sq("Dumbbell Bicep Curl") },
-      { name: "Incline DB Curl", sets: "12, 10, 8", note: "Bench at 45°", searchQuery: sq("Incline Dumbbell Curl") },
+      { name: "DB Bent-Over Row", sets: "12, 10, 10, 8", note: "Replaces Lat Pulldown", images: fed("Bent_Over_Two-Dumbbell_Row"), searchQuery: sq("Dumbbell Bent Over Row") },
+      { name: "Single-Arm DB Row", sets: "10, 8, 8, 6", note: "Brace on bench", images: fed("One-Arm_Dumbbell_Row"), searchQuery: sq("Single Arm Dumbbell Row") },
+      { name: "DB Seal Row", sets: "12, 10, 8, 8", note: "Face down on bench", images: fed("Bent_Over_Two-Dumbbell_Row"), searchQuery: sq("Dumbbell Seal Row chest supported") },
+      { name: "DB Pullover", sets: "12, 10, 8", note: "Full stretch", images: fed("Straight-Arm_Dumbbell_Pullover"), searchQuery: sq("Dumbbell Pullover") },
+      { name: "DB Bicep Curl", sets: "10, 8, 8, 6", note: "Slow eccentric", images: fed("Dumbbell_Bicep_Curl"), searchQuery: sq("Dumbbell Bicep Curl") },
+      { name: "Incline DB Curl", sets: "12, 10, 8", note: "Bench at 45°", images: fed("Incline_Dumbbell_Curl"), searchQuery: sq("Incline Dumbbell Curl") },
     ],
   },
   {
@@ -181,12 +191,12 @@ export const HOME_DAYS: WorkoutDay[] = [
     cardio: "10–15 min bike · +80–110 cal",
     calNote: "DB pressing and compound movements are energy-demanding.",
     exercises: [
-      { name: "DB Flat Bench Press", sets: "8, 10, 8, 6", note: "Full ROM", youtubeId: "SHsUIZiNdeY", searchQuery: sq("Dumbbell Flat Bench Press") },
-      { name: "DB Incline Bench Press", sets: "10, 10, 8, 8", note: "30–45° angle", youtubeId: "8iPEnn-ltC8", searchQuery: sq("Incline Dumbbell Bench Press") },
-      { name: "DB Chest Fly", sets: "15, 12, 12, 10", note: "Replaces Cable Fly", searchQuery: sq("Dumbbell Chest Fly") },
-      { name: "DB Tricep Kickback", sets: "12, 10, 10, 8", note: "Replaces Pushdown", searchQuery: sq("Dumbbell Tricep Kickback") },
-      { name: "DB Overhead Tricep Extension", sets: "12, 10, 8", note: "Both hands on DB", searchQuery: sq("Overhead Dumbbell Tricep Extension") },
-      { name: "Diamond Push-Ups", sets: "3 sets to failure", note: "Replaces Dips", searchQuery: sq("Diamond Push Ups triceps") },
+      { name: "DB Flat Bench Press", sets: "8, 10, 8, 6", note: "Full ROM", images: fed("Dumbbell_Bench_Press"), youtubeId: "SHsUIZiNdeY", searchQuery: sq("Dumbbell Flat Bench Press") },
+      { name: "DB Incline Bench Press", sets: "10, 10, 8, 8", note: "30–45° angle", images: fed("Incline_Dumbbell_Press"), youtubeId: "8iPEnn-ltC8", searchQuery: sq("Incline Dumbbell Bench Press") },
+      { name: "DB Chest Fly", sets: "15, 12, 12, 10", note: "Replaces Cable Fly", images: fed("Dumbbell_Flyes"), searchQuery: sq("Dumbbell Chest Fly") },
+      { name: "DB Tricep Kickback", sets: "12, 10, 10, 8", note: "Replaces Pushdown", images: fed("Tricep_Dumbbell_Kickback"), searchQuery: sq("Dumbbell Tricep Kickback") },
+      { name: "DB Overhead Tricep Extension", sets: "12, 10, 8", note: "Both hands on DB", images: fed("Seated_Triceps_Press"), searchQuery: sq("Overhead Dumbbell Tricep Extension") },
+      { name: "Diamond Push-Ups", sets: "3 sets to failure", note: "Replaces Dips", images: fed("Pushups_Close_and_Wide_Hand_Positions"), searchQuery: sq("Diamond Push Ups triceps") },
     ],
   },
   {
@@ -195,12 +205,12 @@ export const HOME_DAYS: WorkoutDay[] = [
     cardio: "10–15 min bike · +80–110 cal",
     calNote: "Isolation exercises — lowest burn day.",
     exercises: [
-      { name: "Close-Grip DB Press", sets: "10, 8, 8, 6", note: "Elbows tucked", searchQuery: sq("Close Grip Dumbbell Press triceps") },
-      { name: "DB Tricep Kickback", sets: "12, 10, 10, 8", note: "Hinge at hips", searchQuery: sq("Dumbbell Tricep Kickback") },
-      { name: "DB Skull Crushers", sets: "10, 8, 8", note: "Lower to forehead", searchQuery: sq("Dumbbell Skull Crushers") },
-      { name: "DB Bicep Curl", sets: "10, 8, 8, 6", note: "Supinate at top", searchQuery: sq("Dumbbell Bicep Curl") },
-      { name: "DB Hammer Curl", sets: "12, 10, 10", note: "Neutral grip", searchQuery: sq("Dumbbell Hammer Curl") },
-      { name: "DB Concentration Curl", sets: "12, 10, 8", note: "Elbow on knee", searchQuery: sq("Dumbbell Concentration Curl") },
+      { name: "Close-Grip DB Press", sets: "10, 8, 8, 6", note: "Elbows tucked", images: fed("Dumbbell_Bench_Press"), searchQuery: sq("Close Grip Dumbbell Press triceps") },
+      { name: "DB Tricep Kickback", sets: "12, 10, 10, 8", note: "Hinge at hips", images: fed("Tricep_Dumbbell_Kickback"), searchQuery: sq("Dumbbell Tricep Kickback") },
+      { name: "DB Skull Crushers", sets: "10, 8, 8", note: "Lower to forehead", images: fed("Lying_Dumbbell_Tricep_Extension"), searchQuery: sq("Dumbbell Skull Crushers") },
+      { name: "DB Bicep Curl", sets: "10, 8, 8, 6", note: "Supinate at top", images: fed("Dumbbell_Bicep_Curl"), searchQuery: sq("Dumbbell Bicep Curl") },
+      { name: "DB Hammer Curl", sets: "12, 10, 10", note: "Neutral grip", images: fed("Hammer_Curls"), searchQuery: sq("Dumbbell Hammer Curl") },
+      { name: "DB Concentration Curl", sets: "12, 10, 8", note: "Elbow on knee", images: fed("Concentration_Curls"), searchQuery: sq("Dumbbell Concentration Curl") },
     ],
   },
   {
@@ -209,12 +219,12 @@ export const HOME_DAYS: WorkoutDay[] = [
     cardio: "15–20 min bike · +100–140 cal",
     calNote: "Highest burn — goblet squats, lunges & RDLs. EPOC adds 10–15% after.",
     exercises: [
-      { name: "DB Goblet Squat", sets: "10, 8, 8, 6", note: "Replaces Barbell Squat", youtubeId: "MeIiIdhvXT4", searchQuery: sq("Goblet Squat dumbbell") },
-      { name: "DB Walking Lunges", sets: "12 each leg x 3", note: "DBs at sides", searchQuery: sq("Dumbbell Walking Lunges") },
-      { name: "DB Bulgarian Split Squat", sets: "15, 12, 10, 10", note: "Rear foot on bench", searchQuery: sq("Bulgarian Split Squat dumbbell") },
-      { name: "DB Romanian Deadlift", sets: "12, 10, 10, 8", note: "Feel hamstring stretch", searchQuery: sq("Dumbbell Romanian Deadlift") },
-      { name: "DB Stiff-Leg Deadlift", sets: "10, 8, 8", note: "Replaces Leg Curl", searchQuery: sq("Dumbbell Stiff Leg Deadlift hamstring") },
-      { name: "Single-Leg Calf Raise", sets: "20, 15, 15", note: "Slow & full range", searchQuery: sq("Single Leg Calf Raise") },
+      { name: "DB Goblet Squat", sets: "10, 8, 8, 6", note: "Replaces Barbell Squat", images: fed("Goblet_Squat"), youtubeId: "MeIiIdhvXT4", searchQuery: sq("Goblet Squat dumbbell") },
+      { name: "DB Walking Lunges", sets: "12 each leg x 3", note: "DBs at sides", images: fed("Dumbbell_Lunges"), searchQuery: sq("Dumbbell Walking Lunges") },
+      { name: "DB Bulgarian Split Squat", sets: "15, 12, 10, 10", note: "Rear foot on bench", images: fed("Split_Squat_with_Dumbbells"), searchQuery: sq("Bulgarian Split Squat dumbbell") },
+      { name: "DB Romanian Deadlift", sets: "12, 10, 10, 8", note: "Feel hamstring stretch", images: fed("Romanian_Deadlift"), searchQuery: sq("Dumbbell Romanian Deadlift") },
+      { name: "DB Stiff-Leg Deadlift", sets: "10, 8, 8", note: "Replaces Leg Curl", images: fed("Stiff-Legged_Dumbbell_Deadlift"), searchQuery: sq("Dumbbell Stiff Leg Deadlift hamstring") },
+      { name: "Single-Leg Calf Raise", sets: "20, 15, 15", note: "Slow & full range", images: fed("Dumbbell_Seated_One-Leg_Calf_Raise"), searchQuery: sq("Single Leg Calf Raise") },
     ],
   },
   {
@@ -239,7 +249,7 @@ export interface WellnessRoutine {
   duration: string;
   icon: string;
   color: string;
-  gifUrl?: string;
+  images?: string[];
   youtubeId: string;
 }
 
