@@ -31,6 +31,15 @@ export function ProfileEditor({
     lifestyle: profile.lifestyle,
     workout_mode: profile.workout_mode,
     daily_step_goal: profile.daily_step_goal,
+    fitness_experience: (profile.fitness_experience ?? "beginner") as
+      | "beginner"
+      | "intermediate"
+      | "advanced",
+    primary_goal: (profile.primary_goal ?? "lose_fat") as
+      | "lose_fat"
+      | "build_muscle"
+      | "maintain"
+      | "recomp",
     notes: profile.notes ?? "",
   });
 
@@ -170,6 +179,62 @@ export function ProfileEditor({
               {w}w
             </button>
           ))}
+        </div>
+      </Section>
+
+      {/* Primary goal & fitness experience */}
+      <Section title="Goal & experience">
+        <div>
+          <div className="label-tiny mb-2">Primary focus</div>
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                { v: "lose_fat", label: "Lose fat" },
+                { v: "build_muscle", label: "Build muscle" },
+                { v: "maintain", label: "Maintain" },
+                { v: "recomp", label: "Recomp" },
+              ] as const
+            ).map((g) => (
+              <button
+                key={g.v}
+                type="button"
+                onClick={() => setF({ ...f, primary_goal: g.v })}
+                className={cn(
+                  "rounded-xl border px-3 py-2 text-left text-sm font-bold transition",
+                  f.primary_goal === g.v
+                    ? "border-accent-cyan/50 bg-accent-cyan/10 text-accent-cyan"
+                    : "border-white/10 bg-white/[0.025] text-chalk-100 hover:bg-white/[0.05]",
+                )}
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="label-tiny mb-2">Fitness experience</div>
+          <div className="grid grid-cols-3 gap-2">
+            {(
+              [
+                { v: "beginner", label: "Beginner" },
+                { v: "intermediate", label: "Intermediate" },
+                { v: "advanced", label: "Advanced" },
+              ] as const
+            ).map((e) => (
+              <button
+                key={e.v}
+                type="button"
+                onClick={() => setF({ ...f, fitness_experience: e.v })}
+                className={cn(
+                  "btn-secondary",
+                  f.fitness_experience === e.v &&
+                    "border-accent-cyan/60 bg-accent-cyan/10 text-accent-cyan",
+                )}
+              >
+                {e.label}
+              </button>
+            ))}
+          </div>
         </div>
       </Section>
 
