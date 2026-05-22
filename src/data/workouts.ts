@@ -228,3 +228,56 @@ export const HOME_DAYS: WorkoutDay[] = [
 export function getDays(mode: WorkoutMode): WorkoutDay[] {
   return mode === "gym" ? GYM_DAYS : HOME_DAYS;
 }
+
+export interface WellnessRoutine {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  icon: string;
+  color: string;
+  youtubeId: string;
+}
+
+export const WELLNESS_ROUTINES: WellnessRoutine[] = [
+  {
+    id: "warm-up",
+    title: "Warm Up",
+    description:
+      "Dynamic full-body activation before any workout. Raises heart rate, loosens joints and primes muscles to prevent injury.",
+    duration: "10 min",
+    icon: "🔥",
+    color: "#fb923c",
+    youtubeId: "oT6NWL7xPbk",
+  },
+  {
+    id: "core",
+    title: "Core",
+    description:
+      "No-equipment beginner core routine targeting abs, obliques and lower back. Builds a stable foundation for every lift.",
+    duration: "10 min",
+    icon: "💪",
+    color: "#4ade80",
+    youtubeId: "b_TTLmmQmXU",
+  },
+  {
+    id: "stretch",
+    title: "Stretches",
+    description:
+      "Full-body flexibility routine to loosen tight muscles, improve range of motion and speed up recovery after training.",
+    duration: "10 min",
+    icon: "🧘",
+    color: "#38bdf8",
+    youtubeId: "VjRyuPpT0Es",
+  },
+  {
+    id: "meditation",
+    title: "Meditation",
+    description:
+      "Guided breathwork and mindfulness session to reduce stress, sharpen focus and support sleep quality and recovery.",
+    duration: "10 min",
+    icon: "🌿",
+    color: "#a78bfa",
+    youtubeId: "U9YKY7fdwyg",
+  },
+];
