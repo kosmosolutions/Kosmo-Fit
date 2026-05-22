@@ -36,6 +36,32 @@ type AddTarget =
   | { kind: "add" }
   | { kind: "replace"; position: number; name: string };
 
+/**
+ * Map a day's free-form `focus` string ("Shoulders + Abs", "Back + Biceps",
+ * "Cardio", ...) to the free-exercise-db muscle ids surfaced by the picker.
+ * Returns { muscles, category }; category is set only for cardio days.
+ */
+function focusToPicker(focus: string): {
+  muscles: string[];
+  category?: string;
+} {
+  const lower = focus.toLowerCase();
+  const muscles: string[] = [];
+  const add = (...m: string[]) => {
+    for (const x of m) if (!muscles.includes(x)) muscles.push(x);
+  };
+  if (lower.includes("shoulder")) add("shoulders");
+  if (lower.includes("abs") || /\bab\b/.test(lower)) add("abdominals");
+  if (lower.includes("back")) add("lats", "middle back");
+  if (lower.includes("bicep")) add("biceps");
+  if (lower.includes("chest")) add("chest");
+  if (lower.includes("tricep")) add("triceps");
+  if (lower.includes("arm")) add("biceps", "triceps");
+  if (lower.includes("leg")) add("quadriceps", "hamstrings", "glutes", "calves");
+  if (lower.includes("cardio")) return { muscles: [], category: "cardio" };
+  return { muscles };
+}
+
 interface Props {
   initialMode: WorkoutMode;
   initialDay: number;
@@ -439,20 +465,25 @@ export function WorkoutClient({
       ) : null}
       </>}
 
-      {addTarget && (
-        <AddExerciseSheet
-          mode={mode}
-          dayIndex={wDay}
-          dayLabel={`${d.day} · ${d.focus}`}
-          dayColor={d.color}
-          replaceTarget={
-            addTarget.kind === "replace"
-              ? { position: addTarget.position, name: addTarget.name }
-              : undefined
-          }
-          onClose={() => setAddTarget(null)}
-        />
-      )}
+      {addTarget && (() => {
+        const picker = focusToPicker(d.focus);
+        return (
+          <AddExerciseSheet
+            mode={mode}
+            dayIndex={wDay}
+            dayLabel={`${d.day} · ${d.focus}`}
+            dayColor={d.color}
+            focusMuscles={picker.muscles}
+            focusCategory={picker.category}
+            replaceTarget={
+              addTarget.kind === "replace"
+                ? { position: addTarget.position, name: addTarget.name }
+                : undefined
+            }
+            onClose={() => setAddTarget(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

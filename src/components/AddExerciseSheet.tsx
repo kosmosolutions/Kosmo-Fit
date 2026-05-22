@@ -64,6 +64,8 @@ export function AddExerciseSheet({
   dayIndex,
   dayLabel,
   dayColor,
+  focusMuscles = [],
+  focusCategory,
   replaceTarget,
   onClose,
 }: {
@@ -71,6 +73,14 @@ export function AddExerciseSheet({
   dayIndex: number;
   dayLabel: string;
   dayColor: string;
+  /**
+   * Muscle groups derived from the day's focus (e.g. "Shoulders + Abs" →
+   * ["shoulders", "abdominals"]). Surfaced as a top-level segmented
+   * control so the picker opens scoped to the relevant muscle.
+   */
+  focusMuscles?: string[];
+  /** Optional category preset (e.g. "cardio" for cardio days). */
+  focusCategory?: string;
   /**
    * If set, picking an exercise replaces the row at this position
    * instead of appending a new one. `name` is shown in the header.
@@ -81,7 +91,12 @@ export function AddExerciseSheet({
   const [all, setAll] = useState<CatalogExercise[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [muscle, setMuscle] = useState<string | null>(null);
+  const [muscle, setMuscle] = useState<string | null>(
+    focusMuscles[0] ?? null,
+  );
+  const [category, setCategory] = useState<string | null>(
+    focusCategory ?? null,
+  );
   const [level, setLevel] = useState<Level | null>(null);
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [pending, start] = useTransition();
@@ -122,13 +137,14 @@ export function AddExerciseSheet({
 
   useEffect(() => {
     setVisible(PAGE_SIZE);
-  }, [query, muscle, level]);
+  }, [query, muscle, category, level]);
 
   const filtered = useMemo(() => {
     if (!all) return [];
     const q = query.trim().toLowerCase();
     return all.filter((e) => {
       if (level && e.level !== level) return false;
+      if (category && e.category !== category) return false;
       if (muscle && !e.primaryMuscles.includes(muscle)) return false;
       if (q) {
         const hay = `${e.name} ${e.primaryMuscles.join(" ")} ${e.equipment ?? ""}`.toLowerCase();
@@ -136,7 +152,7 @@ export function AddExerciseSheet({
       }
       return true;
     });
-  }, [all, query, muscle, level]);
+  }, [all, query, muscle, category, level]);
 
   const slice = filtered.slice(0, visible);
   const hasMore = visible < filtered.length;
@@ -203,6 +219,94 @@ export function AddExerciseSheet({
             <X className="h-4 w-4" />
           </button>
         </div>
+
+        {/* Day-focus quick picks — surface the muscles relevant to the
+            current workout day as a top-level segmented control. */}
+        {(focusMuscles.length > 0 || focusCategory) && (
+          <div
+            className="border-b px-4 py-3"
+            style={{ borderColor: `${dayColor}25`, background: `${dayColor}08` }}
+          >
+            <div
+              className="label-tiny mb-2"
+              style={{ color: dayColor }}
+            >
+              {dayLabel.split("·")[1]?.trim() || "Day focus"}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {focusMuscles.map((m) => {
+                const sel = muscle === m && !category;
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => {
+                      setMuscle(m);
+                      setCategory(null);
+                    }}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-[11px] font-bold capitalize transition",
+                      sel ? "text-ink-950" : "text-chalk-200",
+                    )}
+                    style={
+                      sel
+                        ? {
+                            background: dayColor,
+                            borderColor: dayColor,
+                          }
+                        : {
+                            background: "rgba(255,255,255,0.04)",
+                            borderColor: `${dayColor}55`,
+                          }
+                    }
+                  >
+                    {m}
+                  </button>
+                );
+              })}
+              {focusCategory && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCategory(focusCategory);
+                    setMuscle(null);
+                  }}
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-[11px] font-bold capitalize transition",
+                    category === focusCategory
+                      ? "text-ink-950"
+                      : "text-chalk-200",
+                  )}
+                  style={
+                    category === focusCategory
+                      ? { background: dayColor, borderColor: dayColor }
+                      : {
+                          background: "rgba(255,255,255,0.04)",
+                          borderColor: `${dayColor}55`,
+                        }
+                  }
+                >
+                  {focusCategory}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setMuscle(null);
+                  setCategory(null);
+                }}
+                className={cn(
+                  "rounded-full border px-3 py-1.5 text-[11px] font-bold transition",
+                  !muscle && !category
+                    ? "border-white/20 bg-white/10 text-chalk-50"
+                    : "border-white/10 bg-white/[0.04] text-chalk-400 hover:bg-white/[0.08]",
+                )}
+              >
+                All
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Search + filters */}
         <div className="space-y-3 border-b border-white/[0.06] px-4 py-3">
