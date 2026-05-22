@@ -114,31 +114,19 @@ export function ExerciseCard({
               </button>
             </div>
             <div className="aspect-video w-full bg-black">
-              {exercise.youtubeId ? (
-                <iframe
-                  className="h-full w-full"
-                  src={`https://www.youtube-nocookie.com/embed/${exercise.youtubeId}?modestbranding=1&rel=0&autoplay=1`}
-                  title={exercise.name}
-                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-chalk-300">
-                  <Play className="h-8 w-8" />
-                  <div className="text-sm">
-                    Open the best result on YouTube
-                  </div>
-                  <a
-                    href={searchUrl}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="btn-primary"
-                  >
-                    Watch on YouTube{" "}
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </div>
-              )}
+              <iframe
+                className="h-full w-full"
+                src={
+                  exercise.youtubeId
+                    ? `https://www.youtube.com/embed/${exercise.youtubeId}?modestbranding=1&rel=0&autoplay=1`
+                    : `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(
+                        exercise.searchQuery,
+                      )}`
+                }
+                title={exercise.name}
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
             <div className="flex items-center justify-between border-t border-white/10 px-4 py-3">
               <a
