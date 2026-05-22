@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, Salad, Dumbbell, User } from "lucide-react";
+import { CalendarDays, Salad, Dumbbell } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const TABS = [
   { href: "/overview", label: "Overview", Icon: CalendarDays },
   { href: "/diet", label: "Diet", Icon: Salad },
   { href: "/workout", label: "Workout", Icon: Dumbbell },
-  { href: "/profile", label: "Profile", Icon: User },
 ];
 
 export function BottomNav() {
