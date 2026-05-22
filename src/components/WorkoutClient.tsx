@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { House, Building, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { House, Building, Sparkles, Library } from "lucide-react";
 import { ExerciseCard } from "./ExerciseCard";
 import { WellnessSection } from "./WellnessSection";
 import { SessionTimer } from "./SessionTimer";
@@ -82,6 +83,14 @@ export function WorkoutClient({
             <Sparkles className="h-3.5 w-3.5" />
             Wellness
           </button>
+          <Link
+            href="/workout/catalog"
+            className="flex items-center gap-1.5 rounded-xl bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-chalk-400 transition hover:text-chalk-200"
+            aria-label="Browse exercise library"
+          >
+            <Library className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Library</span>
+          </Link>
         </div>
       </div>
 
