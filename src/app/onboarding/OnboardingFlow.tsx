@@ -32,6 +32,15 @@ export function OnboardingFlow({
     lifestyle: (existing?.lifestyle ?? "desk") as "desk" | "light" | "active",
     workout_mode: (existing?.workout_mode ?? "home") as "home" | "gym" | "both",
     daily_step_goal: existing?.daily_step_goal ?? 8000,
+    fitness_experience: (existing?.fitness_experience ?? "beginner") as
+      | "beginner"
+      | "intermediate"
+      | "advanced",
+    primary_goal: (existing?.primary_goal ?? "lose_fat") as
+      | "lose_fat"
+      | "build_muscle"
+      | "maintain"
+      | "recomp",
     notes: existing?.notes ?? "",
   });
 
@@ -142,9 +151,47 @@ export function OnboardingFlow({
           <div className="space-y-5">
             <h1 className="text-3xl font-extrabold tracking-tight">Your goal</h1>
             <p className="text-sm text-chalk-300">
-              Pick a target weight and a timeframe. We&apos;ll flag plans that
-              are too aggressive.
+              Pick a primary focus, a target weight and a timeframe. We&apos;ll
+              flag plans that are too aggressive.
             </p>
+            <div>
+              <div className="label-tiny mb-2">Primary focus</div>
+              <div className="grid grid-cols-2 gap-2">
+                {(
+                  [
+                    { v: "lose_fat", label: "Lose fat", sub: "Calorie deficit" },
+                    { v: "build_muscle", label: "Build muscle", sub: "Surplus + lifting" },
+                    { v: "maintain", label: "Maintain", sub: "Hold steady" },
+                    { v: "recomp", label: "Recomp", sub: "Lean out + add muscle" },
+                  ] as const
+                ).map((g) => {
+                  const sel = form.primary_goal === g.v;
+                  return (
+                    <button
+                      key={g.v}
+                      type="button"
+                      onClick={() => setForm({ ...form, primary_goal: g.v })}
+                      className={cn(
+                        "rounded-xl border px-3 py-2.5 text-left transition",
+                        sel
+                          ? "border-accent-cyan/50 bg-accent-cyan/10"
+                          : "border-white/10 bg-white/[0.025] hover:bg-white/[0.05]",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "text-sm font-bold",
+                          sel ? "text-accent-cyan" : "text-chalk-100",
+                        )}
+                      >
+                        {g.label}
+                      </div>
+                      <div className="text-[11px] text-chalk-400">{g.sub}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <NumberCard label="Goal weight" unit="lbs" value={form.goal_weight} min={80} max={500} onChange={(v) => setForm({ ...form, goal_weight: v })} accent />
             <div>
               <div className="label-tiny mb-2">Timeframe</div>
@@ -254,6 +301,44 @@ export function OnboardingFlow({
               step={500}
               onChange={(v) => setForm({ ...form, daily_step_goal: v })}
             />
+
+            <div>
+              <div className="label-tiny mb-2">Fitness experience</div>
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    { v: "beginner", label: "Beginner", sub: "<6 mo lifting" },
+                    { v: "intermediate", label: "Intermediate", sub: "6 mo – 2 yrs" },
+                    { v: "advanced", label: "Advanced", sub: "2+ yrs lifting" },
+                  ] as const
+                ).map((e) => {
+                  const sel = form.fitness_experience === e.v;
+                  return (
+                    <button
+                      key={e.v}
+                      type="button"
+                      onClick={() => setForm({ ...form, fitness_experience: e.v })}
+                      className={cn(
+                        "rounded-xl border px-2 py-2.5 text-center transition",
+                        sel
+                          ? "border-accent-cyan/50 bg-accent-cyan/10"
+                          : "border-white/10 bg-white/[0.025] hover:bg-white/[0.05]",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "text-sm font-bold",
+                          sel ? "text-accent-cyan" : "text-chalk-100",
+                        )}
+                      >
+                        {e.label}
+                      </div>
+                      <div className="text-[10px] text-chalk-400">{e.sub}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
