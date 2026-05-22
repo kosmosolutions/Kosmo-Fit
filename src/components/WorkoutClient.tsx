@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { House, Building } from "lucide-react";
+import { House, Building, Sparkles } from "lucide-react";
 import { ExerciseCard } from "./ExerciseCard";
+import { WellnessSection } from "./WellnessSection";
 import { GYM_DAYS, HOME_DAYS, type WorkoutDay } from "@/data/workouts";
 import { cn } from "@/lib/cn";
 import type { WorkoutMode } from "@/lib/types";
@@ -26,6 +27,7 @@ export function WorkoutClient({
   lifeTDEE,
   weekTargets,
 }: Props) {
+  const [view, setView] = useState<"training" | "wellness">("training");
   const [mode, setMode] = useState<WorkoutMode>(initialMode);
   const [wDay, setWDay] = useState(Math.max(0, initialDay));
   const [expanded, setExpanded] = useState(false);
@@ -42,31 +44,49 @@ export function WorkoutClient({
             Workout plan
           </h1>
         </div>
-        <div className="flex rounded-xl bg-white/[0.06] p-0.5">
-          {(
-            [
-              { k: "home", Icon: House, label: "Home" },
-              { k: "gym", Icon: Building, label: "Gym" },
-            ] as const
-          ).map(({ k, Icon, label }) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setMode(k)}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition",
-                mode === k
-                  ? "bg-white/[0.12] text-chalk-50"
-                  : "text-chalk-400",
-              )}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {label}
-            </button>
-          ))}
+        <div className="flex gap-1">
+          <div className="flex rounded-xl bg-white/[0.06] p-0.5">
+            {(
+              [
+                { k: "home", Icon: House, label: "Home" },
+                { k: "gym", Icon: Building, label: "Gym" },
+              ] as const
+            ).map(({ k, Icon, label }) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => { setMode(k); setView("training"); }}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition",
+                  view === "training" && mode === k
+                    ? "bg-white/[0.12] text-chalk-50"
+                    : "text-chalk-400",
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setView(view === "wellness" ? "training" : "wellness")}
+            className={cn(
+              "flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition",
+              view === "wellness"
+                ? "bg-accent-violet/20 text-accent-violet ring-1 ring-accent-violet/40"
+                : "bg-white/[0.06] text-chalk-400 hover:text-chalk-200",
+            )}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Wellness
+          </button>
         </div>
       </div>
 
+      {view === "wellness" && <WellnessSection />}
+
+      {view === "training" && <>
       {/* Day picker */}
       <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1">
         {days.map((dd, i) => (
@@ -232,6 +252,7 @@ export function WorkoutClient({
           </div>
         </div>
       ) : null}
+      </>}
     </div>
   );
 }
