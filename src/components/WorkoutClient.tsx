@@ -12,6 +12,9 @@ import {
   Trash2,
   Repeat,
   MoreVertical,
+  Bike,
+  Flame,
+  Timer,
 } from "lucide-react";
 import { ExerciseCard } from "./ExerciseCard";
 import { WellnessSection } from "./WellnessSection";
@@ -35,6 +38,89 @@ import {
 type AddTarget =
   | { kind: "add" }
   | { kind: "replace"; position: number; name: string };
+
+/**
+ * Pull duration, activity and calorie-burn out of a free-form cardio
+ * string like "10–15 min bike · +80–110 cal" so we can render each as
+ * its own visual chip. Missing parts return empty strings.
+ */
+function parseCardio(raw: string): {
+  duration: string;
+  activity: string;
+  calories: string | null;
+} {
+  const calMatch = raw.match(/\+?\d[\d–\-]*\s*cal/i);
+  const calories = calMatch ? calMatch[0].trim() : null;
+  let rest = calMatch ? raw.replace(calMatch[0], "") : raw;
+  rest = rest.replace(/[·•]\s*$/g, "").trim();
+  const durMatch = rest.match(/^\d[\d–\-]*\s*min/i);
+  const duration = durMatch ? durMatch[0].trim() : "";
+  let activity = rest.replace(duration, "").replace(/^[·•\s\-]+/, "").trim();
+  if (!activity) activity = "Steady-state cardio";
+  return { duration, activity, calories };
+}
+
+function PostWorkoutCardio({ raw }: { raw: string }) {
+  const { duration, activity, calories } = parseCardio(raw);
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl border border-accent-amber/25"
+      style={{
+        background:
+          "linear-gradient(135deg, rgba(251,191,36,0.16), rgba(251,191,36,0.04) 60%, rgba(251,191,36,0.02))",
+      }}
+    >
+      <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-accent-amber/15 blur-3xl" />
+      <div className="relative p-4">
+        <div className="flex items-center gap-2 text-accent-amber">
+          <div className="grid h-7 w-7 place-items-center rounded-lg bg-accent-amber/20 ring-1 ring-accent-amber/30">
+            <Bike className="h-4 w-4" />
+          </div>
+          <div className="text-[10px] font-bold uppercase tracking-[3px]">
+            Post-workout cardio
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-2xl font-black leading-tight tracking-tight text-chalk-50">
+              {duration || raw}
+            </div>
+            <div className="mt-0.5 truncate text-xs font-semibold capitalize text-chalk-300">
+              {activity}
+            </div>
+          </div>
+          {calories ? (
+            <div className="flex shrink-0 flex-col items-end rounded-xl border border-accent-amber/30 bg-accent-amber/10 px-3 py-1.5 leading-tight">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-accent-amber/80">
+                Extra burn
+              </div>
+              <div className="text-base font-black text-accent-amber">
+                {calories.replace(/^\+/, "")}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          {duration ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-chalk-300">
+              <Timer className="h-3 w-3" />
+              {duration}
+            </span>
+          ) : null}
+          <span className="inline-flex items-center gap-1 rounded-full border border-accent-amber/25 bg-accent-amber/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-amber">
+            <Flame className="h-3 w-3" />
+            Zone 2
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-chalk-300">
+            Closes today&apos;s gap
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Map a day's free-form `focus` string ("Shoulders + Abs", "Back + Biceps",
@@ -450,19 +536,7 @@ export function WorkoutClient({
         </div>
       </div>
 
-      {d.cardio ? (
-        <div className="rounded-2xl border border-accent-amber/20 bg-accent-amber/[0.06] p-3">
-          <div className="flex items-center gap-2">
-            <span className="text-base">🚴</span>
-            <div>
-              <div className="text-[10px] uppercase tracking-[2px] text-accent-amber">
-                Post-workout cardio
-              </div>
-              <div className="text-xs text-chalk-300">{d.cardio}</div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {d.cardio ? <PostWorkoutCardio raw={d.cardio} /> : null}
       </>}
 
       {addTarget && (() => {
