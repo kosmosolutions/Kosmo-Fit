@@ -246,7 +246,11 @@ export interface WellnessLevel {
   level: "beginner" | "intermediate" | "advanced";
   title: string;
   duration: string;
-  youtubeId: string;
+  // Exactly one of these should be set. youtubeId pins a specific video;
+  // searchQuery plays the top YouTube search result via listType=search.
+  // searchQuery is the safe default when a curated ID can't be verified.
+  youtubeId?: string;
+  searchQuery?: string;
 }
 
 export interface WellnessRoutine {
@@ -259,9 +263,9 @@ export interface WellnessRoutine {
   levels: WellnessLevel[];
 }
 
-// NOTE: YouTube IDs marked /* guess */ are best-effort picks from popular
-// fitness channels and have not been verified to resolve. Swap any that
-// 404 — the modal also surfaces a YouTube search link as a safety net.
+// Curated intermediate IDs are confirmed working. Beginner / Advanced use
+// searchQuery so YouTube returns a fresh, live top result every time —
+// no chance of a dead ID and no manual curation needed.
 export const WELLNESS_ROUTINES: WellnessRoutine[] = [
   {
     id: "warm-up",
@@ -271,9 +275,9 @@ export const WELLNESS_ROUTINES: WellnessRoutine[] = [
     icon: "🔥",
     color: "#fb923c",
     levels: [
-      { level: "beginner",    title: "5 Min Beginner Warm Up",       duration: "5 min",  youtubeId: "R0mMyV5OtcM" /* guess */ },
+      { level: "beginner",    title: "5 Min Beginner Warm Up",       duration: "5 min",  searchQuery: "5 minute beginner full body warm up dynamic" },
       { level: "intermediate", title: "10 Min Dynamic Warm Up",      duration: "10 min", youtubeId: "oT6NWL7xPbk" },
-      { level: "advanced",    title: "15 Min Athletic Warm Up",      duration: "15 min", youtubeId: "9TfWqkW1nLI" /* guess */ },
+      { level: "advanced",    title: "15 Min Athletic Warm Up",      duration: "15 min", searchQuery: "15 minute athletic dynamic warm up advanced" },
     ],
   },
   {
@@ -284,9 +288,9 @@ export const WELLNESS_ROUTINES: WellnessRoutine[] = [
     icon: "💪",
     color: "#4ade80",
     levels: [
-      { level: "beginner",    title: "5 Min Beginner Abs",           duration: "5 min",  youtubeId: "AnYl6Nk9GOA" /* guess */ },
+      { level: "beginner",    title: "5 Min Beginner Abs",           duration: "5 min",  searchQuery: "5 minute beginner abs workout no equipment" },
       { level: "intermediate", title: "10 Min Daily Core",           duration: "10 min", youtubeId: "b_TTLmmQmXU" },
-      { level: "advanced",    title: "15 Min Intense Six Pack",      duration: "15 min", youtubeId: "2pLT-olgUJs" /* guess */ },
+      { level: "advanced",    title: "15 Min Intense Six Pack",      duration: "15 min", searchQuery: "15 minute intense six pack abs workout" },
     ],
   },
   {
@@ -297,9 +301,9 @@ export const WELLNESS_ROUTINES: WellnessRoutine[] = [
     icon: "🧘",
     color: "#38bdf8",
     levels: [
-      { level: "beginner",    title: "5 Min Morning Stretch",        duration: "5 min",  youtubeId: "g_tea8ZNk5A" /* guess */ },
+      { level: "beginner",    title: "5 Min Morning Stretch",        duration: "5 min",  searchQuery: "5 minute morning stretch routine beginner" },
       { level: "intermediate", title: "10 Min Full Body Stretch",    duration: "10 min", youtubeId: "VjRyuPpT0Es" },
-      { level: "advanced",    title: "15 Min Deep Flexibility",      duration: "15 min", youtubeId: "L_xrDAtykMI" /* guess */ },
+      { level: "advanced",    title: "15 Min Deep Flexibility",      duration: "15 min", searchQuery: "15 minute deep flexibility full body stretch" },
     ],
   },
   {
@@ -310,9 +314,9 @@ export const WELLNESS_ROUTINES: WellnessRoutine[] = [
     icon: "🌿",
     color: "#a78bfa",
     levels: [
-      { level: "beginner",    title: "5 Min Guided Meditation",      duration: "5 min",  youtubeId: "inpok4MKVLM" /* guess */ },
+      { level: "beginner",    title: "5 Min Guided Meditation",      duration: "5 min",  searchQuery: "5 minute guided meditation for beginners" },
       { level: "intermediate", title: "10 Min Mindfulness",          duration: "10 min", youtubeId: "U9YKY7fdwyg" },
-      { level: "advanced",    title: "15 Min Deep Meditation",       duration: "15 min", youtubeId: "O-6f5wQXSu8" /* guess */ },
+      { level: "advanced",    title: "15 Min Deep Meditation",       duration: "15 min", searchQuery: "15 minute deep guided meditation mindfulness" },
     ],
   },
 ];
