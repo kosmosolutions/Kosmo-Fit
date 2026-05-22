@@ -24,7 +24,10 @@ export function WellnessSection() {
             {/* Thumbnail */}
             <div className="relative aspect-video w-full overflow-hidden bg-black">
               <img
-                src={`https://i.ytimg.com/vi/${r.youtubeId}/hqdefault.jpg`}
+                src={
+                  r.gifUrl ??
+                  `https://i.ytimg.com/vi/${r.youtubeId}/hqdefault.jpg`
+                }
                 alt=""
                 className="h-full w-full object-cover opacity-80 transition group-hover:opacity-100"
                 loading="lazy"

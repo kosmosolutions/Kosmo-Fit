@@ -2,13 +2,15 @@
  * 6-day workout split — gym + home variants.
  *
  * Each exercise has a `searchQuery` that opens a YouTube search in a new tab.
- * To embed a specific video inline, set `youtubeId` to a YouTube video ID
- * (the part after `?v=` in a YouTube URL). Example:
+ *
+ * For inline demos, prefer `gifUrl` — a short looping GIF (Giphy or self-hosted
+ * under `/public/gifs/...`) is lighter than a YouTube embed and starts instantly.
+ * Fall back to `youtubeId` for longer-form demos that need a full player.
+ * Resolution order at render time: gifUrl > youtubeId > searchQuery link.
  *
  *   { name: "Flat Bench Press", sets: "8, 10, 8, 6",
- *     youtubeId: "vthMCtgVtFw", searchQuery: "Flat Barbell Bench Press tutorial" }
- *
- * You can curate IDs per exercise without touching any other code.
+ *     gifUrl: "/gifs/flat-bench-press.gif",
+ *     searchQuery: "Flat Barbell Bench Press tutorial" }
  */
 
 import type { WorkoutMode } from "@/lib/types";
@@ -17,6 +19,7 @@ export interface Exercise {
   name: string;
   sets: string;
   note?: string;
+  gifUrl?: string;
   youtubeId?: string;
   searchQuery: string;
 }
@@ -236,6 +239,7 @@ export interface WellnessRoutine {
   duration: string;
   icon: string;
   color: string;
+  gifUrl?: string;
   youtubeId: string;
 }
 

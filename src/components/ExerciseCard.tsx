@@ -20,9 +20,11 @@ export function ExerciseCard({
   const watchUrl = exercise.youtubeId
     ? `https://www.youtube.com/watch?v=${exercise.youtubeId}`
     : searchUrl;
-  const thumbUrl = exercise.youtubeId
-    ? `https://i.ytimg.com/vi/${exercise.youtubeId}/hqdefault.jpg`
-    : null;
+  const thumbUrl = exercise.gifUrl
+    ? exercise.gifUrl
+    : exercise.youtubeId
+      ? `https://i.ytimg.com/vi/${exercise.youtubeId}/hqdefault.jpg`
+      : null;
 
   return (
     <>
@@ -114,19 +116,28 @@ export function ExerciseCard({
               </button>
             </div>
             <div className="aspect-video w-full bg-black">
-              <iframe
-                className="h-full w-full"
-                src={
-                  exercise.youtubeId
-                    ? `https://www.youtube.com/embed/${exercise.youtubeId}?modestbranding=1&rel=0&autoplay=1`
-                    : `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(
-                        exercise.searchQuery,
-                      )}`
-                }
-                title={exercise.name}
-                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              {exercise.gifUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={exercise.gifUrl}
+                  alt={exercise.name}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <iframe
+                  className="h-full w-full"
+                  src={
+                    exercise.youtubeId
+                      ? `https://www.youtube.com/embed/${exercise.youtubeId}?modestbranding=1&rel=0&autoplay=1`
+                      : `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(
+                          exercise.searchQuery,
+                        )}`
+                  }
+                  title={exercise.name}
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              )}
             </div>
             <div className="flex items-center justify-between border-t border-white/10 px-4 py-3">
               <a
