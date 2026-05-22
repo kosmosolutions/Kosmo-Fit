@@ -38,6 +38,8 @@ export default async function AppLayout({
           weight={profile.current_weight}
           goalWeight={profile.goal_weight}
           weeklyLoss={stats.weeklyLoss}
+          fullName={profile.full_name}
+          email={user.email ?? ""}
         />
         <main className="mx-auto w-full max-w-3xl px-4 py-5 md:max-w-5xl md:px-8 md:py-8 lg:max-w-6xl">
           {children}
