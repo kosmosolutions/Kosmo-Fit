@@ -17,6 +17,13 @@ export function ExerciseCard({
   const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(
     exercise.searchQuery,
   )}`;
+  const watchUrl = exercise.youtubeId
+    ? `https://www.youtube.com/watch?v=${exercise.youtubeId}`
+    : searchUrl;
+  const thumbUrl = exercise.youtubeId
+    ? `https://i.ytimg.com/vi/${exercise.youtubeId}/hqdefault.jpg`
+    : null;
+
   return (
     <>
       <div className="flex items-start gap-3 border-b border-white/[0.05] py-3 last:border-b-0">
@@ -51,12 +58,36 @@ export function ExerciseCard({
               💡 {exercise.note}
             </div>
           ) : null}
+
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-chalk-300 hover:text-accent-cyan"
+            className="group relative mt-2 block aspect-video w-full max-w-[200px] overflow-hidden rounded-lg border border-white/10 bg-ink-900 transition hover:border-white/30"
+            aria-label={`Watch demo: ${exercise.name}`}
           >
-            <Play className="h-3 w-3" /> Watch demo
+            {thumbUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={thumbUrl}
+                alt=""
+                className="h-full w-full object-cover opacity-90 transition group-hover:opacity-100"
+                loading="lazy"
+              />
+            ) : (
+              <div
+                className="h-full w-full"
+                style={{
+                  background: `linear-gradient(135deg, ${color}33, ${color}11)`,
+                }}
+                aria-hidden
+              />
+            )}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition group-hover:bg-black/15">
+              <div className="flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-bold text-chalk-50 backdrop-blur">
+                <Play className="h-3 w-3 fill-current" />
+                Watch
+              </div>
+            </div>
           </button>
         </div>
       </div>
@@ -86,9 +117,9 @@ export function ExerciseCard({
               {exercise.youtubeId ? (
                 <iframe
                   className="h-full w-full"
-                  src={`https://www.youtube-nocookie.com/embed/${exercise.youtubeId}?modestbranding=1&rel=0`}
+                  src={`https://www.youtube-nocookie.com/embed/${exercise.youtubeId}?modestbranding=1&rel=0&autoplay=1`}
                   title={exercise.name}
-                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
               ) : (
@@ -109,14 +140,23 @@ export function ExerciseCard({
                 </div>
               )}
             </div>
-            <div className="border-t border-white/10 px-4 py-3">
+            <div className="flex items-center justify-between border-t border-white/10 px-4 py-3">
+              <a
+                href={watchUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex items-center gap-1 text-xs font-bold text-chalk-400 hover:text-chalk-100"
+              >
+                <ExternalLink className="h-3 w-3" />{" "}
+                {exercise.youtubeId ? "Open on YouTube" : "Search on YouTube"}
+              </a>
               <a
                 href={searchUrl}
                 target="_blank"
                 rel="noreferrer noopener"
                 className="inline-flex items-center gap-1 text-xs font-bold text-chalk-400 hover:text-chalk-100"
               >
-                <ExternalLink className="h-3 w-3" /> Search more on YouTube
+                More tutorials <ExternalLink className="h-3 w-3" />
               </a>
             </div>
           </div>
