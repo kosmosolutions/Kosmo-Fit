@@ -242,56 +242,77 @@ export function getDays(mode: WorkoutMode): WorkoutDay[] {
   return mode === "gym" ? GYM_DAYS : HOME_DAYS;
 }
 
+export interface WellnessLevel {
+  level: "beginner" | "intermediate" | "advanced";
+  title: string;
+  duration: string;
+  youtubeId: string;
+}
+
 export interface WellnessRoutine {
   id: string;
   title: string;
   description: string;
-  duration: string;
   icon: string;
   color: string;
   images?: string[];
-  youtubeId: string;
+  levels: WellnessLevel[];
 }
 
+// NOTE: YouTube IDs marked /* guess */ are best-effort picks from popular
+// fitness channels and have not been verified to resolve. Swap any that
+// 404 — the modal also surfaces a YouTube search link as a safety net.
 export const WELLNESS_ROUTINES: WellnessRoutine[] = [
   {
     id: "warm-up",
     title: "Warm Up",
     description:
       "Dynamic full-body activation before any workout. Raises heart rate, loosens joints and primes muscles to prevent injury.",
-    duration: "10 min",
     icon: "🔥",
     color: "#fb923c",
-    youtubeId: "oT6NWL7xPbk",
+    levels: [
+      { level: "beginner",    title: "5 Min Beginner Warm Up",       duration: "5 min",  youtubeId: "R0mMyV5OtcM" /* guess */ },
+      { level: "intermediate", title: "10 Min Dynamic Warm Up",      duration: "10 min", youtubeId: "oT6NWL7xPbk" },
+      { level: "advanced",    title: "15 Min Athletic Warm Up",      duration: "15 min", youtubeId: "9TfWqkW1nLI" /* guess */ },
+    ],
   },
   {
     id: "core",
     title: "Core",
     description:
-      "No-equipment beginner core routine targeting abs, obliques and lower back. Builds a stable foundation for every lift.",
-    duration: "10 min",
+      "No-equipment core routine targeting abs, obliques and lower back. Builds a stable foundation for every lift.",
     icon: "💪",
     color: "#4ade80",
-    youtubeId: "b_TTLmmQmXU",
+    levels: [
+      { level: "beginner",    title: "5 Min Beginner Abs",           duration: "5 min",  youtubeId: "AnYl6Nk9GOA" /* guess */ },
+      { level: "intermediate", title: "10 Min Daily Core",           duration: "10 min", youtubeId: "b_TTLmmQmXU" },
+      { level: "advanced",    title: "15 Min Intense Six Pack",      duration: "15 min", youtubeId: "2pLT-olgUJs" /* guess */ },
+    ],
   },
   {
     id: "stretch",
     title: "Stretches",
     description:
       "Full-body flexibility routine to loosen tight muscles, improve range of motion and speed up recovery after training.",
-    duration: "10 min",
     icon: "🧘",
     color: "#38bdf8",
-    youtubeId: "VjRyuPpT0Es",
+    levels: [
+      { level: "beginner",    title: "5 Min Morning Stretch",        duration: "5 min",  youtubeId: "g_tea8ZNk5A" /* guess */ },
+      { level: "intermediate", title: "10 Min Full Body Stretch",    duration: "10 min", youtubeId: "VjRyuPpT0Es" },
+      { level: "advanced",    title: "15 Min Deep Flexibility",      duration: "15 min", youtubeId: "L_xrDAtykMI" /* guess */ },
+    ],
   },
   {
     id: "meditation",
     title: "Meditation",
     description:
       "Guided breathwork and mindfulness session to reduce stress, sharpen focus and support sleep quality and recovery.",
-    duration: "10 min",
     icon: "🌿",
     color: "#a78bfa",
-    youtubeId: "U9YKY7fdwyg",
+    levels: [
+      { level: "beginner",    title: "5 Min Guided Meditation",      duration: "5 min",  youtubeId: "inpok4MKVLM" /* guess */ },
+      { level: "intermediate", title: "10 Min Mindfulness",          duration: "10 min", youtubeId: "U9YKY7fdwyg" },
+      { level: "advanced",    title: "15 Min Deep Meditation",       duration: "15 min", youtubeId: "O-6f5wQXSu8" /* guess */ },
+    ],
   },
 ];
