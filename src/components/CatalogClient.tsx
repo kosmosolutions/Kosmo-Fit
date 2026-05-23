@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 
 const FED_BASE =
   "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises";
@@ -592,6 +593,8 @@ function ExerciseDetail({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  useBodyScrollLock();
 
   const imageUrls = exercise.images.map((p) => `${FED_BASE}/${p}`);
   const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(

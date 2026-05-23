@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Plus, X, BookOpen } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { addFoodEntry } from "@/lib/actions/entries";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import type { MealType, Recipe } from "@/lib/types";
 
 const MEALS: MealType[] = ["breakfast", "snack", "lunch", "dinner"];
@@ -22,6 +23,16 @@ export function AddMealDialog({
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"new" | "recipe">("new");
   const [pending, start] = useTransition();
+  useBodyScrollLock(open);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
   const [form, setForm] = useState({
     meal_type: defaultMeal ?? ("breakfast" as MealType),
     name: "",

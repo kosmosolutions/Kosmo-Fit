@@ -4,7 +4,10 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LogoMark } from "@/components/LogoMark";
 import { FeatureCarousel } from "@/components/landing/FeatureCarousel";
-import { ArrowRight, LineChart, ShieldCheck } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
+
+const HERO_IMAGE =
+  "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1400&q=80";
 
 export default async function Landing() {
   const supabase = await createClient();
@@ -15,7 +18,7 @@ export default async function Landing() {
 
   return (
     <div className="min-h-svh overflow-x-hidden">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-6">
+      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-6">
         <LogoMark />
         <div className="flex items-center gap-2">
           <Link href="/login" className="btn-ghost">
@@ -27,16 +30,32 @@ export default async function Landing() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 sm:px-6">
-        {/* Editorial split hero */}
-        <section className="relative grid gap-8 pt-6 pb-20 sm:pt-10 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:pt-16 lg:pb-28">
+      {/* Hero — full-bleed image+copy on mobile, side-by-side editorial split on lg+ */}
+      <section className="relative isolate lg:mx-auto lg:max-w-6xl lg:px-6 lg:pt-10 lg:pb-28">
+        {/* Mobile background image (lg:hidden) */}
+        <div className="absolute inset-0 -z-10 lg:hidden">
+          <Image
+            src={HERO_IMAGE}
+            alt="Athlete training outdoors at sunrise"
+            fill
+            sizes="100vw"
+            className="object-cover"
+            priority
+          />
+          {/* Top fade so the header + badge stay legible against bright sky */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-ink-950/70 to-transparent" />
+          {/* Bottom fade — heavy, so headline + CTAs sit on a solid ink wash */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/80 to-ink-950/10" />
+        </div>
+
+        <div className="grid min-h-[calc(100svh-80px)] gap-8 px-4 pb-10 sm:px-6 lg:min-h-0 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:px-0 lg:pb-0">
           {/* Copy column */}
-          <div className="relative z-10 flex flex-col justify-center">
-            <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-accent-blue/30 bg-accent-blue/[0.10] px-3 py-1 text-[11px] font-bold uppercase tracking-[2.5px] text-accent-cyan">
+          <div className="relative z-10 flex flex-col justify-end lg:justify-center">
+            <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-accent-blue/40 bg-accent-blue/[0.15] px-3 py-1 text-[11px] font-bold uppercase tracking-[2.5px] text-accent-cyan backdrop-blur-md lg:border-accent-blue/30 lg:bg-accent-blue/[0.10] lg:backdrop-blur-none">
               <span className="h-1.5 w-1.5 rounded-full bg-accent-blue" />
               Personal coach in your pocket
             </div>
-            <h1 className="display text-balance text-5xl leading-[0.95] text-chalk-50 sm:text-6xl lg:text-7xl xl:text-8xl">
+            <h1 className="display text-balance text-5xl leading-[0.95] text-chalk-50 [text-shadow:0_2px_24px_rgba(8,11,16,0.6)] sm:text-6xl lg:text-7xl lg:[text-shadow:none] xl:text-8xl">
               TRAIN.
               <br />
               EAT.
@@ -44,7 +63,7 @@ export default async function Landing() {
               RECOVER.{" "}
               <span className="bg-brand-gradient bg-clip-text text-transparent">REPEAT.</span>
             </h1>
-            <p className="mt-6 max-w-lg text-pretty text-base leading-relaxed text-chalk-300 sm:text-lg">
+            <p className="mt-6 max-w-lg text-pretty text-base leading-relaxed text-chalk-200 sm:text-lg lg:text-chalk-300">
               Kosmo Fitness builds your daily calorie target from your body and
               goals — then tells you exactly what to eat and how to move. Even
               suggests walks or cardio to close the gap when you go over.
@@ -57,53 +76,58 @@ export default async function Landing() {
                 I already have an account
               </Link>
             </div>
-            <div className="mt-5 flex items-center gap-2 text-xs text-chalk-400">
+            <div className="mt-5 flex items-center gap-2 text-xs text-chalk-300 lg:text-chalk-400">
               <ShieldCheck className="h-3.5 w-3.5 text-accent-cyan" />
               No credit card · your data stays yours
             </div>
 
-            {/* Stat row */}
-            <dl className="mt-10 grid max-w-md grid-cols-3 gap-6 border-t border-white/[0.08] pt-6">
+            {/* Mobile KPI proof card — sits inline below the CTAs as the bottom anchor */}
+            <div className="mt-8 rounded-2xl border border-white/10 bg-ink-950/85 p-4 backdrop-blur-xl lg:hidden">
+              <KpiCardContent />
+            </div>
+
+            {/* Stat row — desktop only (kept off the mobile hero to avoid clutter) */}
+            <dl className="mt-10 hidden max-w-md grid-cols-3 gap-6 border-t border-white/[0.08] pt-6 lg:grid">
               <Stat k="2,180" v="kcal target" />
               <Stat k="165g" v="protein/day" />
               <Stat k="6-day" v="training split" />
             </dl>
           </div>
 
-          {/* Image column */}
-          <div className="relative">
+          {/* Desktop image column */}
+          <div className="relative hidden lg:block">
             <div className="relative aspect-[3/4] w-full overflow-hidden rounded-3xl border border-white/[0.08] bg-ink-900 lg:aspect-auto lg:h-full lg:min-h-[560px]">
               <Image
-                src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1400&q=80"
+                src={HERO_IMAGE}
                 alt="Athlete training outdoors at sunrise"
                 fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
+                sizes="50vw"
                 className="object-cover"
-                priority
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-ink-950/60 via-transparent to-transparent" />
               {/* Floating KPI card */}
               <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/10 bg-ink-950/85 p-4 backdrop-blur-xl">
-                <div className="label-eyebrow">Today</div>
-                <div className="mt-1 flex items-baseline gap-3">
-                  <span className="display text-4xl text-chalk-50">820</span>
-                  <span className="text-sm text-chalk-300">kcal left</span>
-                </div>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full w-[62%] rounded-full bg-brand-gradient" />
-                </div>
-                <div className="mt-2 text-[11px] text-chalk-400">
-                  62% — walk 22 min to close the gap
-                </div>
+                <KpiCardContent />
               </div>
             </div>
             {/* Accent flare */}
-            <div className="pointer-events-none absolute -inset-x-6 -top-6 -z-10 h-72 bg-[radial-gradient(ellipse_70%_80%_at_50%_0%,rgba(198,255,0,0.15),transparent_70%)]" />
+            <div className="pointer-events-none absolute -inset-x-6 -top-6 -z-10 h-72 bg-[radial-gradient(ellipse_70%_80%_at_50%_0%,rgba(0,102,255,0.18),transparent_70%)]" />
           </div>
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-6xl px-4 sm:px-6">
+        {/* Mobile-only stat strip — moved out of the hero to keep the first screen tight */}
+        <section className="border-t border-white/[0.06] py-8 lg:hidden">
+          <dl className="grid grid-cols-3 gap-6">
+            <Stat k="2,180" v="kcal target" />
+            <Stat k="165g" v="protein/day" />
+            <Stat k="6-day" v="training split" />
+          </dl>
         </section>
 
         {/* Feature carousel */}
-        <section className="pb-16">
+        <section className="pt-10 pb-16 lg:pt-0">
           <div className="mb-6 flex items-end justify-between gap-4">
             <div>
               <div className="label-eyebrow">Inside Kosmo Fitness</div>
@@ -116,39 +140,6 @@ export default async function Landing() {
             </div>
           </div>
           <FeatureCarousel />
-        </section>
-
-        {/* Math card */}
-        <section className="card-elev mb-20 overflow-hidden p-0">
-          <div className="grid gap-0 lg:grid-cols-[1fr_1.2fr]">
-            <div className="relative hidden aspect-[4/3] lg:block">
-              <Image
-                src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80"
-                alt="Athlete writing in training journal"
-                fill
-                sizes="50vw"
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-ink-950" />
-            </div>
-            <div className="p-8 sm:p-10">
-              <div className="flex items-center gap-2 text-accent-cyan">
-                <LineChart className="h-5 w-5" />
-                <span className="label-eyebrow !text-accent-cyan">
-                  Under the hood
-                </span>
-              </div>
-              <h2 className="display mt-3 text-3xl text-chalk-50 sm:text-4xl">
-                The math, made simple.
-              </h2>
-              <p className="mt-3 max-w-xl text-sm leading-relaxed text-chalk-300">
-                Daily target = Life TDEE + today&apos;s workout burn − your
-                deficit. Same net deficit every day — the gym just earns you more
-                food. Miss a workout? Kosmo Fitness tells you how many minutes to
-                walk to keep the day balanced.
-              </p>
-            </div>
-          </div>
         </section>
       </main>
 
@@ -167,5 +158,23 @@ function Stat({ k, v }: { k: string; v: string }) {
         {v}
       </dd>
     </div>
+  );
+}
+
+function KpiCardContent() {
+  return (
+    <>
+      <div className="label-eyebrow">Today</div>
+      <div className="mt-1 flex items-baseline gap-3">
+        <span className="display text-4xl text-chalk-50">820</span>
+        <span className="text-sm text-chalk-300">kcal left</span>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+        <div className="h-full w-[62%] rounded-full bg-brand-gradient" />
+      </div>
+      <div className="mt-2 text-[11px] text-chalk-400">
+        62% — walk 22 min to close the gap
+      </div>
+    </>
   );
 }

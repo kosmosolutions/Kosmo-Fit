@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Play, ExternalLink, X } from "lucide-react";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import {
   WELLNESS_ROUTINES,
   type WellnessLevel,
@@ -21,6 +22,16 @@ const LEVEL_LABEL: Record<WellnessLevel["level"], string> = {
 
 export function WellnessSection() {
   const [active, setActive] = useState<Selection | null>(null);
+  useBodyScrollLock(active !== null);
+
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActive(null);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [active]);
 
   return (
     <>

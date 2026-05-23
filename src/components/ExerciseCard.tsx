@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Play, ExternalLink, X } from "lucide-react";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import type { Exercise } from "@/data/workouts";
 
 function useFrameCycle(frameCount: number, intervalMs = 700) {
@@ -54,6 +55,16 @@ export function ExerciseCard({
   color: string;
 }) {
   const [open, setOpen] = useState(false);
+  useBodyScrollLock(open);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
   const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(
     exercise.searchQuery,
   )}`;
