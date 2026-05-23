@@ -51,11 +51,11 @@ export function AvatarMenu({ fullName, email }: AvatarMenuProps) {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-full border border-white/10",
-          "bg-gradient-to-br from-accent-cyan/30 to-accent-violet/30",
-          "text-[12px] font-extrabold tracking-wide text-chalk-50",
-          "transition hover:from-accent-cyan/40 hover:to-accent-violet/40",
-          open && "ring-2 ring-accent-cyan/40",
+          "flex h-9 w-9 items-center justify-center rounded-full border border-accent-lime/30",
+          "bg-accent-lime/15",
+          "text-[12px] font-extrabold tracking-wide text-accent-lime",
+          "transition hover:bg-accent-lime/25",
+          open && "ring-2 ring-accent-lime/40",
         )}
       >
         {initials(fullName, email)}

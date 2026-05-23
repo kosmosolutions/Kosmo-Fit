@@ -27,19 +27,19 @@ export function BottomNav() {
               href={href}
               className={cn(
                 "flex flex-1 flex-col items-center gap-1 border-t-2 border-transparent py-2.5 transition-colors",
-                active && "border-accent-cyan",
+                active && "border-accent-lime",
               )}
             >
               <Icon
                 className={cn(
                   "h-5 w-5",
-                  active ? "text-accent-cyan" : "text-chalk-500",
+                  active ? "text-accent-lime" : "text-chalk-500",
                 )}
               />
               <span
                 className={cn(
                   "text-[10px] font-bold uppercase tracking-wider",
-                  active ? "text-accent-cyan" : "text-chalk-500",
+                  active ? "text-accent-lime" : "text-chalk-500",
                 )}
               >
                 {label}
