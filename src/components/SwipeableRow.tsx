@@ -41,9 +41,11 @@ export const SwipeableRow = forwardRef<
   ref,
 ) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const draggerRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
   const startY = useRef<number | null>(null);
   const dragging = useRef(false);
+  const openRef = useRef(false);
   const [offset, setOffset] = useState(0);
   const [open, setOpen] = useState(false);
 
@@ -53,6 +55,10 @@ export const SwipeableRow = forwardRef<
       setOffset(0);
     },
   }));
+
+  useEffect(() => {
+    openRef.current = open;
+  }, [open]);
 
   useEffect(() => {
     if (forceOpen === undefined) return;
@@ -83,56 +89,84 @@ export const SwipeableRow = forwardRef<
     };
   }, [open]);
 
-  function onTouchStart(e: React.TouchEvent) {
-    const t = e.touches[0];
-    startX.current = t.clientX;
-    startY.current = t.clientY;
-    dragging.current = false;
-  }
+  // Native non-passive touch handlers — React's synthetic onTouchMove is
+  // forced passive in modern browsers, so preventDefault() inside it is a
+  // no-op. Without preventDefault, a fast horizontal swipe inside a row
+  // also scrolls the page horizontally, which makes the whole app appear
+  // to slide off-screen on mobile.
+  useEffect(() => {
+    const node = draggerRef.current;
+    if (!node) return;
 
-  function onTouchMove(e: React.TouchEvent) {
-    if (startX.current == null || startY.current == null) return;
-    const t = e.touches[0];
-    const dx = t.clientX - startX.current;
-    const dy = t.clientY - startY.current;
-    if (!dragging.current) {
-      // Don't hijack vertical scrolls.
-      if (Math.abs(dy) > Math.abs(dx)) return;
-      if (Math.abs(dx) < HORIZ_LOCK) return;
-      dragging.current = true;
-    }
-    // Closed → only allow leftward drag (negative). Open → only rightward.
-    const base = open ? -REVEAL_WIDTH : 0;
-    let next = base + dx;
-    if (next > 0) next = 0;
-    if (next < -REVEAL_WIDTH) next = -REVEAL_WIDTH;
-    setOffset(next);
-  }
+    const onStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      startX.current = t.clientX;
+      startY.current = t.clientY;
+      dragging.current = false;
+    };
 
-  function onTouchEnd() {
-    if (!dragging.current) {
-      // Just a tap — if we were open, close.
-      if (open) {
-        setOpen(false);
-        setOffset(0);
+    const onMove = (e: TouchEvent) => {
+      if (startX.current == null || startY.current == null) return;
+      const t = e.touches[0];
+      const dx = t.clientX - startX.current;
+      const dy = t.clientY - startY.current;
+      if (!dragging.current) {
+        // Don't hijack vertical scrolls.
+        if (Math.abs(dy) > Math.abs(dx)) return;
+        if (Math.abs(dx) < HORIZ_LOCK) return;
+        dragging.current = true;
       }
+      // We've decided this is a horizontal drag — block the browser's own
+      // horizontal pan so the page doesn't shift behind us.
+      if (e.cancelable) e.preventDefault();
+      const base = openRef.current ? -REVEAL_WIDTH : 0;
+      let next = base + dx;
+      if (next > 0) next = 0;
+      if (next < -REVEAL_WIDTH) next = -REVEAL_WIDTH;
+      setOffset(next);
+    };
+
+    const onEnd = () => {
+      if (!dragging.current) {
+        // Just a tap — if we were open, close.
+        if (openRef.current) {
+          setOpen(false);
+          setOffset(0);
+        }
+        startX.current = null;
+        startY.current = null;
+        return;
+      }
+      dragging.current = false;
+      let shouldOpen = false;
+      setOffset((cur) => {
+        shouldOpen = cur < -OPEN_THRESHOLD;
+        return shouldOpen ? -REVEAL_WIDTH : 0;
+      });
+      setOpen(shouldOpen);
+      if (shouldOpen) onOpen?.();
       startX.current = null;
       startY.current = null;
-      return;
-    }
-    dragging.current = false;
-    const shouldOpen = offset < -OPEN_THRESHOLD;
-    setOpen(shouldOpen);
-    setOffset(shouldOpen ? -REVEAL_WIDTH : 0);
-    if (shouldOpen) onOpen?.();
-    startX.current = null;
-    startY.current = null;
-  }
+    };
+
+    node.addEventListener("touchstart", onStart, { passive: true });
+    node.addEventListener("touchmove", onMove, { passive: false });
+    node.addEventListener("touchend", onEnd);
+    node.addEventListener("touchcancel", onEnd);
+
+    return () => {
+      node.removeEventListener("touchstart", onStart);
+      node.removeEventListener("touchmove", onMove);
+      node.removeEventListener("touchend", onEnd);
+      node.removeEventListener("touchcancel", onEnd);
+    };
+  }, [onOpen]);
 
   return (
     <div
       ref={trackRef}
       className={`relative overflow-hidden ${className ?? ""}`}
+      style={{ touchAction: "pan-y" }}
     >
       <div
         className="pointer-events-none absolute inset-y-0 right-0 flex"
@@ -143,12 +177,11 @@ export const SwipeableRow = forwardRef<
         </div>
       </div>
       <div
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+        ref={draggerRef}
         style={{
           transform: `translateX(${offset}px)`,
           transition: dragging.current ? "none" : "transform 200ms ease-out",
+          touchAction: "pan-y",
         }}
         className="relative bg-ink-850"
       >

@@ -29,6 +29,18 @@ body {
     "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Block horizontal page-swipe leakage from in-row swipe gestures and any
+     accidentally-overflowing children. Vertical scroll stays intact. */
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+
+/* iOS Safari long-press preview ("Look Up", drag-to-save) on demo gifs
+   makes them appear to "expand" out of their tile on tap. Disable both. */
+img {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 body {
