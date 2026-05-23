@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { BookOpen, ChefHat, Plus, Search, X } from "lucide-react";
+import {
+  ArrowLeft,
+  BookOpen,
+  ChefHat,
+  ChevronRight,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/cn";
 import { addFoodEntry } from "@/lib/actions/entries";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
@@ -41,15 +49,25 @@ export function AddMealDialog({
   const [catalog, setCatalog] = useState<CatalogRecipe[] | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [catalogQuery, setCatalogQuery] = useState("");
+  const [pickedCatalog, setPickedCatalog] = useState<CatalogRecipe | null>(null);
   useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        // Inside the search detail view, Escape just goes back to the list.
+        if (pickedCatalog) setPickedCatalog(null);
+        else setOpen(false);
+      }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
+  }, [open, pickedCatalog]);
+
+  // Reset transient state when the dialog closes so re-opens start fresh.
+  useEffect(() => {
+    if (!open) setPickedCatalog(null);
   }, [open]);
 
   // Lazy-load the catalog on first visit to the Search tab. Cached at the
@@ -211,18 +229,43 @@ export function AddMealDialog({
             </div>
 
             <div className="mb-3 flex gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
-              <TabButton active={tab === "search"} onClick={() => setTab("search")}>
+              <TabButton
+                active={tab === "search"}
+                onClick={() => {
+                  setTab("search");
+                  setPickedCatalog(null);
+                }}
+              >
                 <Search className="h-3 w-3" /> Search
               </TabButton>
-              <TabButton active={tab === "new"} onClick={() => setTab("new")}>
+              <TabButton
+                active={tab === "new"}
+                onClick={() => {
+                  setTab("new");
+                  setPickedCatalog(null);
+                }}
+              >
                 Quick entry
               </TabButton>
-              <TabButton active={tab === "recipe"} onClick={() => setTab("recipe")}>
+              <TabButton
+                active={tab === "recipe"}
+                onClick={() => {
+                  setTab("recipe");
+                  setPickedCatalog(null);
+                }}
+              >
                 Saved ({recipes.length})
               </TabButton>
             </div>
 
-            {tab === "search" ? (
+            {tab === "search" && pickedCatalog ? (
+              <CatalogDetail
+                recipe={pickedCatalog}
+                onBack={() => setPickedCatalog(null)}
+                onLog={(s) => submitCatalogRecipe(pickedCatalog, s)}
+                disabled={pending}
+              />
+            ) : tab === "search" ? (
               <div className="space-y-3">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-chalk-400" />
@@ -258,11 +301,10 @@ export function AddMealDialog({
                     </div>
                   ) : (
                     searchResults.map((r) => (
-                      <CatalogPick
+                      <CatalogResultRow
                         key={r.id}
                         recipe={r}
-                        onLog={(s) => submitCatalogRecipe(r, s)}
-                        disabled={pending}
+                        onSelect={() => setPickedCatalog(r)}
                       />
                     ))
                   )}
@@ -408,23 +450,24 @@ function TabButton({
   );
 }
 
-function CatalogPick({
+function CatalogResultRow({
   recipe,
-  onLog,
-  disabled,
+  onSelect,
 }: {
   recipe: CatalogRecipe;
-  onLog: (s: number) => void;
-  disabled: boolean;
+  onSelect: () => void;
 }) {
-  const [s, setS] = useState(1);
   const perServing = 1 / Math.max(1, recipe.servings);
   const kcal = Math.round(recipe.calories_total * perServing);
   const p = Math.round(recipe.protein_g * perServing);
   const c = Math.round(recipe.carbs_g * perServing);
   const f = Math.round(recipe.fat_g * perServing);
   return (
-    <div className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+    <button
+      type="button"
+      onClick={onSelect}
+      className="flex w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-accent-cyan/40 hover:bg-white/[0.06]"
+    >
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-bold text-chalk-50">
           {recipe.name}
@@ -433,23 +476,113 @@ function CatalogPick({
           {kcal} cal · P{p} C{c} F{f}
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <ChevronRight className="h-4 w-4 shrink-0 text-chalk-400" />
+    </button>
+  );
+}
+
+function CatalogDetail({
+  recipe,
+  onBack,
+  onLog,
+  disabled,
+}: {
+  recipe: CatalogRecipe;
+  onBack: () => void;
+  onLog: (s: number) => void;
+  disabled: boolean;
+}) {
+  const [servings, setServings] = useState(1);
+  const perServing = 1 / Math.max(1, recipe.servings);
+  const kcal = Math.round(recipe.calories_total * perServing * servings);
+  const p = Math.round(recipe.protein_g * perServing * servings);
+  const c = Math.round(recipe.carbs_g * perServing * servings);
+  const f = Math.round(recipe.fat_g * perServing * servings);
+  return (
+    <div className="space-y-4">
+      <button
+        type="button"
+        onClick={onBack}
+        className="inline-flex items-center gap-1 text-xs font-bold text-chalk-400 hover:text-chalk-100"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to results
+      </button>
+
+      <div>
+        <div className="text-base font-extrabold leading-snug text-chalk-50">
+          {recipe.name}
+        </div>
+        {recipe.tags.length > 0 && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {recipe.tags.slice(0, 4).map((t) => (
+              <span
+                key={t}
+                className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-chalk-400"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3 text-center">
+        <DetailStat label="kcal" value={kcal} color="#f59e0b" />
+        <DetailStat label="P" value={`${p}g`} color="#a78bfa" />
+        <DetailStat label="C" value={`${c}g`} color="#22d3ee" />
+        <DetailStat label="F" value={`${f}g`} color="#fbbf24" />
+      </div>
+
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <div>
+          <div className="label-tiny">Servings</div>
+          <div className="text-[11px] text-chalk-400">
+            Recipe makes {recipe.servings} · log {servings} ×
+          </div>
+        </div>
         <input
           type="number"
           step={0.25}
           min={0.25}
-          value={s}
-          onChange={(e) => setS(parseFloat(e.target.value) || 1)}
-          className="w-14 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-sm text-chalk-50 outline-none"
+          value={servings}
+          onChange={(e) =>
+            setServings(Math.max(0.25, parseFloat(e.target.value) || 1))
+          }
+          className="w-20 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5 text-right text-sm font-bold text-chalk-50 outline-none"
         />
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => onLog(s)}
-          className="rounded-lg bg-accent-cyan px-3 py-1 text-xs font-bold text-ink-950 disabled:opacity-50"
-        >
-          Log
-        </button>
+      </div>
+
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onLog(servings)}
+        className="btn-primary w-full py-3"
+      >
+        {disabled ? "Logging…" : "Log meal"}
+      </button>
+    </div>
+  );
+}
+
+function DetailStat({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string | number;
+  color: string;
+}) {
+  return (
+    <div
+      className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-1.5 py-1.5"
+      style={{ borderColor: `${color}22` }}
+    >
+      <div className="text-[9px] font-bold uppercase tracking-wider text-chalk-400">
+        {label}
+      </div>
+      <div className="text-[13px] font-extrabold" style={{ color }}>
+        {value}
       </div>
     </div>
   );
