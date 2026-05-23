@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LogoMark } from "@/components/LogoMark";
 import { FeatureCarousel } from "@/components/landing/FeatureCarousel";
-import { ArrowRight, LineChart, ShieldCheck } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1400&q=80";
@@ -140,39 +140,6 @@ export default async function Landing() {
             </div>
           </div>
           <FeatureCarousel />
-        </section>
-
-        {/* Math card */}
-        <section className="card-elev mb-20 overflow-hidden p-0">
-          <div className="grid gap-0 lg:grid-cols-[1fr_1.2fr]">
-            <div className="relative hidden aspect-[4/3] lg:block">
-              <Image
-                src="https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80"
-                alt="Athlete writing in training journal"
-                fill
-                sizes="50vw"
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-ink-950" />
-            </div>
-            <div className="p-8 sm:p-10">
-              <div className="flex items-center gap-2 text-accent-cyan">
-                <LineChart className="h-5 w-5" />
-                <span className="label-eyebrow !text-accent-cyan">
-                  Under the hood
-                </span>
-              </div>
-              <h2 className="display mt-3 text-3xl text-chalk-50 sm:text-4xl">
-                The math, made simple.
-              </h2>
-              <p className="mt-3 max-w-xl text-sm leading-relaxed text-chalk-300">
-                Daily target = Life TDEE + today&apos;s workout burn − your
-                deficit. Same net deficit every day — the gym just earns you more
-                food. Miss a workout? Kosmo Fitness tells you how many minutes to
-                walk to keep the day balanced.
-              </p>
-            </div>
-          </div>
         </section>
       </main>
 
