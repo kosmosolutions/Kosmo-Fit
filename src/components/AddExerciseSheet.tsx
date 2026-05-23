@@ -7,6 +7,7 @@ import {
   addExerciseToDay,
   replaceExerciseInDay,
 } from "@/lib/actions/workout-plan";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import type { WorkoutMode } from "@/lib/types";
 
 const FED_BASE =
@@ -199,6 +200,8 @@ export function AddExerciseSheet({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  useBodyScrollLock();
 
   useEffect(() => {
     setVisible(PAGE_SIZE);

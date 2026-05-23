@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { saveCatalogRecipe } from "@/lib/actions/recipes";
+import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import type { MealType } from "@/lib/types";
 
 interface CatalogRecipe {
@@ -395,6 +396,8 @@ function RecipeDetail({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  useBodyScrollLock();
 
   function save() {
     if (pending || saved) return;
