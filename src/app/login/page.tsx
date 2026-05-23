@@ -27,7 +27,7 @@ export default async function LoginPage({
           <h2 className="display mt-3 text-4xl leading-[0.95] text-chalk-50 xl:text-5xl">
             One more rep.
             <br />
-            <span className="text-accent-lime">One more meal.</span>
+            <span className="text-accent-cyan">One more meal.</span>
           </h2>
         </div>
       </aside>
@@ -86,7 +86,7 @@ export default async function LoginPage({
 
         <p className="mt-6 text-center text-sm text-chalk-300">
           No account yet?{" "}
-          <Link href="/signup" className="font-bold text-accent-lime">
+          <Link href="/signup" className="font-bold text-accent-cyan">
             Sign up
           </Link>
         </p>

@@ -36,7 +36,7 @@ export function SideNav({ weight, goalWeight, weeklyLoss }: SideNavProps) {
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors",
                 active
-                  ? "bg-accent-lime/10 text-accent-lime"
+                  ? "bg-accent-blue/10 text-accent-blue"
                   : "text-chalk-300 hover:bg-white/[0.04] hover:text-chalk-100",
               )}
             >
@@ -54,7 +54,7 @@ export function SideNav({ weight, goalWeight, weeklyLoss }: SideNavProps) {
         <div className="mt-1 text-sm font-extrabold text-chalk-100">
           {weight} → {goalWeight} lbs
         </div>
-        <div className="text-[11px] text-accent-lime">{weeklyLoss} lbs/wk</div>
+        <div className="text-[11px] text-accent-blue">{weeklyLoss} lbs/wk</div>
       </div>
     </aside>
   );

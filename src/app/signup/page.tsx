@@ -27,7 +27,7 @@ export default async function SignupPage({
           <h2 className="display mt-3 text-4xl leading-[0.95] text-chalk-50 xl:text-5xl">
             Your plan,
             <br />
-            <span className="text-accent-lime">built around you.</span>
+            <span className="text-accent-cyan">built around you.</span>
           </h2>
           <p className="mt-4 max-w-sm text-sm text-chalk-300">
             Two-minute setup. Calorie target, macros and training split adapt to
@@ -103,7 +103,7 @@ export default async function SignupPage({
 
         <p className="mt-6 text-center text-sm text-chalk-300">
           Already have one?{" "}
-          <Link href="/login" className="font-bold text-accent-lime">
+          <Link href="/login" className="font-bold text-accent-cyan">
             Log in
           </Link>
         </p>

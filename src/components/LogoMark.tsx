@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 export function LogoMark({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <div className="relative grid h-9 w-9 place-items-center rounded-lg bg-accent-lime text-ink-950">
+      <div className="relative grid h-9 w-9 place-items-center rounded-lg bg-brand-gradient text-white shadow-glow">
         <span className="font-display text-lg font-black">K</span>
       </div>
       <div className="leading-none">

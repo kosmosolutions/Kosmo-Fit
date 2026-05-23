@@ -29,44 +29,48 @@ const config: Config = {
         tightest: "-0.04em",
       },
       colors: {
-        // Athletic Editorial — deep matte ink, warm chalk, electric lime
+        // Everfit-inspired — deep navy ink, cool chalk, electric blue/cyan
         ink: {
-          950: "#050505",
-          900: "#0a0a0a",
-          850: "#0f0f10",
-          800: "#141416",
-          700: "#1c1c20",
-          600: "#26262c",
-          500: "#34343c",
+          950: "#080b10",
+          900: "#0f1419",
+          850: "#131923",
+          800: "#1a1f2e",
+          700: "#232a3d",
+          600: "#2f3850",
+          500: "#404a66",
         },
         chalk: {
-          50: "#f7f4ee",
-          100: "#ece7dc",
-          200: "#cfc8b8",
-          300: "#a39d8e",
-          400: "#7a7569",
-          500: "#5a564d",
+          50: "#f5f7fb",
+          100: "#e6eaf2",
+          200: "#c7cee0",
+          300: "#9aa3bf",
+          400: "#6c7795",
+          500: "#4d5773",
         },
         accent: {
-          // Primary brand accent
-          lime: "#c6ff00",
-          // Secondary semantic accents — re-tuned for the editorial palette
-          cyan: "#7dd3fc",
-          violet: "#c4b5fd",
-          green: "#a3e635",
-          rose: "#fb7185",
-          amber: "#fde047",
-          sky: "#bae6fd",
+          // Primary brand accent — electric blue
+          blue: "#0066ff",
+          // Secondary — bright cyan
+          cyan: "#00a8e8",
+          // Kept aliases for tonal usage (semantic colors retuned cool)
+          lime: "#0066ff", // back-compat alias → resolves to primary blue
+          violet: "#7c5cff",
+          green: "#22c55e",
+          rose: "#f43f5e",
+          amber: "#f59e0b",
+          sky: "#38bdf8",
           orange: "#fb923c",
         },
       },
       boxShadow: {
-        glow: "0 0 0 1px rgba(198,255,0,0.18), 0 8px 30px -10px rgba(198,255,0,0.35)",
+        glow: "0 0 0 1px rgba(0,102,255,0.22), 0 8px 30px -10px rgba(0,102,255,0.45)",
         card: "0 1px 0 rgba(255,255,255,0.03) inset, 0 0 0 1px rgba(255,255,255,0.05)",
       },
       backgroundImage: {
         "grid-soft":
           "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0)",
+        "brand-gradient":
+          "linear-gradient(135deg, #0066ff 0%, #00a8e8 100%)",
       },
     },
   },
