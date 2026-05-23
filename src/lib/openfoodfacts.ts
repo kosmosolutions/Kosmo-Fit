@@ -1,5 +1,5 @@
 // Client for the public OpenFoodFacts API (world.openfoodfacts.org).
-// No auth, CORS-enabled — runs entirely from the browser.
+// No auth, CORS-enabled — runs directly from the browser.
 
 export interface OffProduct {
   code: string;
@@ -86,12 +86,17 @@ export async function searchOpenFoodFacts(
 ): Promise<OffProduct[]> {
   const q = query.trim();
   if (!q) return [];
-  const url = new URL("https://world.openfoodfacts.org/api/v2/search");
+  // Use the v1 CGI endpoint. /api/v2/search's `search_terms` is a weak filter
+  // and combined with `sort_by=popularity_key` it tends to return the same
+  // popularity-top products regardless of query. The CGI endpoint is the
+  // canonical full-text search and ranks by text relevance.
+  const url = new URL("https://world.openfoodfacts.org/cgi/search.pl");
   url.searchParams.set("search_terms", q);
-  url.searchParams.set("fields", SEARCH_FIELDS);
+  url.searchParams.set("search_simple", "1");
+  url.searchParams.set("action", "process");
+  url.searchParams.set("json", "1");
   url.searchParams.set("page_size", "20");
-  // Sort by popularity so results aren't dominated by long-tail dupes.
-  url.searchParams.set("sort_by", "popularity_key");
+  url.searchParams.set("fields", SEARCH_FIELDS);
   const r = await fetch(url.toString(), { signal });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   const data = (await r.json()) as { products?: OffApiProduct[] };
