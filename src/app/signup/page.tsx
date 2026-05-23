@@ -37,7 +37,7 @@ export default async function SignupPage({
       </aside>
 
       {/* Form panel */}
-      <div className="mx-auto flex w-full max-w-md flex-col px-6 py-10 lg:py-16">
+      <div className="mx-auto flex w-full max-w-md flex-col px-6 pb-10 pt-safe-10 lg:py-16">
         <Link href="/" className="self-start">
           <LogoMark />
         </Link>

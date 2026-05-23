@@ -70,7 +70,7 @@ export function OnboardingFlow({
   const can = step === STEPS.length - 1;
 
   return (
-    <div className="mx-auto max-w-md px-5 py-8">
+    <div className="mx-auto max-w-md px-5 pb-8 pt-safe-8">
       <LogoMark />
 
       {/* Step indicator */}
