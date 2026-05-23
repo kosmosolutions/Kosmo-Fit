@@ -238,14 +238,22 @@ export function WorkoutClient({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="label-tiny">6-day split</div>
           <h1 className="text-2xl font-extrabold tracking-tight text-chalk-50">
             Workout plan
           </h1>
         </div>
-        <div className="flex gap-1">
+        <Link
+          href="/workout/catalog"
+          className="inline-flex items-center gap-2 rounded-xl border border-accent-blue/40 bg-accent-blue/10 px-3.5 py-2 text-sm font-bold text-accent-cyan shadow-glow transition hover:bg-accent-blue/20"
+          aria-label="Browse exercise library"
+        >
+          <Library className="h-4 w-4" />
+          Browse library
+        </Link>
+        <div className="flex w-full gap-1 sm:w-auto">
           <div className="flex rounded-xl bg-white/[0.06] p-0.5">
             {(
               [
@@ -282,14 +290,6 @@ export function WorkoutClient({
             <Sparkles className="h-3.5 w-3.5" />
             Wellness
           </button>
-          <Link
-            href="/workout/catalog"
-            className="flex items-center gap-1.5 rounded-xl bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-chalk-400 transition hover:text-chalk-200"
-            aria-label="Browse exercise library"
-          >
-            <Library className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Library</span>
-          </Link>
         </div>
       </div>
 
