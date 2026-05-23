@@ -20,7 +20,7 @@ const SLIDES: Slide[] = [
   {
     eyebrow: "Daily Overview",
     title: "Your day at a glance.",
-    body: "Rings for calories, protein, steps and water. Tap any ring to drill into the day.",
+    body: "Daily calorie target, protein intake, step count and hydration — all four tracked against your goals and refreshed every time you log.",
     accent: "#00a8e8",
     image:
       "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80",
