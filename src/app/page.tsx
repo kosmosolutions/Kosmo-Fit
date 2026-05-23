@@ -14,7 +14,7 @@ export default async function Landing() {
   if (user) redirect("/overview");
 
   return (
-    <div className="min-h-svh">
+    <div className="min-h-svh overflow-x-hidden">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-6">
         <LogoMark />
         <div className="flex items-center gap-2">
