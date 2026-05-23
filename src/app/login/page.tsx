@@ -10,7 +10,7 @@ export default async function LoginPage({
 }) {
   const { error, message } = await searchParams;
   return (
-    <div className="grid min-h-svh lg:grid-cols-[1.1fr_1fr]">
+    <div className="grid min-h-svh overflow-x-hidden lg:grid-cols-[1.1fr_1fr]">
       {/* Photo panel */}
       <aside className="relative hidden overflow-hidden lg:block">
         <Image

@@ -27,7 +27,7 @@ export default async function AppLayout({
   const stats = calcStats(profile, profile.workout_mode === "gym" ? "gym" : "home");
 
   return (
-    <div className="min-h-svh md:flex">
+    <div className="min-h-svh overflow-x-hidden md:flex">
       <SideNav
         weight={profile.current_weight}
         goalWeight={profile.goal_weight}

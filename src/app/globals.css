@@ -29,9 +29,11 @@ body {
     "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Block horizontal page-swipe leakage from in-row swipe gestures and any
-     accidentally-overflowing children. Vertical scroll stays intact. */
-  overflow-x: hidden;
+  /* Block horizontal pull/bounce. We deliberately do NOT set overflow-x:
+     hidden on html/body — that breaks `position: sticky` on iOS Safari
+     (sticky elements stop sticking under TopBar, creating dual-scroll
+     panes visually). Horizontal swipe containment is enforced by the
+     layout wrapper instead. */
   overscroll-behavior-x: none;
 }
 
