@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Clock,
   ExternalLink,
+  LayoutGrid,
   Search,
   X,
 } from "lucide-react";
@@ -34,22 +35,109 @@ interface CatalogRecipe {
   tags: string[];
 }
 
-// Curated set of facet tags surfaced as filter chips. The dataset has many
-// long-tail tags ("untried", "components" etc.) we hide to keep the UI tight.
-const TAG_FACETS = [
-  "main",
-  "breakfast",
-  "dessert",
-  "salad",
-  "soup",
-  "sides",
-  "appetizer",
-  "pasta",
-  "seafood",
-  "drink",
-  "vegetarian",
-  "sandwich",
-] as const;
+// Primary category tiles. Mirrors the workout muscle-group browser — emoji +
+// gradient + count, picked from the high-coverage tags in the catalog.
+type Category = {
+  key: string;
+  label: string;
+  emoji: string;
+  gradient: string;
+  // Tag predicate: recipe matches when ANY of these tags is present.
+  match: string[];
+};
+
+const CATEGORIES: Category[] = [
+  {
+    key: "breakfast",
+    label: "Breakfast",
+    emoji: "🍳",
+    gradient: "from-amber-500/45 to-amber-500/0",
+    match: ["breakfast"],
+  },
+  {
+    key: "mains",
+    label: "Mains",
+    emoji: "🍽️",
+    gradient: "from-rose-500/45 to-rose-500/0",
+    match: ["main"],
+  },
+  {
+    key: "salad",
+    label: "Salads",
+    emoji: "🥗",
+    gradient: "from-emerald-500/45 to-emerald-500/0",
+    match: ["salad"],
+  },
+  {
+    key: "pasta",
+    label: "Pasta",
+    emoji: "🍝",
+    gradient: "from-orange-500/45 to-orange-500/0",
+    match: ["pasta"],
+  },
+  {
+    key: "soup",
+    label: "Soups",
+    emoji: "🍜",
+    gradient: "from-amber-600/45 to-amber-600/0",
+    match: ["soup"],
+  },
+  {
+    key: "seafood",
+    label: "Seafood",
+    emoji: "🐟",
+    gradient: "from-sky-500/45 to-sky-500/0",
+    match: ["seafood", "shrimp", "salmon", "fish"],
+  },
+  {
+    key: "sandwich",
+    label: "Sandwich",
+    emoji: "🥪",
+    gradient: "from-yellow-500/45 to-yellow-500/0",
+    match: ["sandwich"],
+  },
+  {
+    key: "dessert",
+    label: "Dessert",
+    emoji: "🍰",
+    gradient: "from-pink-500/45 to-pink-500/0",
+    match: ["dessert", "icecream"],
+  },
+];
+
+const CATEGORY_BY_KEY = new Map(CATEGORIES.map((c) => [c.key, c]));
+
+// Diet style — derived from tags + an ingredient sniff.
+type DietStyle = "vegetarian" | "with-meat" | "vegan";
+const DIET_FACETS: { key: DietStyle; label: string; emoji: string }[] = [
+  { key: "vegetarian", label: "Vegetarian", emoji: "🌱" },
+  { key: "vegan", label: "Vegan", emoji: "🥦" },
+  { key: "with-meat", label: "With meat", emoji: "🥩" },
+];
+
+// Cuisine — sparse coverage in the dataset, but useful as a fine filter.
+type Cuisine = "asian" | "mexican" | "korean" | "indian" | "greek" | "italian";
+const CUISINE_FACETS: { key: Cuisine; label: string; flag: string }[] = [
+  { key: "italian", label: "Italian", flag: "🇮🇹" },
+  { key: "asian", label: "Asian", flag: "🥢" },
+  { key: "mexican", label: "Mexican", flag: "🌶️" },
+  { key: "korean", label: "Korean", flag: "🇰🇷" },
+  { key: "indian", label: "Indian", flag: "🇮🇳" },
+  { key: "greek", label: "Greek", flag: "🇬🇷" },
+];
+
+// Macro lean — derived from per-serving macros, dominant macro by % of kcal.
+type MacroLean = "protein-rich" | "carb-rich" | "fat-rich";
+const MACRO_FACETS: {
+  key: MacroLean;
+  label: string;
+  emoji: string;
+  color: string;
+}[] = [
+  { key: "protein-rich", label: "Protein-rich", emoji: "💪", color: "#a78bfa" },
+  { key: "carb-rich", label: "Carb-rich", emoji: "🍞", color: "#22d3ee" },
+  { key: "fat-rich", label: "Fat-rich", emoji: "🥑", color: "#fbbf24" },
+];
 
 const MEALS: Array<MealType | "any"> = [
   "any",
@@ -59,7 +147,6 @@ const MEALS: Array<MealType | "any"> = [
   "dinner",
 ];
 
-// Auto-suggest a meal_type from tags. User can override before saving.
 function defaultMealType(tags: string[]): MealType | "any" {
   const t = new Set(tags);
   if (t.has("breakfast")) return "breakfast";
@@ -69,13 +156,84 @@ function defaultMealType(tags: string[]): MealType | "any" {
   return "any";
 }
 
+// First-match wins so "Seafood" wins over "Mains" (a shrimp scampi is tagged
+// as both `main` and `seafood`; we want the more specific tile).
+const CATEGORY_PRIORITY = [
+  "breakfast",
+  "dessert",
+  "soup",
+  "salad",
+  "pasta",
+  "seafood",
+  "sandwich",
+  "mains",
+];
+
+function categoryFor(recipe: CatalogRecipe): string | null {
+  const tagSet = new Set(recipe.tags.map((t) => t.toLowerCase()));
+  for (const key of CATEGORY_PRIORITY) {
+    const cat = CATEGORY_BY_KEY.get(key);
+    if (!cat) continue;
+    if (cat.match.some((m) => tagSet.has(m))) return cat.key;
+  }
+  return null;
+}
+
+const DAIRY_EGG_RX =
+  /\b(milk|cheese|butter|yogurt|cream|egg|eggs|parmesan|mozzarella|feta|ricotta|ghee|honey|whey)\b/i;
+
+function dietStylesFor(recipe: CatalogRecipe): DietStyle[] {
+  const tagSet = new Set(recipe.tags.map((t) => t.toLowerCase()));
+  const isVeg = tagSet.has("vegetarian");
+  if (!isVeg) return ["with-meat"];
+  const ingredientText = recipe.ingredients.join(" ");
+  return DAIRY_EGG_RX.test(ingredientText)
+    ? ["vegetarian"]
+    : ["vegetarian", "vegan"];
+}
+
+const ITALIAN_NAME_RX =
+  /\b(pasta|risotto|lasagna|carbonara|parmesan|bolognese|tiramisu|gnocchi|ravioli|focaccia|pesto|marinara|caprese)\b/i;
+
+function cuisineFor(recipe: CatalogRecipe): Cuisine | null {
+  const tagSet = new Set(recipe.tags.map((t) => t.toLowerCase()));
+  if (tagSet.has("asian")) return "asian";
+  if (tagSet.has("mexican")) return "mexican";
+  if (tagSet.has("korean")) return "korean";
+  if (tagSet.has("indian")) return "indian";
+  if (tagSet.has("greek")) return "greek";
+  if (tagSet.has("pasta") || ITALIAN_NAME_RX.test(recipe.name)) return "italian";
+  return null;
+}
+
+function macroLeanFor(recipe: CatalogRecipe): MacroLean | null {
+  const p = recipe.protein_g * 4;
+  const c = recipe.carbs_g * 4;
+  const f = recipe.fat_g * 9;
+  const total = p + c + f;
+  if (total < 50) return null;
+  const pp = p / total;
+  const cp = c / total;
+  const fp = f / total;
+  // Thresholds tuned against the 232-recipe catalog: protein checked first so
+  // a high-protein dish that happens to be ~50% carbs still counts as
+  // protein-rich rather than carb-rich.
+  if (pp >= 0.25) return "protein-rich";
+  if (fp >= 0.45) return "fat-rich";
+  if (cp >= 0.55) return "carb-rich";
+  return null;
+}
+
 const PAGE_SIZE = 24;
 
 export function RecipeCatalogClient() {
   const [all, setAll] = useState<CatalogRecipe[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [tag, setTag] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
+  const [diet, setDiet] = useState<DietStyle | null>(null);
+  const [cuisine, setCuisine] = useState<Cuisine | null>(null);
+  const [macroLean, setMacroLean] = useState<MacroLean | null>(null);
   const [maxCals, setMaxCals] = useState<number | null>(null);
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [active, setActive] = useState<CatalogRecipe | null>(null);
@@ -101,49 +259,175 @@ export function RecipeCatalogClient() {
 
   useEffect(() => {
     setVisible(PAGE_SIZE);
-  }, [query, tag, maxCals]);
+  }, [query, category, diet, cuisine, macroLean, maxCals]);
+
+  // Pre-derive facets per recipe so filtering + tile counts share the work.
+  const annotated = useMemo(() => {
+    if (!all) return null;
+    return all.map((r) => ({
+      r,
+      category: categoryFor(r),
+      diets: dietStylesFor(r),
+      cuisine: cuisineFor(r),
+      macroLean: macroLeanFor(r),
+      kcalPerServing: Math.round(r.calories_total / Math.max(1, r.servings)),
+    }));
+  }, [all]);
+
+  const categoryCounts = useMemo(() => {
+    if (!annotated) return {} as Record<string, number>;
+    const out: Record<string, number> = {};
+    for (const a of annotated) {
+      if (a.category) out[a.category] = (out[a.category] ?? 0) + 1;
+    }
+    return out;
+  }, [annotated]);
 
   const filtered = useMemo(() => {
-    if (!all) return [];
+    if (!annotated) return [];
     const q = query.trim().toLowerCase();
-    return all.filter((r) => {
-      if (tag && !r.tags.includes(tag)) return false;
-      if (
-        maxCals !== null &&
-        Math.round(r.calories_total / Math.max(1, r.servings)) > maxCals
-      ) {
-        return false;
-      }
+    return annotated.filter((a) => {
+      if (category && a.category !== category) return false;
+      if (diet && !a.diets.includes(diet)) return false;
+      if (cuisine && a.cuisine !== cuisine) return false;
+      if (macroLean && a.macroLean !== macroLean) return false;
+      if (maxCals !== null && a.kcalPerServing > maxCals) return false;
       if (q) {
-        const hay = `${r.name} ${r.tags.join(" ")} ${r.ingredients.join(" ")}`.toLowerCase();
+        const hay =
+          `${a.r.name} ${a.r.tags.join(" ")} ${a.r.ingredients.join(" ")}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [all, query, tag, maxCals]);
+  }, [annotated, query, category, diet, cuisine, macroLean, maxCals]);
 
   const slice = filtered.slice(0, visible);
   const hasMore = visible < filtered.length;
-  const activeFilterCount = (tag ? 1 : 0) + (maxCals !== null ? 1 : 0);
+  const activeFilterCount =
+    (diet ? 1 : 0) +
+    (cuisine ? 1 : 0) +
+    (macroLean ? 1 : 0) +
+    (maxCals !== null ? 1 : 0);
+
+  function resetAll() {
+    setQuery("");
+    setCategory(null);
+    setDiet(null);
+    setCuisine(null);
+    setMacroLean(null);
+    setMaxCals(null);
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="label-tiny">Recipe library</div>
-          <h1 className="truncate text-2xl font-extrabold tracking-tight text-chalk-50">
-            Browse {all ? all.length : "…"} recipes
-          </h1>
+    <div className="space-y-6">
+      {/* Hero + category tile browser — mirrors the workout catalog layout */}
+      <section className="relative overflow-hidden rounded-3xl border border-white/[0.07] bg-gradient-to-br from-ink-800 via-ink-900 to-ink-950 p-5 sm:p-8">
+        <div
+          className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-50 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(0,168,232,0.45), rgba(0,102,255,0.0))",
+          }}
+        />
+        <div className="relative flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="label-eyebrow">Recipe library</div>
+            <h1 className="display mt-2 text-3xl text-chalk-50 sm:text-4xl">
+              Find your next meal.
+            </h1>
+            <p className="mt-2 max-w-md text-sm text-chalk-300">
+              {all
+                ? `${all.length} recipes · sortable by cuisine, diet style and macro lean.`
+                : loadError
+                  ? `Failed to load catalog: ${loadError}`
+                  : "Loading catalog…"}
+            </p>
+          </div>
+          <Link
+            href="/diet/recipes"
+            className="btn-secondary shrink-0"
+            aria-label="Back to saved recipes"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Back</span>
+          </Link>
         </div>
-        <Link
-          href="/diet/recipes"
-          className="btn-secondary shrink-0"
-          aria-label="Back to saved recipes"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Back</span>
-        </Link>
-      </div>
+
+        {/* Category tile browser */}
+        <div className="relative mt-6 grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
+          <button
+            type="button"
+            onClick={() => setCategory(null)}
+            className={cn(
+              "group/tile relative flex flex-col items-center gap-1.5 overflow-hidden rounded-2xl border p-3 text-center transition-all",
+              category === null
+                ? "border-accent-blue/50 bg-accent-blue/10 shadow-glow"
+                : "border-white/[0.08] bg-white/[0.025] hover:border-white/20 hover:bg-white/[0.05]",
+            )}
+          >
+            <LayoutGrid
+              className={cn(
+                "h-5 w-5 transition",
+                category === null ? "text-accent-cyan" : "text-chalk-400",
+              )}
+            />
+            <div
+              className={cn(
+                "text-[11px] font-bold uppercase tracking-wider",
+                category === null ? "text-accent-cyan" : "text-chalk-200",
+              )}
+            >
+              All
+            </div>
+            {all && (
+              <div className="text-[10px] text-chalk-500">{all.length}</div>
+            )}
+          </button>
+          {CATEGORIES.map((c) => {
+            const sel = category === c.key;
+            const count = categoryCounts[c.key] ?? 0;
+            return (
+              <button
+                key={c.key}
+                type="button"
+                onClick={() => setCategory(sel ? null : c.key)}
+                className={cn(
+                  "group/tile relative flex flex-col items-center gap-1.5 overflow-hidden rounded-2xl border p-3 text-center transition-all",
+                  sel
+                    ? "border-accent-blue/50 shadow-glow"
+                    : "border-white/[0.08] hover:border-white/20",
+                )}
+              >
+                <div
+                  className={cn(
+                    "pointer-events-none absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity",
+                    c.gradient,
+                    !sel && "opacity-25 group-hover/tile:opacity-50",
+                  )}
+                />
+                <div
+                  className={cn(
+                    "absolute inset-0 transition",
+                    sel ? "bg-accent-blue/10" : "bg-white/[0.02]",
+                  )}
+                />
+                <span className="relative text-xl leading-none">{c.emoji}</span>
+                <div
+                  className={cn(
+                    "relative text-[11px] font-bold uppercase tracking-wider",
+                    sel ? "text-accent-cyan" : "text-chalk-100",
+                  )}
+                >
+                  {c.label}
+                </div>
+                <div className="relative text-[10px] text-chalk-400">
+                  {count}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Search + filter toggle */}
       <div className="sticky top-[64px] z-10 -mx-4 border-b border-white/[0.05] bg-ink-950/85 px-4 py-3 backdrop-blur md:top-[68px]">
@@ -186,31 +470,35 @@ export function RecipeCatalogClient() {
 
         {filtersOpen && (
           <div className="mt-3 space-y-3">
+            <FacetRow
+              label="Diet"
+              value={diet}
+              options={DIET_FACETS.map((f) => ({
+                value: f.key,
+                label: `${f.emoji} ${f.label}`,
+              }))}
+              onChange={(v) => setDiet(v as DietStyle | null)}
+            />
+            <FacetRow
+              label="Cuisine"
+              value={cuisine}
+              options={CUISINE_FACETS.map((f) => ({
+                value: f.key,
+                label: `${f.flag} ${f.label}`,
+              }))}
+              onChange={(v) => setCuisine(v as Cuisine | null)}
+            />
+            <FacetRow
+              label="Macro lean"
+              value={macroLean}
+              options={MACRO_FACETS.map((f) => ({
+                value: f.key,
+                label: `${f.emoji} ${f.label}`,
+              }))}
+              onChange={(v) => setMacroLean(v as MacroLean | null)}
+            />
             <div>
-              <div className="label-tiny mb-1.5">Tag</div>
-              <div className="flex flex-wrap gap-1.5">
-                {TAG_FACETS.map((t) => {
-                  const sel = tag === t;
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setTag(sel ? null : t)}
-                      className={cn(
-                        "rounded-full border px-2.5 py-1 text-[11px] font-bold capitalize transition",
-                        sel
-                          ? "border-accent-cyan/50 bg-accent-cyan/15 text-accent-cyan"
-                          : "border-white/10 bg-white/[0.04] text-chalk-300 hover:bg-white/[0.08]",
-                      )}
-                    >
-                      {t}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <div>
-              <div className="label-tiny mb-1.5">Calories per serving</div>
+              <div className="label-tiny mb-1.5">Calories / serving</div>
               <div className="flex flex-wrap gap-1.5">
                 {(
                   [
@@ -242,7 +530,9 @@ export function RecipeCatalogClient() {
               <button
                 type="button"
                 onClick={() => {
-                  setTag(null);
+                  setDiet(null);
+                  setCuisine(null);
+                  setMacroLean(null);
                   setMaxCals(null);
                 }}
                 className="text-xs font-bold text-chalk-400 hover:text-chalk-100"
@@ -256,7 +546,7 @@ export function RecipeCatalogClient() {
 
       <div className="flex items-center justify-between text-xs text-chalk-400">
         <div>
-          {all
+          {annotated
             ? `${filtered.length} ${filtered.length === 1 ? "recipe" : "recipes"} match`
             : loadError
               ? `Failed to load catalog: ${loadError}`
@@ -264,7 +554,7 @@ export function RecipeCatalogClient() {
         </div>
       </div>
 
-      {all && filtered.length === 0 ? (
+      {annotated && filtered.length === 0 ? (
         <div className="card-elev flex flex-col items-center gap-2 p-10 text-center">
           <ChefHat className="h-6 w-6 text-chalk-400" />
           <div className="text-sm font-bold text-chalk-100">
@@ -272,20 +562,24 @@ export function RecipeCatalogClient() {
           </div>
           <button
             type="button"
-            onClick={() => {
-              setQuery("");
-              setTag(null);
-              setMaxCals(null);
-            }}
+            onClick={resetAll}
             className="text-xs font-bold text-accent-cyan"
           >
             Reset
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {slice.map((r) => (
-            <RecipeGridCard key={r.id} r={r} onClick={() => setActive(r)} />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {slice.map((a) => (
+            <RecipeGridCard
+              key={a.r.id}
+              recipe={a.r}
+              category={a.category}
+              cuisine={a.cuisine}
+              macroLean={a.macroLean}
+              kcalPerServing={a.kcalPerServing}
+              onClick={() => setActive(a.r)}
+            />
           ))}
         </div>
       )}
@@ -309,6 +603,44 @@ export function RecipeCatalogClient() {
   );
 }
 
+function FacetRow({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string | null;
+  options: { value: string; label: string }[];
+  onChange: (v: string | null) => void;
+}) {
+  return (
+    <div>
+      <div className="label-tiny mb-1.5">{label}</div>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => {
+          const sel = value === o.value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => onChange(sel ? null : o.value)}
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-[11px] font-bold transition",
+                sel
+                  ? "border-accent-cyan/50 bg-accent-cyan/15 text-accent-cyan"
+                  : "border-white/10 bg-white/[0.04] text-chalk-300 hover:bg-white/[0.08]",
+              )}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function perServingMacros(r: CatalogRecipe) {
   const s = Math.max(1, r.servings || 1);
   return {
@@ -320,46 +652,94 @@ function perServingMacros(r: CatalogRecipe) {
 }
 
 function RecipeGridCard({
-  r,
+  recipe,
+  category,
+  cuisine,
+  macroLean,
+  kcalPerServing,
   onClick,
 }: {
-  r: CatalogRecipe;
+  recipe: CatalogRecipe;
+  category: string | null;
+  cuisine: Cuisine | null;
+  macroLean: MacroLean | null;
+  kcalPerServing: number;
   onClick: () => void;
 }) {
-  const ps = perServingMacros(r);
+  const ps = perServingMacros(recipe);
+  const cat = category ? CATEGORY_BY_KEY.get(category) : null;
+  const cuisineMeta = cuisine
+    ? CUISINE_FACETS.find((c) => c.key === cuisine)
+    : null;
+  const macroMeta = macroLean
+    ? MACRO_FACETS.find((m) => m.key === macroLean)
+    : null;
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group flex flex-col gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4 text-left transition hover:border-white/20 hover:bg-white/[0.05]"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] text-left transition-all hover:-translate-y-0.5 hover:border-accent-blue/40 hover:shadow-glow"
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="text-sm font-bold leading-snug text-chalk-50">
-          {r.name}
+      {/* Visual header — gradient + emoji as the standin for a missing photo */}
+      <div
+        className={cn(
+          "relative grid aspect-[5/3] place-items-center overflow-hidden bg-gradient-to-br",
+          cat?.gradient ?? "from-ink-700/50 to-ink-900/0",
+        )}
+      >
+        <div className="absolute inset-0 bg-ink-900/40" />
+        <span className="relative text-4xl drop-shadow-lg">
+          {cat?.emoji ?? "🍴"}
+        </span>
+        <div className="absolute left-2 top-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-bold text-accent-amber backdrop-blur-sm">
+          {kcalPerServing} cal
         </div>
-        <div
-          className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-accent-amber"
-          style={{ background: "rgba(251,191,36,0.12)" }}
-        >
-          {ps.kcal} cal
+        {cuisineMeta && (
+          <div className="absolute right-2 top-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-bold text-chalk-100 backdrop-blur-sm">
+            {cuisineMeta.flag} {cuisineMeta.label}
+          </div>
+        )}
+        {macroMeta && (
+          <div
+            className="absolute bottom-2 left-2 rounded-md px-1.5 py-0.5 text-[10px] font-bold backdrop-blur-sm"
+            style={{
+              background: `${macroMeta.color}22`,
+              color: macroMeta.color,
+            }}
+          >
+            {macroMeta.emoji} {macroMeta.label}
+          </div>
+        )}
+        {recipe.total_minutes > 0 && (
+          <div className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-bold text-chalk-200 backdrop-blur-sm">
+            <Clock className="h-2.5 w-2.5" />
+            {recipe.total_minutes}m
+          </div>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col gap-2 p-3">
+        <div className="line-clamp-2 text-sm font-bold leading-snug text-chalk-50">
+          {recipe.name}
         </div>
-      </div>
-      <div className="flex flex-wrap gap-1 text-[10px] font-semibold uppercase tracking-wider text-chalk-400">
-        {r.tags.slice(0, 3).map((t) => (
-          <span key={t}>{t}</span>
-        ))}
-        {r.servings > 1 && <span>· {r.servings} servings</span>}
-      </div>
-      <div className="mt-auto grid grid-cols-3 gap-1.5 pt-1 text-center">
-        <Macro label="P" v={`${ps.p}g`} color="#a78bfa" />
-        <Macro label="C" v={`${ps.c}g`} color="#22d3ee" />
-        <Macro label="F" v={`${ps.f}g`} color="#fbbf24" />
+        <div className="mt-auto grid grid-cols-3 gap-1.5 text-center">
+          <Macro label="P" v={`${ps.p}g`} color="#a78bfa" />
+          <Macro label="C" v={`${ps.c}g`} color="#22d3ee" />
+          <Macro label="F" v={`${ps.f}g`} color="#fbbf24" />
+        </div>
       </div>
     </button>
   );
 }
 
-function Macro({ label, v, color }: { label: string; v: string; color: string }) {
+function Macro({
+  label,
+  v,
+  color,
+}: {
+  label: string;
+  v: string;
+  color: string;
+}) {
   return (
     <div
       className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-1.5 py-1"
@@ -388,6 +768,8 @@ function RecipeDetail({
   const [saved, setSaved] = useState(false);
   const [pending, start] = useTransition();
   const ps = perServingMacros(recipe);
+  const cat = categoryFor(recipe);
+  const catMeta = cat ? CATEGORY_BY_KEY.get(cat) : null;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -427,9 +809,30 @@ function RecipeDetail({
         className="flex max-h-[90svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-ink-900 sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Visual hero strip — same emoji + gradient as the grid card */}
+        <div
+          className={cn(
+            "relative grid aspect-[16/7] place-items-center overflow-hidden bg-gradient-to-br",
+            catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0",
+          )}
+        >
+          <div className="absolute inset-0 bg-ink-900/40" />
+          <span className="relative text-6xl drop-shadow-lg">
+            {catMeta?.emoji ?? "🍴"}
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-3 top-3 rounded-lg bg-black/40 p-1.5 text-chalk-100 backdrop-blur-sm hover:bg-black/60"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
         <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div className="min-w-0">
-            <div className="truncate text-sm font-bold text-chalk-50">
+            <div className="text-sm font-bold leading-snug text-chalk-50">
               {recipe.name}
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-chalk-400">
@@ -444,14 +847,6 @@ function RecipeDetail({
               )}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg p-1 text-chalk-400 hover:bg-white/10"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
         </div>
 
         <div className="grid grid-cols-3 gap-2 border-b border-white/[0.06] px-4 py-3">
@@ -460,7 +855,7 @@ function RecipeDetail({
           <Macro label="Fat" v={`${ps.f}g`} color="#fbbf24" />
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-3">
           {recipe.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {recipe.tags.map((t) => (
@@ -560,9 +955,8 @@ function RecipeDetail({
   );
 }
 
-// Split a single ingredient line like "1/2 cup oats" into {amount, name}.
-// First two whitespace-separated tokens are treated as the amount when the
-// leading token starts with a digit or a vulgar-fraction character.
+// Split "1/2 cup oats" into {amount, name}; falls back to {name: line} when
+// no leading quantity is present.
 function parseIngredient(line: string): { name: string; amount?: string } {
   const trimmed = line.trim();
   if (!trimmed) return { name: "" };
