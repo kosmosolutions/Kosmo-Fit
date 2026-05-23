@@ -33,7 +33,7 @@ export function TopBar({
           <div className="text-[13px] font-extrabold text-chalk-100">
             {weight} → {goalWeight} lbs
           </div>
-          <div className="text-[10px] text-accent-lime">
+          <div className="text-[10px] text-accent-cyan">
             {weeklyLoss} lbs/wk
           </div>
         </div>

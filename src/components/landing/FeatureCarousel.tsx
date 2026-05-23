@@ -21,7 +21,7 @@ const SLIDES: Slide[] = [
     eyebrow: "Daily Overview",
     title: "Your day at a glance.",
     body: "Rings for calories, protein, steps and water. Tap any ring to drill into the day.",
-    accent: "#c6ff00",
+    accent: "#00a8e8",
     image:
       "https://images.unsplash.com/photo-1576678927484-cc907957088c?auto=format&fit=crop&w=1200&q=80",
     alt: "Fitness tracker rings on a smartwatch",
@@ -30,7 +30,7 @@ const SLIDES: Slide[] = [
     eyebrow: "Workouts",
     title: "Home & gym, side by side.",
     body: "A polished 6-day split with dumbbell swaps for home. Every move has a demo and a search link.",
-    accent: "#c6ff00",
+    accent: "#00a8e8",
     image:
       "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80",
     alt: "Athlete training with dumbbells in a gym",
@@ -39,7 +39,7 @@ const SLIDES: Slide[] = [
     eyebrow: "Diet",
     title: "Track what you eat. Save what you love.",
     body: "Split meals across breakfast, snack, lunch and dinner. Save any meal as a one-tap recipe.",
-    accent: "#c6ff00",
+    accent: "#00a8e8",
     image:
       "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=80",
     alt: "Colorful balanced meal bowl with chicken, grains and vegetables",
@@ -48,7 +48,7 @@ const SLIDES: Slide[] = [
     eyebrow: "Wellness",
     title: "Warm up, stretch, breathe.",
     body: "Three difficulties per routine — 5, 10 or 15 minutes. Tap to play. No subscription wall.",
-    accent: "#c6ff00",
+    accent: "#00a8e8",
     image:
       "https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80",
     alt: "Person stretching during a wellness routine",
@@ -57,7 +57,7 @@ const SLIDES: Slide[] = [
     eyebrow: "Plan",
     title: "The math, made for you.",
     body: "BMR, TDEE, deficit and macro targets — computed from your body, refreshed on every change.",
-    accent: "#c6ff00",
+    accent: "#00a8e8",
     image:
       "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1200&q=80",
     alt: "Athlete checking fitness metrics on phone after a run",
@@ -169,7 +169,7 @@ export function FeatureCarousel() {
               onClick={() => scrollTo(i)}
               className={cn(
                 "h-1.5 rounded-full transition-all",
-                index === i ? "w-6 bg-accent-lime" : "w-1.5 bg-white/20",
+                index === i ? "w-6 bg-accent-blue" : "w-1.5 bg-white/20",
               )}
             />
           ))}

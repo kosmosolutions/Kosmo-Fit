@@ -4,16 +4,17 @@
 
 :root {
   color-scheme: dark;
-  --bg-base: #0a0a0a;
-  --bg-elev: #0f0f10;
-  --bg-card: #141416;
+  --bg-base: #0f1419;
+  --bg-elev: #131923;
+  --bg-card: #1a1f2e;
   --border: rgba(255, 255, 255, 0.07);
   --border-strong: rgba(255, 255, 255, 0.14);
-  --text-1: #f7f4ee;
-  --text-2: #cfc8b8;
-  --text-3: #a39d8e;
-  --text-4: #7a7569;
-  --accent: #c6ff00;
+  --text-1: #f5f7fb;
+  --text-2: #c7cee0;
+  --text-3: #9aa3bf;
+  --text-4: #6c7795;
+  --accent: #0066ff;
+  --accent-cyan: #00a8e8;
 }
 
 * {
@@ -34,12 +35,12 @@ body {
   background-image:
     radial-gradient(
       ellipse 90% 60% at 50% -10%,
-      rgba(198, 255, 0, 0.045),
+      rgba(0, 102, 255, 0.08),
       transparent 60%
     ),
     radial-gradient(
       ellipse 60% 40% at 100% 0%,
-      rgba(255, 255, 255, 0.025),
+      rgba(0, 168, 232, 0.05),
       transparent 60%
     );
 }
@@ -73,19 +74,19 @@ input[type="number"] {
     @apply text-[10px] uppercase tracking-[2px] text-chalk-400;
   }
   .label-eyebrow {
-    @apply font-display text-[10px] font-bold uppercase tracking-[3px] text-accent-lime;
+    @apply font-display text-[10px] font-bold uppercase tracking-[3px] text-accent-cyan;
   }
   .pill {
     @apply rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-chalk-300;
   }
   .field {
-    @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-[15px] font-medium text-chalk-50 outline-none transition focus:border-accent-lime/60 focus:ring-2 focus:ring-accent-lime/20;
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-[15px] font-medium text-chalk-50 outline-none transition focus:border-accent-blue/60 focus:ring-2 focus:ring-accent-blue/20;
   }
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-accent-lime text-ink-950 hover:brightness-110;
+    @apply btn bg-accent-blue text-white shadow-glow hover:brightness-110;
   }
   .btn-secondary {
     @apply btn border border-white/15 bg-white/[0.04] text-chalk-100 hover:bg-white/[0.08];

@@ -32,8 +32,8 @@ export default async function Landing() {
         <section className="relative grid gap-8 pt-6 pb-20 sm:pt-10 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:pt-16 lg:pb-28">
           {/* Copy column */}
           <div className="relative z-10 flex flex-col justify-center">
-            <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-accent-lime/30 bg-accent-lime/[0.08] px-3 py-1 text-[11px] font-bold uppercase tracking-[2.5px] text-accent-lime">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent-lime" />
+            <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-accent-blue/30 bg-accent-blue/[0.10] px-3 py-1 text-[11px] font-bold uppercase tracking-[2.5px] text-accent-cyan">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent-blue" />
               Personal coach in your pocket
             </div>
             <h1 className="display text-balance text-5xl leading-[0.95] text-chalk-50 sm:text-6xl lg:text-7xl xl:text-8xl">
@@ -42,7 +42,7 @@ export default async function Landing() {
               EAT.
               <br />
               RECOVER.{" "}
-              <span className="text-accent-lime">REPEAT.</span>
+              <span className="bg-brand-gradient bg-clip-text text-transparent">REPEAT.</span>
             </h1>
             <p className="mt-6 max-w-lg text-pretty text-base leading-relaxed text-chalk-300 sm:text-lg">
               Kosmo Fitness builds your daily calorie target from your body and
@@ -58,7 +58,7 @@ export default async function Landing() {
               </Link>
             </div>
             <div className="mt-5 flex items-center gap-2 text-xs text-chalk-400">
-              <ShieldCheck className="h-3.5 w-3.5 text-accent-lime" />
+              <ShieldCheck className="h-3.5 w-3.5 text-accent-cyan" />
               No credit card · your data stays yours
             </div>
 
@@ -90,7 +90,7 @@ export default async function Landing() {
                   <span className="text-sm text-chalk-300">kcal left</span>
                 </div>
                 <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full w-[62%] rounded-full bg-accent-lime" />
+                  <div className="h-full w-[62%] rounded-full bg-brand-gradient" />
                 </div>
                 <div className="mt-2 text-[11px] text-chalk-400">
                   62% — walk 22 min to close the gap
@@ -132,9 +132,9 @@ export default async function Landing() {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent to-ink-950" />
             </div>
             <div className="p-8 sm:p-10">
-              <div className="flex items-center gap-2 text-accent-lime">
+              <div className="flex items-center gap-2 text-accent-cyan">
                 <LineChart className="h-5 w-5" />
-                <span className="label-eyebrow !text-accent-lime">
+                <span className="label-eyebrow !text-accent-cyan">
                   Under the hood
                 </span>
               </div>
