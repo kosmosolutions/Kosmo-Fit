@@ -1,13 +1,28 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { Plus, X, BookOpen } from "lucide-react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { BookOpen, ChefHat, Plus, Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { addFoodEntry } from "@/lib/actions/entries";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import type { MealType, Recipe } from "@/lib/types";
 
 const MEALS: MealType[] = ["breakfast", "snack", "lunch", "dinner"];
+
+const SEARCH_LIMIT = 30;
+
+// Subset of the /recipe-catalog.json shape needed to display + log.
+interface CatalogRecipe {
+  id: string;
+  name: string;
+  servings: number;
+  calories_total: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  tags: string[];
+  ingredients: string[];
+}
 
 export function AddMealDialog({
   entryDate,
@@ -21,8 +36,11 @@ export function AddMealDialog({
   triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<"new" | "recipe">("new");
+  const [tab, setTab] = useState<"search" | "new" | "recipe">("search");
   const [pending, start] = useTransition();
+  const [catalog, setCatalog] = useState<CatalogRecipe[] | null>(null);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [catalogQuery, setCatalogQuery] = useState("");
   useBodyScrollLock(open);
 
   useEffect(() => {
@@ -33,6 +51,40 @@ export function AddMealDialog({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
+
+  // Lazy-load the catalog on first visit to the Search tab. Cached at the
+  // browser layer so re-opens are instant.
+  useEffect(() => {
+    if (!open || tab !== "search" || catalog !== null || catalogError) return;
+    let cancelled = false;
+    fetch("/recipe-catalog.json", { cache: "force-cache" })
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<CatalogRecipe[]>;
+      })
+      .then((data) => {
+        if (!cancelled) setCatalog(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setCatalogError(String(err));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, tab, catalog, catalogError]);
+
+  const searchResults = useMemo(() => {
+    if (!catalog) return [];
+    const q = catalogQuery.trim().toLowerCase();
+    if (!q) return catalog.slice(0, SEARCH_LIMIT);
+    return catalog
+      .filter((r) =>
+        `${r.name} ${r.tags.join(" ")} ${r.ingredients.join(" ")}`
+          .toLowerCase()
+          .includes(q),
+      )
+      .slice(0, SEARCH_LIMIT);
+  }, [catalog, catalogQuery]);
   const [form, setForm] = useState({
     meal_type: defaultMeal ?? ("breakfast" as MealType),
     name: "",
@@ -80,6 +132,23 @@ export function AddMealDialog({
         carbs_g: Math.round(recipe.carbs_g * servings),
         fat_g: Math.round(recipe.fat_g * servings),
         recipe_id: recipe.id,
+      });
+      setOpen(false);
+    });
+  }
+
+  function submitCatalogRecipe(recipe: CatalogRecipe, servings: number) {
+    const perServing = 1 / Math.max(1, recipe.servings);
+    start(async () => {
+      await addFoodEntry({
+        entry_date: entryDate,
+        meal_type: form.meal_type,
+        name: recipe.name,
+        servings,
+        calories: Math.round(recipe.calories_total * perServing * servings),
+        protein_g: Math.round(recipe.protein_g * perServing * servings),
+        carbs_g: Math.round(recipe.carbs_g * perServing * servings),
+        fat_g: Math.round(recipe.fat_g * perServing * servings),
       });
       setOpen(false);
     });
@@ -142,33 +211,64 @@ export function AddMealDialog({
             </div>
 
             <div className="mb-3 flex gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
-              <button
-                type="button"
-                onClick={() => setTab("new")}
-                className={cn(
-                  "flex-1 rounded-lg py-1.5 text-xs font-bold transition",
-                  tab === "new"
-                    ? "bg-white/[0.08] text-chalk-50"
-                    : "text-chalk-300",
-                )}
-              >
+              <TabButton active={tab === "search"} onClick={() => setTab("search")}>
+                <Search className="h-3 w-3" /> Search
+              </TabButton>
+              <TabButton active={tab === "new"} onClick={() => setTab("new")}>
                 Quick entry
-              </button>
-              <button
-                type="button"
-                onClick={() => setTab("recipe")}
-                className={cn(
-                  "flex-1 rounded-lg py-1.5 text-xs font-bold transition",
-                  tab === "recipe"
-                    ? "bg-white/[0.08] text-chalk-50"
-                    : "text-chalk-300",
-                )}
-              >
-                From recipe ({recipes.length})
-              </button>
+              </TabButton>
+              <TabButton active={tab === "recipe"} onClick={() => setTab("recipe")}>
+                Saved ({recipes.length})
+              </TabButton>
             </div>
 
-            {tab === "new" ? (
+            {tab === "search" ? (
+              <div className="space-y-3">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-chalk-400" />
+                  <input
+                    type="search"
+                    value={catalogQuery}
+                    onChange={(e) => setCatalogQuery(e.target.value)}
+                    placeholder={
+                      catalog
+                        ? `Search ${catalog.length} catalog recipes`
+                        : "Search catalog recipes"
+                    }
+                    className="field pl-9"
+                    autoComplete="off"
+                    autoFocus
+                  />
+                </div>
+                <div className="max-h-80 space-y-2 overflow-y-auto">
+                  {catalogError ? (
+                    <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
+                      Failed to load catalog: {catalogError}
+                    </div>
+                  ) : !catalog ? (
+                    <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-chalk-400">
+                      Loading catalog…
+                    </div>
+                  ) : searchResults.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+                      <ChefHat className="mx-auto h-5 w-5 text-chalk-400" />
+                      <div className="mt-2 text-sm text-chalk-300">
+                        No catalog recipes match.
+                      </div>
+                    </div>
+                  ) : (
+                    searchResults.map((r) => (
+                      <CatalogPick
+                        key={r.id}
+                        recipe={r}
+                        onLog={(s) => submitCatalogRecipe(r, s)}
+                        disabled={pending}
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
+            ) : tab === "new" ? (
               <div className="space-y-3">
                 <label className="block">
                   <span className="label-tiny">Name</span>
@@ -282,6 +382,76 @@ function NumberInput({
         <span className="text-[10px] text-chalk-400">{unit}</span>
       </span>
     </label>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex flex-1 items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold transition",
+        active ? "bg-white/[0.08] text-chalk-50" : "text-chalk-300",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function CatalogPick({
+  recipe,
+  onLog,
+  disabled,
+}: {
+  recipe: CatalogRecipe;
+  onLog: (s: number) => void;
+  disabled: boolean;
+}) {
+  const [s, setS] = useState(1);
+  const perServing = 1 / Math.max(1, recipe.servings);
+  const kcal = Math.round(recipe.calories_total * perServing);
+  const p = Math.round(recipe.protein_g * perServing);
+  const c = Math.round(recipe.carbs_g * perServing);
+  const f = Math.round(recipe.fat_g * perServing);
+  return (
+    <div className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-bold text-chalk-50">
+          {recipe.name}
+        </div>
+        <div className="text-[11px] text-chalk-400">
+          {kcal} cal · P{p} C{c} F{f}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          step={0.25}
+          min={0.25}
+          value={s}
+          onChange={(e) => setS(parseFloat(e.target.value) || 1)}
+          className="w-14 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-sm text-chalk-50 outline-none"
+        />
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onLog(s)}
+          className="rounded-lg bg-accent-cyan px-3 py-1 text-xs font-bold text-ink-950 disabled:opacity-50"
+        >
+          Log
+        </button>
+      </div>
+    </div>
   );
 }
 
