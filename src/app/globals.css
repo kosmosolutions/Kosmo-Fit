@@ -124,3 +124,31 @@ input[type="number"] {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* iOS safe-area inset utilities. Layout uses viewport-fit=cover +
+   black-translucent status bar, so content can flow behind the notch/
+   home indicator; these utilities push UI back into the safe region.
+   env(safe-area-inset-*) returns 0 on devices without insets. */
+@layer utilities {
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right);
+  }
+  .pt-safe-6 {
+    padding-top: calc(env(safe-area-inset-top) + 1.5rem);
+  }
+  .pt-safe-8 {
+    padding-top: calc(env(safe-area-inset-top) + 2rem);
+  }
+  .pt-safe-10 {
+    padding-top: calc(env(safe-area-inset-top) + 2.5rem);
+  }
+}

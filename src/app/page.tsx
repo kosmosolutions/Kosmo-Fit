@@ -18,7 +18,7 @@ export default async function Landing() {
 
   return (
     <div className="min-h-svh overflow-x-hidden">
-      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-6">
+      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-4 pb-6 pt-safe-6 sm:px-6">
         <LogoMark />
         <div className="flex items-center gap-2">
           <Link href="/login" className="btn-ghost">
@@ -48,7 +48,7 @@ export default async function Landing() {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/80 to-ink-950/10" />
         </div>
 
-        <div className="grid min-h-[calc(100svh-80px)] gap-8 px-4 pb-10 sm:px-6 lg:min-h-0 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:px-0 lg:pb-0">
+        <div className="grid min-h-[calc(100svh-env(safe-area-inset-top)-80px)] gap-8 px-4 pb-10 sm:px-6 lg:min-h-0 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:px-0 lg:pb-0">
           {/* Copy column */}
           <div className="relative z-10 flex flex-col justify-end lg:justify-center">
             <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-accent-blue/40 bg-accent-blue/[0.15] px-3 py-1 text-[11px] font-bold uppercase tracking-[2.5px] text-accent-cyan backdrop-blur-md lg:border-accent-blue/30 lg:bg-accent-blue/[0.10] lg:backdrop-blur-none">
