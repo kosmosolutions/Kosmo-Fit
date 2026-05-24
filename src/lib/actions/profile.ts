@@ -7,7 +7,11 @@ import type { Profile } from "@/lib/types";
 
 export type ProfileInput = Omit<
   Profile,
-  "user_id" | "created_at" | "updated_at" | "onboarded_at"
+  | "user_id"
+  | "created_at"
+  | "updated_at"
+  | "onboarded_at"
+  | "active_template_id"
 >;
 
 export async function saveProfile(input: ProfileInput, finishOnboarding = false) {

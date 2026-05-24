@@ -21,6 +21,7 @@ export interface Profile {
   daily_step_goal: number;
   fitness_experience: FitnessExperience | null;
   primary_goal: PrimaryGoal | null;
+  active_template_id: string | null;
   notes: string | null;
   onboarded_at: string | null;
   created_at: string;
