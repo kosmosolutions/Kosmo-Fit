@@ -5,8 +5,10 @@ import { calcStats, dayIndexForDate } from "@/lib/calc";
 import { Ring } from "@/components/Ring";
 import { Calendar } from "@/components/Calendar";
 import { getActivityYear } from "@/lib/actions/activity";
+import { getWeightHistory } from "@/lib/actions/weight";
 import { DailyTrackerForm } from "@/components/DailyTrackerForm";
 import { GapMeter } from "@/components/GapMeter";
+import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { fromISODate, todayISO } from "@/lib/dates";
 import { getDays } from "@/data/workouts";
 import { Sparkles, ArrowRight } from "lucide-react";
@@ -36,20 +38,22 @@ export default async function OverviewPage({
   // past entry, the calendar starts on that year, not always the current one).
   const heatmapYear = fromISODate(selected).getFullYear();
 
-  const [{ data: daily }, { data: food }, heatmapData] = await Promise.all([
-    supabase
-      .from("daily_entries")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("entry_date", selected)
-      .maybeSingle(),
-    supabase
-      .from("food_entries")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("entry_date", selected),
-    getActivityYear(heatmapYear),
-  ]);
+  const [{ data: daily }, { data: food }, heatmapData, weightHistory] =
+    await Promise.all([
+      supabase
+        .from("daily_entries")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("entry_date", selected)
+        .maybeSingle(),
+      supabase
+        .from("food_entries")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("entry_date", selected),
+      getActivityYear(heatmapYear),
+      getWeightHistory(90),
+    ]);
 
   // Food totals
   const eaten = (food ?? []).reduce((s, e) => s + e.calories, 0);
@@ -168,6 +172,14 @@ export default async function OverviewPage({
         burned={totalBurn}
         target={target}
         weight={profile.current_weight}
+      />
+
+      {/* Weight trend chart */}
+      <WeightTrendChart
+        points={weightHistory}
+        currentWeight={Number(profile.current_weight) || 0}
+        goalWeight={Number(profile.goal_weight) || 0}
+        windowDays={90}
       />
 
       {/* Daily tracker */}

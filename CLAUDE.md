@@ -4,16 +4,16 @@ Context for future Claude Code sessions on this repo. Keep brief. Update when sc
 
 ## Roadmap (next up, in order)
 
-1. **Weight trend chart** on profile + overview. ~half a day.
-2. **Macro % override** on profile (let users override the protein / carb / fat split rather than only goals). ~2 hours.
-3. **Day navigator** on the overview "today" header — left/right arrows to step previous / next day. Pairs naturally with the calendar's `?date=…` flow already wired up.
-4. **Daily tracker redesign** — replace inline inputs in the "Log today" section with per-metric popups. Each popup should support a **unit toggle** (e.g. kg ↔ lb for weight, mi ↔ km for cardio distance, oz ↔ ml for water). The cardio popup pattern from `CardioLogPopup` is a good foundation.
+1. **Macro % override** on profile (let users override the protein / carb / fat split rather than only goals). ~2 hours.
+2. **Day navigator** on the overview "today" header — left/right arrows to step previous / next day. Pairs naturally with the calendar's `?date=…` flow already wired up.
+3. **Daily tracker redesign** — replace inline inputs in the "Log today" section with per-metric popups. Each popup should support a **unit toggle** (e.g. kg ↔ lb for weight, mi ↔ km for cardio distance, oz ↔ ml for water). The cardio popup pattern from `CardioLogPopup` is a good foundation.
 
 ## Shipped (recent)
 
 - **Workout plan templates** (#29) — 8-program catalog (Custom 6-Day, 3/4/5/6-day splits, HIIT, Compound 5×5, Calisthenics) with auto-opening picker for new users + "Change plan" button. `profiles.active_template_id` drives default exercises; switching wipes customizations. Canva hero imagery deferred — cards use bold gradient + icon for now.
 - **Migration history cleanup** (#30) — repo's migration files realigned to timestamp format to match prod's `supabase_migrations.schema_migrations`. Resolves long-standing `MIGRATIONS_FAILED` state on main.
-- **Finish-workout button + dynamic cardio** (#XX) — `MarkCompleteToggle` pill stacks under the SessionTimer; flips the same `workout_completed` flag the overview toggle writes. `CardioLogPopup` accepts minutes OR calories and auto-derives the other using `walkingCalPerMin(weight) * 2.2`.
+- **Finish-workout button + dynamic cardio** (#31) — `MarkCompleteToggle` pill stacks under the SessionTimer; flips the same `workout_completed` flag the overview toggle writes. `CardioLogPopup` accepts minutes OR calories and auto-derives the other using `walkingCalPerMin(weight) * 2.2`.
+- **Weight trend chart** (#32) — `WeightTrendChart` SVG line + area on overview (under GapMeter) and profile (under Live summary). Reads from `daily_entries.weight` via `getWeightHistory()`. Goal weight rendered as a dashed reference line; trend chip color follows whether user is cutting/bulking.
 
 ## Project shape
 
