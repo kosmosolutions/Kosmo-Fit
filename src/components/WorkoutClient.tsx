@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   House,
@@ -15,11 +15,13 @@ import {
   Bike,
   Flame,
   Timer,
+  LayoutDashboard,
 } from "lucide-react";
 import { ExerciseCard } from "./ExerciseCard";
 import { WellnessSection } from "./WellnessSection";
 import { SessionTimer } from "./SessionTimer";
 import { AddExerciseSheet } from "./AddExerciseSheet";
+import { PlanPicker } from "./PlanPicker";
 import { SwipeableRow } from "./SwipeableRow";
 import {
   GYM_DAYS,
@@ -27,6 +29,7 @@ import {
   type Exercise,
   type WorkoutDay,
 } from "@/data/workouts";
+import { getTemplate } from "@/data/workout-templates";
 import { cn } from "@/lib/cn";
 import type { WorkoutMode } from "@/lib/types";
 import {
@@ -158,6 +161,7 @@ interface Props {
   weekTargets: number[];
   homePlan: UserExerciseRow[];
   gymPlan: UserExerciseRow[];
+  activeTemplateId: string | null;
 }
 
 type DisplayExercise = { exercise: Exercise; position: number };
@@ -182,6 +186,7 @@ export function WorkoutClient({
   weekTargets,
   homePlan,
   gymPlan,
+  activeTemplateId,
 }: Props) {
   const [view, setView] = useState<"training" | "wellness">("training");
   const [mode, setMode] = useState<WorkoutMode>(initialMode);
@@ -190,8 +195,30 @@ export function WorkoutClient({
   const [addTarget, setAddTarget] = useState<AddTarget | null>(null);
   const [openPos, setOpenPos] = useState<number | null>(null);
   const [mutPending, startMut] = useTransition();
-  const days = mode === "gym" ? GYM_DAYS : HOME_DAYS;
-  const d: WorkoutDay = days[wDay];
+
+  // The active template defines the day layout (focus, color, default
+  // exercises). If a template is set, its days replace the legacy
+  // GYM_DAYS/HOME_DAYS defaults; otherwise we render the original split.
+  const activeTemplate = activeTemplateId ? getTemplate(activeTemplateId) : null;
+  const days: WorkoutDay[] = activeTemplate
+    ? activeTemplate.days[mode]
+    : mode === "gym"
+      ? GYM_DAYS
+      : HOME_DAYS;
+  const d: WorkoutDay = days[wDay] ?? days[0];
+
+  // Show picker automatically on first /workout visit (no template selected
+  // and no customizations). Existing users were backfilled to "custom-6day"
+  // in migration so they won't see this.
+  const hasCustomizations = homePlan.length > 0 || gymPlan.length > 0;
+  const [pickerOpen, setPickerOpen] = useState(
+    activeTemplateId === null && !hasCustomizations,
+  );
+  useEffect(() => {
+    if (activeTemplateId === null && !hasCustomizations) {
+      setPickerOpen(true);
+    }
+  }, [activeTemplateId, hasCustomizations]);
   const todayDayTarget = weekTargets[wDay] ?? todayTarget;
   const planRows = mode === "gym" ? gymPlan : homePlan;
 
@@ -240,19 +267,34 @@ export function WorkoutClient({
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="label-tiny">6-day split</div>
+          <div className="label-tiny">
+            {activeTemplate
+              ? `${activeTemplate.dayCount}-day · ${activeTemplate.tagline}`
+              : "6-day split"}
+          </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-chalk-50">
-            Workout plan
+            {activeTemplate ? activeTemplate.name : "Workout plan"}
           </h1>
         </div>
-        <Link
-          href="/workout/catalog"
-          className="inline-flex items-center gap-2 rounded-xl border border-accent-blue/40 bg-accent-blue/10 px-3.5 py-2 text-sm font-bold text-accent-cyan shadow-glow transition hover:bg-accent-blue/20"
-          aria-label="Browse exercise library"
-        >
-          <Library className="h-4 w-4" />
-          Browse library
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl border border-accent-violet/40 bg-accent-violet/10 px-3.5 py-2 text-sm font-bold text-accent-violet transition hover:bg-accent-violet/20"
+            aria-label="Change workout plan"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            Change plan
+          </button>
+          <Link
+            href="/workout/catalog"
+            className="inline-flex items-center gap-2 rounded-xl border border-accent-blue/40 bg-accent-blue/10 px-3.5 py-2 text-sm font-bold text-accent-cyan shadow-glow transition hover:bg-accent-blue/20"
+            aria-label="Browse exercise library"
+          >
+            <Library className="h-4 w-4" />
+            Browse library
+          </Link>
+        </div>
         <div className="flex w-full gap-1 sm:w-auto">
           <div className="flex rounded-xl bg-white/[0.06] p-0.5">
             {(
@@ -397,8 +439,8 @@ export function WorkoutClient({
         </div>
       </button>
 
-      {/* Session timer */}
-      <SessionTimer color={d.color} />
+      {/* Session timer (skip on rest days) */}
+      {d.focus !== "Rest" && <SessionTimer color={d.color} />}
 
       {/* Day card with exercises */}
       <div
@@ -440,6 +482,17 @@ export function WorkoutClient({
           </div>
         </div>
         <div className="rounded-b-2xl bg-ink-850 px-1 py-1">
+          {displayExercises.length === 0 && d.focus === "Rest" && (
+            <div className="px-3 py-6 text-center">
+              <div className="text-3xl">😴</div>
+              <div className="mt-2 text-sm font-bold text-chalk-200">
+                Rest day
+              </div>
+              <div className="mt-0.5 text-xs text-chalk-400">
+                Sleep, hydrate, light walking. Recovery is when growth happens.
+              </div>
+            </div>
+          )}
           {displayExercises.map((row, i) => (
             <SwipeableRow
               key={`${row.exercise.name}-${row.position}`}
@@ -558,6 +611,13 @@ export function WorkoutClient({
           />
         );
       })()}
+
+      <PlanPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        activeTemplateId={activeTemplateId}
+        hasCustomizations={hasCustomizations}
+      />
     </div>
   );
 }

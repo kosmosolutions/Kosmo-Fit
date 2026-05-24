@@ -47,6 +47,7 @@ export default async function WorkoutPage() {
       weekTargets={stats.dayTargets}
       homePlan={homePlan}
       gymPlan={gymPlan}
+      activeTemplateId={profile.active_template_id ?? null}
     />
   );
 }

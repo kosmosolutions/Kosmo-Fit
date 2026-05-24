@@ -9,6 +9,7 @@ import {
   type Exercise,
   type WorkoutDay,
 } from "@/data/workouts";
+import { getTemplate, WORKOUT_TEMPLATES } from "@/data/workout-templates";
 import type { WorkoutMode } from "@/lib/types";
 
 /**
@@ -23,8 +24,28 @@ import type { WorkoutMode } from "@/lib/types";
  *    which makes the day fall back to defaults again.
  */
 
-function defaultsFor(mode: WorkoutMode): WorkoutDay[] {
-  return mode === "gym" ? GYM_DAYS : HOME_DAYS;
+function defaultsFor(
+  mode: WorkoutMode,
+  templateId: string | null,
+): WorkoutDay[] {
+  if (!templateId || templateId === "custom-6day") {
+    return mode === "gym" ? GYM_DAYS : HOME_DAYS;
+  }
+  const t = getTemplate(templateId);
+  return t ? t.days[mode] : mode === "gym" ? GYM_DAYS : HOME_DAYS;
+}
+
+async function getActiveTemplateId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("active_template_id")
+    .eq("user_id", userId)
+    .single();
+  if (error) return null;
+  return (data?.active_template_id as string | null) ?? null;
 }
 
 export type UserExerciseRow = {
@@ -93,7 +114,8 @@ async function forkDayIfPristine(
     .eq("day_index", dayIndex);
   if (error) throw new Error(error.message);
   if ((count ?? 0) > 0) return;
-  const defaults = defaultsFor(mode)[dayIndex]?.exercises ?? [];
+  const activeTemplateId = await getActiveTemplateId(supabase, userId);
+  const defaults = defaultsFor(mode, activeTemplateId)[dayIndex]?.exercises ?? [];
   if (defaults.length === 0) return;
   const rows = defaults.map((ex, i) =>
     exerciseToInsertRow(userId, mode, dayIndex, i, ex),
@@ -250,6 +272,47 @@ export async function resetDayToDefaults(
     .eq("mode", mode)
     .eq("day_index", dayIndex);
   if (error) throw new Error(error.message);
+
+  revalidatePath("/workout");
+}
+
+/**
+ * Switch the user's active workout template.
+ *
+ * Clears every customized exercise row for the user so the new template's
+ * day-by-day defaults render immediately. Customizations from the previous
+ * template are discarded — by design, applying a template is a deliberate
+ * "start fresh" action.
+ *
+ * The "custom-6day" id is accepted as a no-customizations-clear toggle so
+ * users can flip back to the original split without nuking their data.
+ */
+export async function applyTemplate(templateId: string): Promise<void> {
+  const known = WORKOUT_TEMPLATES.some((t) => t.id === templateId);
+  if (!known) throw new Error(`Unknown template: ${templateId}`);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // Pull current active template so we can decide whether to wipe.
+  const currentTemplateId = await getActiveTemplateId(supabase, user.id);
+
+  if (currentTemplateId !== templateId) {
+    const { error: delErr } = await supabase
+      .from("user_workout_exercises")
+      .delete()
+      .eq("user_id", user.id);
+    if (delErr) throw new Error(delErr.message);
+  }
+
+  const { error: upErr } = await supabase
+    .from("profiles")
+    .update({ active_template_id: templateId })
+    .eq("user_id", user.id);
+  if (upErr) throw new Error(upErr.message);
 
   revalidatePath("/workout");
 }
