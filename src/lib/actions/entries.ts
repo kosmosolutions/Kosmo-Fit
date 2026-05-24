@@ -40,6 +40,7 @@ export async function upsertDailyEntry(patch: DailyPatch) {
   if (error) throw new Error(error.message);
   revalidatePath("/overview");
   revalidatePath("/workout");
+  revalidatePath("/profile");
 }
 
 export async function addFoodEntry(input: {

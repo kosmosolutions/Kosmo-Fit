@@ -5,7 +5,9 @@ import { LogOut, Sparkles } from "lucide-react";
 import { LIFESTYLE, calcStats } from "@/lib/calc";
 import { saveProfile } from "@/lib/actions/profile";
 import type { Profile } from "@/lib/types";
+import type { WeightPoint } from "@/lib/actions/weight";
 import { Ring } from "@/components/Ring";
+import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { cn } from "@/lib/cn";
 
 const TIMEFRAMES = [12, 16, 20, 24, 30, 40, 52];
@@ -13,9 +15,11 @@ const TIMEFRAMES = [12, 16, 20, 24, 30, 40, 52];
 export function ProfileEditor({
   profile,
   email,
+  weightHistory,
 }: {
   profile: Profile;
   email: string;
+  weightHistory: WeightPoint[];
 }) {
   const [pending, start] = useTransition();
   const [saved, setSaved] = useState(false);
@@ -112,6 +116,14 @@ export function ProfileEditor({
           </div>
         </div>
       </div>
+
+      {/* Weight trend chart */}
+      <WeightTrendChart
+        points={weightHistory}
+        currentWeight={Number(f.current_weight) || 0}
+        goalWeight={Number(f.goal_weight) || 0}
+        windowDays={90}
+      />
 
       {/* Name & basics */}
       <Section title="About you">
