@@ -59,7 +59,22 @@ export interface Macros {
   carbCal: number;
 }
 
-function macros(targetCal: number, proteinCal: number): Macros {
+export interface MacroOverride {
+  protein: number;
+  carb: number;
+  fat: number;
+}
+
+function macros(
+  targetCal: number,
+  proteinCal: number,
+  override?: MacroOverride | null,
+): Macros {
+  if (override) {
+    const fatG = Math.round((targetCal * (override.fat / 100)) / 9);
+    const carbG = Math.round((targetCal * (override.carb / 100)) / 4);
+    return { fatG, fatCal: fatG * 9, carbG, carbCal: carbG * 4 };
+  }
   const fatG = Math.round((targetCal * 0.27) / 9);
   const fatCal = fatG * 9;
   const carbG = Math.round(Math.max(0, targetCal - proteinCal - fatCal) / 4);
@@ -77,7 +92,13 @@ export function calcStats(
     | "sex"
     | "lifestyle"
     | "weeks_to_goal"
-  >,
+  > &
+    Partial<
+      Pick<
+        Profile,
+        "macro_protein_pct" | "macro_carb_pct" | "macro_fat_pct"
+      >
+    >,
   mode: WorkoutMode,
 ): Stats {
   const kg = p.current_weight * 0.453592;
@@ -105,7 +126,23 @@ export function calcStats(
   );
   const weeklyBurn = burns.reduce((s, b) => s + b, 0);
 
-  const proteinG = Math.round(p.current_weight * 0.9);
+  const override =
+    p.macro_protein_pct != null &&
+    p.macro_carb_pct != null &&
+    p.macro_fat_pct != null
+      ? {
+          protein: p.macro_protein_pct,
+          carb: p.macro_carb_pct,
+          fat: p.macro_fat_pct,
+        }
+      : null;
+
+  // When the user overrides macros, protein follows the calorie split
+  // for the workout target (the day they're most likely viewing). Without
+  // an override, fall back to the 0.9 g/lb body-weight heuristic.
+  const proteinG = override
+    ? Math.round((avgWorkoutTarget * (override.protein / 100)) / 4)
+    : Math.round(p.current_weight * 0.9);
   const proteinCal = proteinG * 4;
 
   return {
@@ -122,8 +159,8 @@ export function calcStats(
     weeklyBurn,
     proteinG,
     proteinCal,
-    workoutMacros: macros(avgWorkoutTarget, proteinCal),
-    restMacros: macros(restTarget, proteinCal),
+    workoutMacros: macros(avgWorkoutTarget, proteinCal, override),
+    restMacros: macros(restTarget, proteinCal, override),
   };
 }
 
