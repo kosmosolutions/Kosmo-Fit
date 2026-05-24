@@ -3,11 +3,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { calcStats, dayIndexForDate } from "@/lib/calc";
 import { Ring } from "@/components/Ring";
-import { type CalendarDay } from "@/components/Calendar";
-import { CalendarNav } from "@/components/CalendarNav";
+import { Calendar } from "@/components/Calendar";
+import { getActivityYear } from "@/lib/actions/activity";
 import { DailyTrackerForm } from "@/components/DailyTrackerForm";
 import { GapMeter } from "@/components/GapMeter";
-import { fromISODate, toISODate, todayISO } from "@/lib/dates";
+import { fromISODate, todayISO } from "@/lib/dates";
 import { getDays } from "@/data/workouts";
 import { Sparkles, ArrowRight } from "lucide-react";
 
@@ -32,33 +32,24 @@ export default async function OverviewPage({
     .single();
   if (!profile) redirect("/onboarding");
 
-  // Calendar window: 35 days back through 7 days forward (covers current month)
-  const now = new Date();
-  const calendarStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const calendarEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  // Default the heatmap to the year of the selected day (so when viewing a
+  // past entry, the calendar starts on that year, not always the current one).
+  const heatmapYear = fromISODate(selected).getFullYear();
 
-  const [{ data: daily }, { data: food }, { data: monthly }] =
-    await Promise.all([
-      supabase
-        .from("daily_entries")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("entry_date", selected)
-        .maybeSingle(),
-      supabase
-        .from("food_entries")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("entry_date", selected),
-      supabase
-        .from("daily_entries")
-        .select(
-          "entry_date,workout_completed,steps,cardio_minutes,cardio_calories",
-        )
-        .eq("user_id", user.id)
-        .gte("entry_date", toISODate(calendarStart))
-        .lte("entry_date", toISODate(calendarEnd)),
-    ]);
+  const [{ data: daily }, { data: food }, heatmapData] = await Promise.all([
+    supabase
+      .from("daily_entries")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("entry_date", selected)
+      .maybeSingle(),
+    supabase
+      .from("food_entries")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("entry_date", selected),
+    getActivityYear(heatmapYear),
+  ]);
 
   // Food totals
   const eaten = (food ?? []).reduce((s, e) => s + e.calories, 0);
@@ -80,15 +71,6 @@ export default async function OverviewPage({
 
   const cardioBurn = daily?.cardio_calories ?? 0;
   const totalBurn = (daily?.workout_completed ? burn : 0) + cardioBurn;
-
-  // Calendar entries
-  const calDays: CalendarDay[] = (monthly ?? []).map((d) => ({
-    date: d.entry_date,
-    hasEntry: true,
-    workoutCompleted: !!d.workout_completed,
-    // we don't have eaten in monthly, treat any logged steps/cardio/workout as activity
-    hitCalories: !!d.workout_completed,
-  }));
 
   const protGoal = stats.proteinG;
   const carbGoal = stats.workoutMacros.carbG;
@@ -225,7 +207,7 @@ export default async function OverviewPage({
         </div>
       </div>
 
-      <CalendarNav days={calDays} selectedDate={selected} />
+      <Calendar initial={heatmapData} selectedDate={selected} />
     </div>
   );
 }
