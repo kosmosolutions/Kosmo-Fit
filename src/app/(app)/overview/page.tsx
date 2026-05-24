@@ -3,7 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { calcStats, dayIndexForDate } from "@/lib/calc";
 import { Ring } from "@/components/Ring";
-import { YearHeatmap } from "@/components/YearHeatmap";
+import { Calendar } from "@/components/Calendar";
 import { getActivityYear } from "@/lib/actions/activity";
 import { DailyTrackerForm } from "@/components/DailyTrackerForm";
 import { GapMeter } from "@/components/GapMeter";
@@ -207,7 +207,7 @@ export default async function OverviewPage({
         </div>
       </div>
 
-      <YearHeatmap initial={heatmapData} selectedDate={selected} />
+      <Calendar initial={heatmapData} selectedDate={selected} />
     </div>
   );
 }
