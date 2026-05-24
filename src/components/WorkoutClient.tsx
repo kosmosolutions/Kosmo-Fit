@@ -22,6 +22,8 @@ import { WellnessSection } from "./WellnessSection";
 import { SessionTimer } from "./SessionTimer";
 import { AddExerciseSheet } from "./AddExerciseSheet";
 import { PlanPicker } from "./PlanPicker";
+import { MarkCompleteToggle } from "./MarkCompleteToggle";
+import { CardioLogPopup } from "./CardioLogPopup";
 import { SwipeableRow } from "./SwipeableRow";
 import {
   GYM_DAYS,
@@ -162,6 +164,11 @@ interface Props {
   homePlan: UserExerciseRow[];
   gymPlan: UserExerciseRow[];
   activeTemplateId: string | null;
+  todayDate: string;
+  todayCompleted: boolean;
+  todayCardioMinutes: number;
+  todayCardioCalories: number;
+  bodyWeightLbs: number;
 }
 
 type DisplayExercise = { exercise: Exercise; position: number };
@@ -187,7 +194,13 @@ export function WorkoutClient({
   homePlan,
   gymPlan,
   activeTemplateId,
+  todayDate,
+  todayCompleted,
+  todayCardioMinutes,
+  todayCardioCalories,
+  bodyWeightLbs,
 }: Props) {
+  const [cardioOpen, setCardioOpen] = useState(false);
   const [view, setView] = useState<"training" | "wellness">("training");
   const [mode, setMode] = useState<WorkoutMode>(initialMode);
   const [wDay, setWDay] = useState(Math.max(0, initialDay));
@@ -439,8 +452,19 @@ export function WorkoutClient({
         </div>
       </button>
 
-      {/* Session timer (skip on rest days) */}
-      {d.focus !== "Rest" && <SessionTimer color={d.color} />}
+      {/* Session controls (skip on rest days) */}
+      {d.focus !== "Rest" && (
+        <div className="space-y-2">
+          <SessionTimer color={d.color} />
+          <MarkCompleteToggle
+            entryDate={todayDate}
+            completed={todayCompleted}
+            dayIndex={wDay}
+            mode={mode}
+            color={d.color}
+          />
+        </div>
+      )}
 
       {/* Day card with exercises */}
       <div
@@ -590,6 +614,33 @@ export function WorkoutClient({
       </div>
 
       {d.cardio ? <PostWorkoutCardio raw={d.cardio} /> : null}
+
+      {/* Today's cardio log — opens popup to enter minutes or calories */}
+      <button
+        type="button"
+        onClick={() => setCardioOpen(true)}
+        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left transition hover:bg-white/[0.06]"
+        aria-label="Log cardio session"
+      >
+        <div className="flex items-center gap-3">
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent-amber/15 ring-1 ring-accent-amber/30">
+            <Bike className="h-4 w-4 text-accent-amber" />
+          </div>
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[2px] text-chalk-500">
+              {todayCardioMinutes > 0 || todayCardioCalories > 0
+                ? "Today's cardio"
+                : "Log cardio"}
+            </div>
+            <div className="text-sm font-extrabold text-chalk-50">
+              {todayCardioMinutes > 0 || todayCardioCalories > 0
+                ? `${todayCardioMinutes} min · ${todayCardioCalories.toLocaleString()} cal`
+                : "Add a session — minutes or calories"}
+            </div>
+          </div>
+        </div>
+        <Plus className="h-4 w-4 text-chalk-400" />
+      </button>
       </>}
 
       {addTarget && (() => {
@@ -617,6 +668,15 @@ export function WorkoutClient({
         onClose={() => setPickerOpen(false)}
         activeTemplateId={activeTemplateId}
         hasCustomizations={hasCustomizations}
+      />
+
+      <CardioLogPopup
+        open={cardioOpen}
+        onClose={() => setCardioOpen(false)}
+        entryDate={todayDate}
+        bodyWeightLbs={bodyWeightLbs}
+        initialMinutes={todayCardioMinutes}
+        initialCalories={todayCardioCalories}
       />
     </div>
   );
