@@ -4,8 +4,7 @@ Context for future Claude Code sessions on this repo. Keep brief. Update when sc
 
 ## Roadmap (next up, in order)
 
-1. **Day navigator** on the overview "today" header — left/right arrows to step previous / next day. Pairs naturally with the calendar's `?date=…` flow already wired up.
-2. **Daily tracker redesign** — replace inline inputs in the "Log today" section with per-metric popups. Each popup should support a **unit toggle** (e.g. kg ↔ lb for weight, mi ↔ km for cardio distance, oz ↔ ml for water). The cardio popup pattern from `CardioLogPopup` is a good foundation.
+1. **Daily tracker redesign** — replace inline inputs in the "Log today" section with per-metric popups. Each popup should support a **unit toggle** (e.g. kg ↔ lb for weight, mi ↔ km for cardio distance, oz ↔ ml for water). The cardio popup pattern from `CardioLogPopup` is a good foundation.
 
 ## Shipped (recent)
 
@@ -14,6 +13,7 @@ Context for future Claude Code sessions on this repo. Keep brief. Update when sc
 - **Finish-workout button + dynamic cardio** (#31) — `MarkCompleteToggle` pill stacks under the SessionTimer; flips the same `workout_completed` flag the overview toggle writes. `CardioLogPopup` accepts minutes OR calories and auto-derives the other using `walkingCalPerMin(weight) * 2.2`.
 - **Weight trend chart** (#32) — `WeightTrendChart` SVG line + area on overview (under GapMeter) and profile (under Live summary). Reads from `daily_entries.weight` via `getWeightHistory()`. Goal weight rendered as a dashed reference line; trend chip color follows whether user is cutting/bulking.
 - **Macro % override** (#33) — new `Macros` section on profile lets users pick a custom P/C/F split via preset chips (Balanced, High-protein, Low-carb, Keto) or freeform percentage inputs. `profiles.macro_(protein|carb|fat)_pct` columns hold the override; `calcStats` falls back to the legacy 0.9 g/lb + 27% fat heuristic when null. DB check constraint enforces sum=100.
+- **Day navigator** (#34) — left/right `DayNavLink` chips flank the overview's date heading; next is disabled when viewing today. "Jump to today" pill appears under the chip row when off-today. All writes through `?date=…`, reusing the existing calendar URL flow.
 
 ## Project shape
 

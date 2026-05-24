@@ -9,9 +9,9 @@ import { getWeightHistory } from "@/lib/actions/weight";
 import { DailyTrackerForm } from "@/components/DailyTrackerForm";
 import { GapMeter } from "@/components/GapMeter";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
-import { fromISODate, todayISO } from "@/lib/dates";
+import { fromISODate, toISODate, todayISO } from "@/lib/dates";
 import { getDays } from "@/data/workouts";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default async function OverviewPage({
   searchParams,
@@ -64,6 +64,16 @@ export default async function OverviewPage({
   // Selected day target
   const selectedDate = fromISODate(selected);
   const dayIdx = dayIndexForDate(selectedDate);
+
+  // Day navigator: previous date is always allowed; next is capped at today
+  // because the rest of the app assumes no future-day logging.
+  const prevDate = new Date(selectedDate);
+  prevDate.setDate(prevDate.getDate() - 1);
+  const prevDateISO = toISODate(prevDate);
+  const nextDate = new Date(selectedDate);
+  nextDate.setDate(nextDate.getDate() + 1);
+  const nextDateISO = toISODate(nextDate);
+  const isToday = selected === todayISO();
   const mode = profile.workout_mode === "gym" ? ("gym" as const) : ("home" as const);
   const stats = calcStats(profile, mode);
   const days = getDays(mode);
@@ -83,30 +93,67 @@ export default async function OverviewPage({
 
   return (
     <div className="space-y-5">
-      {/* Greeting */}
+      {/* Greeting with day navigator */}
       <div>
-        <div className="label-tiny">
-          {selected === todayISO() ? "Today" : "Logged day"}
+        <div className="flex items-center justify-between gap-2">
+          <DayNavLink
+            direction="prev"
+            href={`/overview?date=${prevDateISO}`}
+            label={fromISODate(prevDateISO).toLocaleDateString(undefined, {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            })}
+          />
+          <div className="min-w-0 text-center">
+            <div className="label-tiny">
+              {selected === todayISO() ? "Today" : "Logged day"}
+            </div>
+            <h1 className="truncate text-xl font-extrabold tracking-tight text-chalk-50 sm:text-2xl">
+              {selectedDate.toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
+            </h1>
+          </div>
+          <DayNavLink
+            direction="next"
+            href={isToday ? "" : `/overview?date=${nextDateISO}`}
+            disabled={isToday}
+            label={
+              isToday
+                ? "Today"
+                : fromISODate(nextDateISO).toLocaleDateString(undefined, {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  })
+            }
+          />
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-chalk-50">
-          {selectedDate.toLocaleDateString(undefined, {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
-        </h1>
-        {day ? (
-          <div
-            className="mt-1 inline-flex items-center gap-1.5 text-xs font-bold"
-            style={{ color: day.color }}
-          >
-            {day.icon} {day.focus} day · {day.duration}
-          </div>
-        ) : (
-          <div className="mt-1 text-xs font-bold text-chalk-400">
-            😴 Rest day
-          </div>
-        )}
+        <div className="mt-2 flex items-center justify-center gap-2">
+          {day ? (
+            <div
+              className="inline-flex items-center gap-1.5 text-xs font-bold"
+              style={{ color: day.color }}
+            >
+              {day.icon} {day.focus} day · {day.duration}
+            </div>
+          ) : (
+            <div className="text-xs font-bold text-chalk-400">
+              😴 Rest day
+            </div>
+          )}
+          {!isToday && (
+            <Link
+              href="/overview"
+              className="inline-flex items-center gap-1 rounded-full border border-accent-cyan/30 bg-accent-cyan/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-cyan hover:bg-accent-cyan/20"
+            >
+              Jump to today
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Hero: target ring + macros */}
@@ -221,6 +268,45 @@ export default async function OverviewPage({
 
       <Calendar initial={heatmapData} selectedDate={selected} />
     </div>
+  );
+}
+
+function DayNavLink({
+  direction,
+  href,
+  label,
+  disabled,
+}: {
+  direction: "prev" | "next";
+  href: string;
+  label: string;
+  disabled?: boolean;
+}) {
+  const Icon = direction === "prev" ? ChevronLeft : ChevronRight;
+  const baseClasses =
+    "flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-white/[0.04] px-2.5 py-2 text-[11px] font-bold text-chalk-200 transition";
+  if (disabled) {
+    return (
+      <div
+        aria-disabled
+        className={`${baseClasses} cursor-not-allowed opacity-40`}
+      >
+        {direction === "prev" && <Icon className="h-3.5 w-3.5" />}
+        <span className="hidden sm:inline">{label}</span>
+        {direction === "next" && <Icon className="h-3.5 w-3.5" />}
+      </div>
+    );
+  }
+  return (
+    <Link
+      href={href}
+      aria-label={`Go to ${label}`}
+      className={`${baseClasses} hover:bg-white/[0.08] hover:text-chalk-50`}
+    >
+      {direction === "prev" && <Icon className="h-3.5 w-3.5" />}
+      <span className="hidden sm:inline">{label}</span>
+      {direction === "next" && <Icon className="h-3.5 w-3.5" />}
+    </Link>
   );
 }
 
