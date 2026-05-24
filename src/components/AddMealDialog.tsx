@@ -17,11 +17,10 @@ import { addFoodEntry } from "@/lib/actions/entries";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import {
   lookupBarcode,
-  searchOpenFoodFacts,
-  unitsFor,
-  type OffProduct,
-  type OffUnit,
-} from "@/lib/openfoodfacts";
+  searchFoods,
+  type FoodItem,
+  type FoodUnit,
+} from "@/lib/foods";
 import type { MealType, Recipe } from "@/lib/types";
 
 // Lazy-load the scanner: @zxing/library is ~100 kB gzipped, only needed when
@@ -82,10 +81,10 @@ export function AddMealDialog({
 
   // --- Foods tab state (OpenFoodFacts) ---
   const [foodQuery, setFoodQuery] = useState("");
-  const [foodResults, setFoodResults] = useState<OffProduct[]>([]);
+  const [foodResults, setFoodResults] = useState<FoodItem[]>([]);
   const [foodLoading, setFoodLoading] = useState(false);
   const [foodError, setFoodError] = useState<string | null>(null);
-  const [pickedFood, setPickedFood] = useState<OffProduct | null>(null);
+  const [pickedFood, setPickedFood] = useState<FoodItem | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanLookupError, setScanLookupError] = useState<string | null>(null);
 
@@ -175,10 +174,10 @@ export function AddMealDialog({
       foodAbortRef.current = controller;
       setFoodLoading(true);
       setFoodError(null);
-      searchOpenFoodFacts(q, controller.signal)
-        .then((products) => {
+      searchFoods(q, controller.signal)
+        .then((foods) => {
           if (controller.signal.aborted) return;
-          setFoodResults(products);
+          setFoodResults(foods);
         })
         .catch((err) => {
           if (controller.signal.aborted) return;
@@ -262,10 +261,10 @@ export function AddMealDialog({
     });
   }
 
-  function submitFood(product: OffProduct, unit: OffUnit, quantity: number) {
-    const displayName = product.brand
-      ? `${product.brand} — ${product.name}`
-      : product.name;
+  function submitFood(food: FoodItem, unit: FoodUnit, quantity: number) {
+    const displayName = food.brand
+      ? `${food.brand} — ${food.name}`
+      : food.name;
     start(async () => {
       await addFoodEntry({
         entry_date: entryDate,
@@ -407,7 +406,7 @@ export function AddMealDialog({
               />
             ) : tab === "foods" && pickedFood ? (
               <FoodDetail
-                product={pickedFood}
+                food={pickedFood}
                 onBack={() => setPickedFood(null)}
                 onLog={(unit, qty) => submitFood(pickedFood, unit, qty)}
                 disabled={pending}
@@ -447,16 +446,17 @@ export function AddMealDialog({
                 <div className="max-h-80 space-y-2 overflow-y-auto">
                   {foodError ? (
                     <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
-                      OpenFoodFacts error: {foodError}
+                      {foodError}
                     </div>
                   ) : foodQuery.trim().length < 2 ? (
                     <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
                       <Search className="mx-auto h-5 w-5 text-chalk-400" />
                       <div className="mt-2 text-sm text-chalk-300">
-                        Search ~3M packaged foods, or scan a barcode.
+                        Search whole foods + ingredients, or scan a packaged
+                        barcode.
                       </div>
                       <div className="mt-0.5 text-[11px] text-chalk-500">
-                        Powered by OpenFoodFacts
+                        USDA FoodData Central · OpenFoodFacts barcodes
                       </div>
                     </div>
                   ) : foodLoading ? (
@@ -468,11 +468,11 @@ export function AddMealDialog({
                       No foods found for &ldquo;{foodQuery}&rdquo;.
                     </div>
                   ) : (
-                    foodResults.map((p) => (
+                    foodResults.map((f) => (
                       <FoodResultRow
-                        key={p.code}
-                        product={p}
-                        onSelect={() => setPickedFood(p)}
+                        key={f.id}
+                        food={f}
+                        onSelect={() => setPickedFood(f)}
                       />
                     ))
                   )}
@@ -794,23 +794,14 @@ function CatalogDetail({
 }
 
 function FoodResultRow({
-  product,
+  food,
   onSelect,
 }: {
-  product: OffProduct;
+  food: FoodItem;
   onSelect: () => void;
 }) {
-  const kcal =
-    product.kcalPerServing ??
-    (product.kcalPer100g !== null
-      ? Math.round(product.kcalPer100g)
-      : null);
-  const kcalUnit =
-    product.kcalPerServing !== null
-      ? "per serving"
-      : product.kcalPer100g !== null
-        ? "per 100 g"
-        : "";
+  const u = food.units[0];
+  const kcal = u ? Math.round(u.kcal) : null;
   return (
     <button
       type="button"
@@ -818,10 +809,10 @@ function FoodResultRow({
       className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-2 text-left transition hover:border-accent-cyan/40 hover:bg-white/[0.06]"
     >
       <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-ink-950">
-        {product.image ? (
+        {food.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={product.image}
+            src={food.image}
             alt=""
             className="h-full w-full object-cover"
             loading="lazy"
@@ -834,11 +825,14 @@ function FoodResultRow({
       </div>
       <div className="min-w-0 flex-1">
         <div className="line-clamp-2 text-[13px] font-bold leading-snug text-chalk-50">
-          {product.name}
+          {food.name}
         </div>
-        <div className="mt-0.5 truncate text-[11px] text-chalk-400">
-          {product.brand && <span>{product.brand} · </span>}
-          {kcal !== null ? `${Math.round(kcal)} cal ${kcalUnit}` : "No nutrition data"}
+        <div className="mt-0.5 flex items-center gap-1.5 truncate text-[11px] text-chalk-400">
+          {food.dataType && <DataTypeChip type={food.dataType} />}
+          <span className="truncate">
+            {food.brand && <span>{food.brand} · </span>}
+            {kcal !== null ? `${kcal} cal · ${u.label}` : "No nutrition data"}
+          </span>
         </div>
       </div>
       <ChevronRight className="h-4 w-4 shrink-0 text-chalk-400" />
@@ -846,23 +840,53 @@ function FoodResultRow({
   );
 }
 
+function DataTypeChip({ type }: { type: string }) {
+  // Compact label + colour cue so users can tell a Foundation entry from a
+  // Branded one at a glance.
+  const map: Record<string, { label: string; tone: string }> = {
+    Foundation: { label: "Whole", tone: "text-accent-cyan/90 bg-accent-cyan/10" },
+    "SR Legacy": {
+      label: "Whole",
+      tone: "text-accent-cyan/90 bg-accent-cyan/10",
+    },
+    "Survey (FNDDS)": {
+      label: "Prepared",
+      tone: "text-emerald-300/90 bg-emerald-400/10",
+    },
+    Branded: { label: "Branded", tone: "text-amber-300/90 bg-amber-400/10" },
+    Barcode: { label: "Barcode", tone: "text-amber-300/90 bg-amber-400/10" },
+  };
+  const entry = map[type];
+  if (!entry) return null;
+  return (
+    <span
+      className={cn(
+        "shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider",
+        entry.tone,
+      )}
+    >
+      {entry.label}
+    </span>
+  );
+}
+
 function FoodDetail({
-  product,
+  food,
   onBack,
   onLog,
   disabled,
 }: {
-  product: OffProduct;
+  food: FoodItem;
   onBack: () => void;
-  onLog: (unit: OffUnit, qty: number) => void;
+  onLog: (unit: FoodUnit, qty: number) => void;
   disabled: boolean;
 }) {
-  const units = useMemo(() => unitsFor(product), [product]);
+  const units = food.units;
   const [unitIdx, setUnitIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const unit = units[unitIdx];
 
-  if (units.length === 0) {
+  if (units.length === 0 || !unit) {
     return (
       <div className="space-y-4">
         <button
@@ -873,8 +897,7 @@ function FoodDetail({
           <ArrowLeft className="h-3.5 w-3.5" /> Back to results
         </button>
         <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
-          OpenFoodFacts has no nutrition data for this product. Try Quick entry
-          instead.
+          No nutrition data for this food. Try Quick entry instead.
         </div>
       </div>
     );
@@ -897,10 +920,10 @@ function FoodDetail({
 
       <div className="flex items-start gap-3">
         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-ink-950">
-          {product.image ? (
+          {food.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={product.image}
+              src={food.image}
               alt=""
               className="h-full w-full object-cover"
             />
@@ -912,16 +935,17 @@ function FoodDetail({
         </div>
         <div className="min-w-0">
           <div className="text-sm font-extrabold leading-snug text-chalk-50">
-            {product.name}
+            {food.name}
           </div>
-          {product.brand && (
-            <div className="mt-0.5 text-[11px] text-chalk-400">
-              {product.brand}
+          <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-chalk-400">
+            {food.dataType && <DataTypeChip type={food.dataType} />}
+            {food.brand && <span className="truncate">{food.brand}</span>}
+          </div>
+          {food.barcode && (
+            <div className="mt-1 text-[10px] uppercase tracking-wider text-chalk-500">
+              Barcode {food.barcode}
             </div>
           )}
-          <div className="mt-1 text-[10px] uppercase tracking-wider text-chalk-500">
-            Barcode {product.code}
-          </div>
         </div>
       </div>
 
