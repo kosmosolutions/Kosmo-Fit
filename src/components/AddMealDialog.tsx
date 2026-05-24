@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   ArrowLeft,
-  BookOpen,
+  Barcode,
   ChefHat,
   ChevronRight,
+  Loader2,
   Plus,
   Search,
   X,
@@ -13,11 +15,32 @@ import {
 import { cn } from "@/lib/cn";
 import { addFoodEntry } from "@/lib/actions/entries";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
+import {
+  lookupBarcode,
+  searchFoods,
+  type FoodItem,
+  type FoodUnit,
+} from "@/lib/foods";
 import type { MealType, Recipe } from "@/lib/types";
 
-const MEALS: MealType[] = ["breakfast", "snack", "lunch", "dinner"];
+// Lazy-load the scanner: @zxing/library is ~100 kB gzipped, only needed when
+// the user actually taps the barcode button. Keeps the diet route's first-load
+// bundle small.
+const BarcodeScanner = dynamic(
+  () => import("./BarcodeScanner").then((m) => m.BarcodeScanner),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-white/10 p-10 text-xs text-chalk-400">
+        <Loader2 className="h-4 w-4 animate-spin" /> Loading scanner…
+      </div>
+    ),
+  },
+);
 
-const SEARCH_LIMIT = 30;
+const MEALS: MealType[] = ["breakfast", "snack", "lunch", "dinner"];
+const RECIPE_SEARCH_LIMIT = 30;
+const FOOD_SEARCH_DEBOUNCE_MS = 350;
 
 // Subset of the /recipe-catalog.json shape needed to display + log.
 interface CatalogRecipe {
@@ -32,6 +55,8 @@ interface CatalogRecipe {
   ingredients: string[];
 }
 
+type Tab = "foods" | "recipes" | "new" | "saved";
+
 export function AddMealDialog({
   entryDate,
   recipes,
@@ -44,36 +69,63 @@ export function AddMealDialog({
   triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<"search" | "new" | "recipe">("search");
+  const [tab, setTab] = useState<Tab>("foods");
   const [pending, start] = useTransition();
+  useBodyScrollLock(open);
+
+  // --- Recipes tab state (bundled catalog) ---
   const [catalog, setCatalog] = useState<CatalogRecipe[] | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [catalogQuery, setCatalogQuery] = useState("");
   const [pickedCatalog, setPickedCatalog] = useState<CatalogRecipe | null>(null);
-  useBodyScrollLock(open);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        // Inside the search detail view, Escape just goes back to the list.
-        if (pickedCatalog) setPickedCatalog(null);
-        else setOpen(false);
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, pickedCatalog]);
+  // --- Foods tab state (OpenFoodFacts) ---
+  const [foodQuery, setFoodQuery] = useState("");
+  const [foodResults, setFoodResults] = useState<FoodItem[]>([]);
+  const [foodLoading, setFoodLoading] = useState(false);
+  const [foodError, setFoodError] = useState<string | null>(null);
+  const [pickedFood, setPickedFood] = useState<FoodItem | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanLookupError, setScanLookupError] = useState<string | null>(null);
+
+  // --- Quick-entry form state ---
+  const [form, setForm] = useState({
+    meal_type: defaultMeal ?? ("breakfast" as MealType),
+    name: "",
+    servings: 1,
+    calories: 0,
+    protein_g: 0,
+    carbs_g: 0,
+    fat_g: 0,
+  });
 
   // Reset transient state when the dialog closes so re-opens start fresh.
   useEffect(() => {
-    if (!open) setPickedCatalog(null);
+    if (!open) {
+      setPickedCatalog(null);
+      setPickedFood(null);
+      setScanning(false);
+      setScanLookupError(null);
+    }
   }, [open]);
 
-  // Lazy-load the catalog on first visit to the Search tab. Cached at the
-  // browser layer so re-opens are instant.
+  // Escape collapses one layer at a time: scanner → detail → list → close.
   useEffect(() => {
-    if (!open || tab !== "search" || catalog !== null || catalogError) return;
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (scanning) setScanning(false);
+      else if (pickedFood) setPickedFood(null);
+      else if (pickedCatalog) setPickedCatalog(null);
+      else setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, pickedCatalog, pickedFood, scanning]);
+
+  // Lazy-load the bundled recipe catalog the first time Recipes is visited.
+  useEffect(() => {
+    if (!open || tab !== "recipes" || catalog !== null || catalogError) return;
     let cancelled = false;
     fetch("/recipe-catalog.json", { cache: "force-cache" })
       .then((r) => {
@@ -91,27 +143,64 @@ export function AddMealDialog({
     };
   }, [open, tab, catalog, catalogError]);
 
-  const searchResults = useMemo(() => {
+  const recipeResults = useMemo(() => {
     if (!catalog) return [];
     const q = catalogQuery.trim().toLowerCase();
-    if (!q) return catalog.slice(0, SEARCH_LIMIT);
+    if (!q) return catalog.slice(0, RECIPE_SEARCH_LIMIT);
     return catalog
       .filter((r) =>
         `${r.name} ${r.tags.join(" ")} ${r.ingredients.join(" ")}`
           .toLowerCase()
           .includes(q),
       )
-      .slice(0, SEARCH_LIMIT);
+      .slice(0, RECIPE_SEARCH_LIMIT);
   }, [catalog, catalogQuery]);
-  const [form, setForm] = useState({
-    meal_type: defaultMeal ?? ("breakfast" as MealType),
-    name: "",
-    servings: 1,
-    calories: 0,
-    protein_g: 0,
-    carbs_g: 0,
-    fat_g: 0,
-  });
+
+  // Debounced OpenFoodFacts search. Aborts any in-flight request when the
+  // query changes so older responses can't clobber newer state.
+  const foodAbortRef = useRef<AbortController | null>(null);
+  useEffect(() => {
+    if (!open || tab !== "foods" || pickedFood || scanning) return;
+    const q = foodQuery.trim();
+    if (q.length < 2) {
+      setFoodResults([]);
+      setFoodLoading(false);
+      setFoodError(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      foodAbortRef.current?.abort();
+      const controller = new AbortController();
+      foodAbortRef.current = controller;
+      setFoodLoading(true);
+      setFoodError(null);
+      searchFoods(q, controller.signal)
+        .then((foods) => {
+          if (controller.signal.aborted) return;
+          setFoodResults(foods);
+        })
+        .catch((err) => {
+          if (controller.signal.aborted) return;
+          if (err instanceof Error && err.name === "AbortError") return;
+          setFoodError(String(err));
+        })
+        .finally(() => {
+          if (controller.signal.aborted) return;
+          setFoodLoading(false);
+        });
+    }, FOOD_SEARCH_DEBOUNCE_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [foodQuery, open, tab, pickedFood, scanning]);
+
+  // Cleanup the abort controller on unmount.
+  useEffect(
+    () => () => {
+      foodAbortRef.current?.abort();
+    },
+    [],
+  );
 
   function submitNew() {
     if (!form.name.trim()) return;
@@ -172,6 +261,42 @@ export function AddMealDialog({
     });
   }
 
+  function submitFood(food: FoodItem, unit: FoodUnit, quantity: number) {
+    const displayName = food.brand
+      ? `${food.brand} — ${food.name}`
+      : food.name;
+    start(async () => {
+      await addFoodEntry({
+        entry_date: entryDate,
+        meal_type: form.meal_type,
+        name: displayName,
+        servings: quantity,
+        calories: Math.round(unit.kcal * quantity),
+        protein_g: Math.round(unit.protein * quantity),
+        carbs_g: Math.round(unit.carbs * quantity),
+        fat_g: Math.round(unit.fat * quantity),
+      });
+      setOpen(false);
+    });
+  }
+
+  async function handleBarcodeDetected(barcode: string) {
+    setScanning(false);
+    setScanLookupError(null);
+    try {
+      const product = await lookupBarcode(barcode);
+      if (!product) {
+        setScanLookupError(
+          `No food found for barcode ${barcode}. Try searching by name.`,
+        );
+        return;
+      }
+      setPickedFood(product);
+    } catch (e) {
+      setScanLookupError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
   return (
     <>
       <button
@@ -205,6 +330,7 @@ export function AddMealDialog({
                 type="button"
                 onClick={() => setOpen(false)}
                 className="rounded-lg p-1 text-chalk-400 hover:bg-white/10"
+                aria-label="Close"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -230,42 +356,139 @@ export function AddMealDialog({
 
             <div className="mb-3 flex gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
               <TabButton
-                active={tab === "search"}
+                active={tab === "foods"}
                 onClick={() => {
-                  setTab("search");
+                  setTab("foods");
                   setPickedCatalog(null);
                 }}
               >
-                <Search className="h-3 w-3" /> Search
+                <Search className="h-3 w-3" /> Foods
+              </TabButton>
+              <TabButton
+                active={tab === "recipes"}
+                onClick={() => {
+                  setTab("recipes");
+                  setPickedFood(null);
+                  setScanning(false);
+                }}
+              >
+                Recipes
               </TabButton>
               <TabButton
                 active={tab === "new"}
                 onClick={() => {
                   setTab("new");
                   setPickedCatalog(null);
+                  setPickedFood(null);
+                  setScanning(false);
                 }}
               >
-                Quick entry
+                Quick
               </TabButton>
               <TabButton
-                active={tab === "recipe"}
+                active={tab === "saved"}
                 onClick={() => {
-                  setTab("recipe");
+                  setTab("saved");
                   setPickedCatalog(null);
+                  setPickedFood(null);
+                  setScanning(false);
                 }}
               >
                 Saved ({recipes.length})
               </TabButton>
             </div>
 
-            {tab === "search" && pickedCatalog ? (
+            {/* ----- Foods tab ----- */}
+            {tab === "foods" && scanning ? (
+              <BarcodeScanner
+                onDetect={handleBarcodeDetected}
+                onCancel={() => setScanning(false)}
+              />
+            ) : tab === "foods" && pickedFood ? (
+              <FoodDetail
+                food={pickedFood}
+                onBack={() => setPickedFood(null)}
+                onLog={(unit, qty) => submitFood(pickedFood, unit, qty)}
+                disabled={pending}
+              />
+            ) : tab === "foods" ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-chalk-400" />
+                    <input
+                      type="search"
+                      value={foodQuery}
+                      onChange={(e) => setFoodQuery(e.target.value)}
+                      placeholder="Search foods (e.g. Cheerios, banana)"
+                      className="field pl-9"
+                      autoComplete="off"
+                      autoFocus
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScanLookupError(null);
+                      setScanning(true);
+                    }}
+                    className="rounded-xl border border-accent-cyan/40 bg-accent-cyan/10 p-2.5 text-accent-cyan transition hover:bg-accent-cyan/20"
+                    aria-label="Scan barcode"
+                  >
+                    <Barcode className="h-4 w-4" />
+                  </button>
+                </div>
+                {scanLookupError && (
+                  <div className="rounded-xl border border-dashed border-accent-rose/40 p-3 text-center text-xs text-accent-rose">
+                    {scanLookupError}
+                  </div>
+                )}
+                <div className="max-h-80 space-y-2 overflow-y-auto">
+                  {foodError ? (
+                    <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
+                      {foodError}
+                    </div>
+                  ) : foodQuery.trim().length < 2 ? (
+                    <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+                      <Search className="mx-auto h-5 w-5 text-chalk-400" />
+                      <div className="mt-2 text-sm text-chalk-300">
+                        Search whole foods + ingredients, or scan a packaged
+                        barcode.
+                      </div>
+                      <div className="mt-0.5 text-[11px] text-chalk-500">
+                        USDA FoodData Central · OpenFoodFacts barcodes
+                      </div>
+                    </div>
+                  ) : foodLoading ? (
+                    <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-6 text-xs text-chalk-400">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Searching…
+                    </div>
+                  ) : foodResults.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-chalk-400">
+                      No foods found for &ldquo;{foodQuery}&rdquo;.
+                    </div>
+                  ) : (
+                    foodResults.map((f) => (
+                      <FoodResultRow
+                        key={f.id}
+                        food={f}
+                        onSelect={() => setPickedFood(f)}
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            {/* ----- Recipes tab ----- */}
+            {tab === "recipes" && pickedCatalog ? (
               <CatalogDetail
                 recipe={pickedCatalog}
                 onBack={() => setPickedCatalog(null)}
                 onLog={(s) => submitCatalogRecipe(pickedCatalog, s)}
                 disabled={pending}
               />
-            ) : tab === "search" ? (
+            ) : tab === "recipes" ? (
               <div className="space-y-3">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-chalk-400" />
@@ -292,7 +515,7 @@ export function AddMealDialog({
                     <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-chalk-400">
                       Loading catalog…
                     </div>
-                  ) : searchResults.length === 0 ? (
+                  ) : recipeResults.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
                       <ChefHat className="mx-auto h-5 w-5 text-chalk-400" />
                       <div className="mt-2 text-sm text-chalk-300">
@@ -300,7 +523,7 @@ export function AddMealDialog({
                       </div>
                     </div>
                   ) : (
-                    searchResults.map((r) => (
+                    recipeResults.map((r) => (
                       <CatalogResultRow
                         key={r.id}
                         recipe={r}
@@ -310,7 +533,10 @@ export function AddMealDialog({
                   )}
                 </div>
               </div>
-            ) : tab === "new" ? (
+            ) : null}
+
+            {/* ----- Quick entry tab ----- */}
+            {tab === "new" && (
               <div className="space-y-3">
                 <label className="block">
                   <span className="label-tiny">Name</span>
@@ -368,11 +594,14 @@ export function AddMealDialog({
                   {pending ? "Logging…" : "Log meal"}
                 </button>
               </div>
-            ) : (
+            )}
+
+            {/* ----- Saved recipes tab ----- */}
+            {tab === "saved" && (
               <div className="max-h-80 space-y-2 overflow-y-auto">
                 {recipes.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
-                    <BookOpen className="mx-auto h-5 w-5 text-chalk-400" />
+                    <ChefHat className="mx-auto h-5 w-5 text-chalk-400" />
                     <div className="mt-2 text-sm text-chalk-300">
                       No recipes saved yet.
                     </div>
@@ -441,7 +670,7 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-1 items-center justify-center gap-1 rounded-lg py-1.5 text-xs font-bold transition",
+        "flex flex-1 items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[11px] font-bold transition",
         active ? "bg-white/[0.08] text-chalk-50" : "text-chalk-300",
       )}
     >
@@ -556,6 +785,223 @@ function CatalogDetail({
         type="button"
         disabled={disabled}
         onClick={() => onLog(servings)}
+        className="btn-primary w-full py-3"
+      >
+        {disabled ? "Logging…" : "Log meal"}
+      </button>
+    </div>
+  );
+}
+
+function FoodResultRow({
+  food,
+  onSelect,
+}: {
+  food: FoodItem;
+  onSelect: () => void;
+}) {
+  const u = food.units[0];
+  const kcal = u ? Math.round(u.kcal) : null;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-2 text-left transition hover:border-accent-cyan/40 hover:bg-white/[0.06]"
+    >
+      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-ink-950">
+        {food.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={food.image}
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="grid h-full w-full place-items-center text-chalk-500">
+            <Barcode className="h-4 w-4" />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="line-clamp-2 text-[13px] font-bold leading-snug text-chalk-50">
+          {food.name}
+        </div>
+        <div className="mt-0.5 flex items-center gap-1.5 truncate text-[11px] text-chalk-400">
+          {food.dataType && <DataTypeChip type={food.dataType} />}
+          <span className="truncate">
+            {food.brand && <span>{food.brand} · </span>}
+            {kcal !== null ? `${kcal} cal · ${u.label}` : "No nutrition data"}
+          </span>
+        </div>
+      </div>
+      <ChevronRight className="h-4 w-4 shrink-0 text-chalk-400" />
+    </button>
+  );
+}
+
+function DataTypeChip({ type }: { type: string }) {
+  // Compact label + colour cue so users can tell a Foundation entry from a
+  // Branded one at a glance.
+  const map: Record<string, { label: string; tone: string }> = {
+    Foundation: { label: "Whole", tone: "text-accent-cyan/90 bg-accent-cyan/10" },
+    "SR Legacy": {
+      label: "Whole",
+      tone: "text-accent-cyan/90 bg-accent-cyan/10",
+    },
+    "Survey (FNDDS)": {
+      label: "Prepared",
+      tone: "text-emerald-300/90 bg-emerald-400/10",
+    },
+    Branded: { label: "Branded", tone: "text-amber-300/90 bg-amber-400/10" },
+    Barcode: { label: "Barcode", tone: "text-amber-300/90 bg-amber-400/10" },
+  };
+  const entry = map[type];
+  if (!entry) return null;
+  return (
+    <span
+      className={cn(
+        "shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider",
+        entry.tone,
+      )}
+    >
+      {entry.label}
+    </span>
+  );
+}
+
+function FoodDetail({
+  food,
+  onBack,
+  onLog,
+  disabled,
+}: {
+  food: FoodItem;
+  onBack: () => void;
+  onLog: (unit: FoodUnit, qty: number) => void;
+  disabled: boolean;
+}) {
+  const units = food.units;
+  const [unitIdx, setUnitIdx] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const unit = units[unitIdx];
+
+  if (units.length === 0 || !unit) {
+    return (
+      <div className="space-y-4">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-1 text-xs font-bold text-chalk-400 hover:text-chalk-100"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to results
+        </button>
+        <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
+          No nutrition data for this food. Try Quick entry instead.
+        </div>
+      </div>
+    );
+  }
+
+  const kcal = Math.round(unit.kcal * quantity);
+  const p = Math.round(unit.protein * quantity);
+  const c = Math.round(unit.carbs * quantity);
+  const f = Math.round(unit.fat * quantity);
+
+  return (
+    <div className="space-y-4">
+      <button
+        type="button"
+        onClick={onBack}
+        className="inline-flex items-center gap-1 text-xs font-bold text-chalk-400 hover:text-chalk-100"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> Back to results
+      </button>
+
+      <div className="flex items-start gap-3">
+        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-ink-950">
+          {food.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={food.image}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="grid h-full w-full place-items-center text-chalk-500">
+              <Barcode className="h-5 w-5" />
+            </div>
+          )}
+        </div>
+        <div className="min-w-0">
+          <div className="text-sm font-extrabold leading-snug text-chalk-50">
+            {food.name}
+          </div>
+          <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-chalk-400">
+            {food.dataType && <DataTypeChip type={food.dataType} />}
+            {food.brand && <span className="truncate">{food.brand}</span>}
+          </div>
+          {food.barcode && (
+            <div className="mt-1 text-[10px] uppercase tracking-wider text-chalk-500">
+              Barcode {food.barcode}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 rounded-xl border border-white/[0.07] bg-white/[0.025] p-3 text-center">
+        <DetailStat label="kcal" value={kcal} color="#f59e0b" />
+        <DetailStat label="P" value={`${p}g`} color="#a78bfa" />
+        <DetailStat label="C" value={`${c}g`} color="#22d3ee" />
+        <DetailStat label="F" value={`${f}g`} color="#fbbf24" />
+      </div>
+
+      {units.length > 1 && (
+        <div>
+          <div className="label-tiny mb-1.5">Unit</div>
+          <div className="flex flex-wrap gap-1.5">
+            {units.map((u, i) => (
+              <button
+                key={u.label}
+                type="button"
+                onClick={() => setUnitIdx(i)}
+                className={cn(
+                  "rounded-lg border px-2.5 py-1 text-[11px] font-bold transition",
+                  i === unitIdx
+                    ? "border-accent-cyan/50 bg-accent-cyan/15 text-accent-cyan"
+                    : "border-white/10 bg-white/[0.04] text-chalk-300",
+                )}
+              >
+                {u.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <div>
+          <div className="label-tiny">Quantity</div>
+          <div className="text-[11px] text-chalk-400">
+            × {unit.label}
+          </div>
+        </div>
+        <input
+          type="number"
+          step={0.25}
+          min={0.25}
+          value={quantity}
+          onChange={(e) =>
+            setQuantity(Math.max(0.25, parseFloat(e.target.value) || 1))
+          }
+          className="w-20 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5 text-right text-sm font-bold text-chalk-50 outline-none"
+        />
+      </div>
+
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onLog(unit, quantity)}
         className="btn-primary w-full py-3"
       >
         {disabled ? "Logging…" : "Log meal"}
