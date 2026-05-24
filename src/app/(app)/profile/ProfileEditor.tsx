@@ -8,6 +8,7 @@ import type { Profile } from "@/lib/types";
 import type { WeightPoint } from "@/lib/actions/weight";
 import { Ring } from "@/components/Ring";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
+import { MacroOverrideEditor } from "@/components/MacroOverrideEditor";
 import { cn } from "@/lib/cn";
 
 const TIMEFRAMES = [12, 16, 20, 24, 30, 40, 52];
@@ -248,6 +249,17 @@ export function ProfileEditor({
             ))}
           </div>
         </div>
+      </Section>
+
+      {/* Macros */}
+      <Section title="Macros">
+        <MacroOverrideEditor
+          initialProtein={profile.macro_protein_pct}
+          initialCarb={profile.macro_carb_pct}
+          initialFat={profile.macro_fat_pct}
+          previewCalories={stats.avgWorkoutTarget}
+          defaultProteinG={stats.proteinG}
+        />
       </Section>
 
       {/* Lifestyle & workout mode */}
