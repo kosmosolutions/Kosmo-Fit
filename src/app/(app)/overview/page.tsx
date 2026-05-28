@@ -232,6 +232,7 @@ export default async function OverviewPage({
       {/* Daily tracker */}
       <DailyTrackerForm
         entryDate={selected}
+        bodyWeightLbs={Number(profile.current_weight) || 0}
         initial={{
           weight: daily?.weight ?? null,
           steps: daily?.steps ?? 0,
