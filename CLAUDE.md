@@ -4,7 +4,7 @@ Context for future Claude Code sessions on this repo. Keep brief. Update when sc
 
 ## Roadmap (next up, in order)
 
-1. **Daily tracker redesign** — replace inline inputs in the "Log today" section with per-metric popups. Each popup should support a **unit toggle** (e.g. kg ↔ lb for weight, mi ↔ km for cardio distance, oz ↔ ml for water). The cardio popup pattern from `CardioLogPopup` is a good foundation.
+_Empty — backlog cleared. Add the next batch here when scope is set. Deferred polish: Canva hero imagery for workout templates; per-template calorie-banner targets (currently the 6-slot week is hard-coded); multiple saved custom workout plans._
 
 ## Shipped (recent)
 
@@ -14,6 +14,7 @@ Context for future Claude Code sessions on this repo. Keep brief. Update when sc
 - **Weight trend chart** (#32) — `WeightTrendChart` SVG line + area on overview (under GapMeter) and profile (under Live summary). Reads from `daily_entries.weight` via `getWeightHistory()`. Goal weight rendered as a dashed reference line; trend chip color follows whether user is cutting/bulking.
 - **Macro % override** (#33) — new `Macros` section on profile lets users pick a custom P/C/F split via preset chips (Balanced, High-protein, Low-carb, Keto) or freeform percentage inputs. `profiles.macro_(protein|carb|fat)_pct` columns hold the override; `calcStats` falls back to the legacy 0.9 g/lb + 27% fat heuristic when null. DB check constraint enforces sum=100.
 - **Day navigator** (#34) — left/right `DayNavLink` chips flank the overview's date heading; next is disabled when viewing today. "Jump to today" pill appears under the chip row when off-today. All writes through `?date=…`, reusing the existing calendar URL flow.
+- **Daily tracker redesign** (#35) — "Log today" inline inputs replaced with tappable `MetricCard`s that open per-metric popups (`MetricPopups.tsx` + shared `Shell`). Weight (kg↔lb) and Water (oz↔ml) have unit toggles; cardio reuses `CardioLogPopup`. Unit prefs persist via `useUnitPref` (localStorage). Conversions in `src/lib/units.ts` — DB still stores base units (lb, oz). Mood + workout-complete stay inline toggles.
 
 ## Project shape
 
