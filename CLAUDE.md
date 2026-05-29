@@ -4,7 +4,7 @@ Context for future Claude Code sessions on this repo. Keep brief. Update when sc
 
 ## Roadmap (next up, in order)
 
-_Empty — backlog cleared. Add the next batch here when scope is set. Deferred polish: Canva-generated photography for template heroes (programmatic SVG art shipped in #36; Canva blocked by sandbox network policy)._
+_Empty — backlog cleared. Add the next batch here when scope is set._
 
 ## Shipped (recent)
 
@@ -18,6 +18,11 @@ _Empty — backlog cleared. Add the next batch here when scope is set. Deferred 
 - **Template hero art** (#36) — `TemplateHero` renders layered programmatic SVG per template (themed gradient + one of 6 motifs: burst/grid/waves/rings/bolts/plates + watermark icon + scrim). Replaces the plain gradient hero in `PlanPicker`. Canva was blocked by the sandbox network policy, so this ships self-contained vector art.
 - **Per-template calorie targets** (#37) — the calorie banner no longer uses the hard-coded 6-slot BURNS table for template plans. `estimateSessionBurn()` (calc.ts) derives each day's burn from duration + focus (~7 cal/min strength, ~11 for intervals); rest days fall to `restTarget`. Legacy/custom-6day keeps the hand-tuned positional BURNS. Banner burn now updates per selected day (also fixed a stale-burn display bug).
 - **Saved custom workout plans** (#38) — a plan library. New `workout_plans` table; `user_workout_exercises.plan_id` (NULL = scratch working copy on a stock template = prior behavior; uuid = a saved plan); `profiles.active_plan_id`. Every customization action in `workout-plan.ts` is plan-scoped via `resolveContext()`. New actions: `createPlanFromCurrent` (COPY snapshot of both modes), `applyPlan`, `deletePlan`, `renamePlan`, `getUserPlans`. PlanPicker gained a "Your plans" section + "Save current as a plan" + rename/delete; saved-plan cards reuse `TemplateHero` via their base template. `applyTemplate` now wipes only the scratch copy, never saved plans. Page resolves an `effectiveTemplateId` (plan's base when on a plan) for day layout + calorie banner.
+- **Migration filename realign** (#39) — `apply_migration` stamps its own version; committed file renamed to match prod's recorded version to clear `MIGRATIONS_FAILED`.
+- **Landing redesign** (#40) — de-noised hero, cleaner first screen.
+- **Floating tab bar** (#41) — floating pill bottom tab bar for app nav.
+- **Overview restyle** (#42) — hero/steps polish + calendar consistency stats.
+- **Diet restructure** (#44) — page IA reorganized (not just restyled). Recipe library link moves into the header as a compact pill; the calorie Ring hero becomes a horizontal scoreboard (big total + full-width consumed/target meter, amber overflow when over target); macros switch from a 3-up pill grid to stacked horizontal meters; a top-level primary "Log food" CTA defaults to the next empty meal; the four meal cards become a connected vertical day timeline. `AddMealDialog` gained optional `triggerLabel` + `triggerVariant` ("chip" | "primary") props. Superseded the polish-only PR #43 (closed unmerged).
 
 ## Project shape
 
