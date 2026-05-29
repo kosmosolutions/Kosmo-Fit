@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Play, ExternalLink, X } from "lucide-react";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import {
@@ -187,11 +188,12 @@ export function ExerciseCard({
         </div>
       </div>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
-          onClick={() => setOpen(false)}
-        >
+      {open &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
+            onClick={() => setOpen(false)}
+          >
           <div
             className="flex max-h-[90svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-ink-900 sm:rounded-2xl"
             onClick={(e) => e.stopPropagation()}
@@ -329,8 +331,9 @@ export function ExerciseCard({
               </a>
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   );
 }
