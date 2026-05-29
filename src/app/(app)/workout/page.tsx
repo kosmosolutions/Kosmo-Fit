@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { calcStats, dayIndexForDate } from "@/lib/calc";
 import { WorkoutClient } from "@/components/WorkoutClient";
-import { getUserPlanRows } from "@/lib/actions/workout-plan";
+import { getUserPlanRows, getUserPlans } from "@/lib/actions/workout-plan";
 import { todayISO } from "@/lib/dates";
 import type { WorkoutMode } from "@/lib/types";
 
@@ -31,9 +31,10 @@ export default async function WorkoutPage() {
 
   // Fetch both modes up-front so the user can switch home<->gym without
   // a network round-trip. Both lists are typically <50 rows total.
-  const [homePlan, gymPlan, { data: daily }] = await Promise.all([
+  const [homePlan, gymPlan, plans, { data: daily }] = await Promise.all([
     getUserPlanRows("home"),
     getUserPlanRows("gym"),
+    getUserPlans(),
     supabase
       .from("daily_entries")
       .select("workout_completed, cardio_minutes, cardio_calories")
@@ -41,6 +42,16 @@ export default async function WorkoutPage() {
       .eq("entry_date", todayDate)
       .maybeSingle(),
   ]);
+
+  const activePlanId: string | null = profile.active_plan_id ?? null;
+  const activePlan = activePlanId
+    ? (plans.find((p) => p.id === activePlanId) ?? null)
+    : null;
+  // Day layout + calorie banner resolve from the effective template: a
+  // saved plan's base template when on a plan, else the active template.
+  const effectiveTemplateId = activePlan
+    ? activePlan.base_template_id
+    : (profile.active_template_id ?? null);
 
   return (
     <WorkoutClient
@@ -57,7 +68,10 @@ export default async function WorkoutPage() {
       restTarget={stats.restTarget}
       homePlan={homePlan}
       gymPlan={gymPlan}
-      activeTemplateId={profile.active_template_id ?? null}
+      activeTemplateId={effectiveTemplateId}
+      plans={plans}
+      activePlanId={activePlanId}
+      activePlanName={activePlan?.name ?? null}
       todayDate={todayDate}
       todayCompleted={daily?.workout_completed ?? false}
       todayCardioMinutes={daily?.cardio_minutes ?? 0}

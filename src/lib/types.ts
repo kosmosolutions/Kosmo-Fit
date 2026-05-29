@@ -22,6 +22,7 @@ export interface Profile {
   fitness_experience: FitnessExperience | null;
   primary_goal: PrimaryGoal | null;
   active_template_id: string | null;
+  active_plan_id: string | null;
   macro_protein_pct: number | null;
   macro_carb_pct: number | null;
   macro_fat_pct: number | null;

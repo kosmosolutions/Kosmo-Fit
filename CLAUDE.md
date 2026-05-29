@@ -4,7 +4,7 @@ Context for future Claude Code sessions on this repo. Keep brief. Update when sc
 
 ## Roadmap (next up, in order)
 
-_Empty — backlog cleared. Add the next batch here when scope is set. Deferred polish: multiple saved custom workout plans; Canva-generated photography for template heroes (programmatic SVG art shipped in #36; Canva blocked by sandbox network policy)._
+_Empty — backlog cleared. Add the next batch here when scope is set. Deferred polish: Canva-generated photography for template heroes (programmatic SVG art shipped in #36; Canva blocked by sandbox network policy)._
 
 ## Shipped (recent)
 
@@ -17,6 +17,7 @@ _Empty — backlog cleared. Add the next batch here when scope is set. Deferred 
 - **Daily tracker redesign** (#35) — "Log today" inline inputs replaced with tappable `MetricCard`s that open per-metric popups (`MetricPopups.tsx` + shared `Shell`). Weight (kg↔lb) and Water (oz↔ml) have unit toggles; cardio reuses `CardioLogPopup`. Unit prefs persist via `useUnitPref` (localStorage). Conversions in `src/lib/units.ts` — DB still stores base units (lb, oz). Mood + workout-complete stay inline toggles.
 - **Template hero art** (#36) — `TemplateHero` renders layered programmatic SVG per template (themed gradient + one of 6 motifs: burst/grid/waves/rings/bolts/plates + watermark icon + scrim). Replaces the plain gradient hero in `PlanPicker`. Canva was blocked by the sandbox network policy, so this ships self-contained vector art.
 - **Per-template calorie targets** (#37) — the calorie banner no longer uses the hard-coded 6-slot BURNS table for template plans. `estimateSessionBurn()` (calc.ts) derives each day's burn from duration + focus (~7 cal/min strength, ~11 for intervals); rest days fall to `restTarget`. Legacy/custom-6day keeps the hand-tuned positional BURNS. Banner burn now updates per selected day (also fixed a stale-burn display bug).
+- **Saved custom workout plans** (#38) — a plan library. New `workout_plans` table; `user_workout_exercises.plan_id` (NULL = scratch working copy on a stock template = prior behavior; uuid = a saved plan); `profiles.active_plan_id`. Every customization action in `workout-plan.ts` is plan-scoped via `resolveContext()`. New actions: `createPlanFromCurrent` (COPY snapshot of both modes), `applyPlan`, `deletePlan`, `renamePlan`, `getUserPlans`. PlanPicker gained a "Your plans" section + "Save current as a plan" + rename/delete; saved-plan cards reuse `TemplateHero` via their base template. `applyTemplate` now wipes only the scratch copy, never saved plans. Page resolves an `effectiveTemplateId` (plan's base when on a plan) for day layout + calorie banner.
 
 ## Project shape
 
