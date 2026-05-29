@@ -34,6 +34,35 @@ export function calPerStep(weightLbs: number): number {
   return weightLbs * 0.00045;
 }
 
+/** Average minutes from a free-form duration like "~55 min" or "25–30 min". */
+function parseDurationMinutes(d?: string): number {
+  if (!d) return 45;
+  const nums = (d.match(/\d+/g) ?? []).map(Number);
+  if (nums.length === 0) return 45;
+  return Math.round(nums.reduce((a, b) => a + b, 0) / nums.length);
+}
+
+/**
+ * Estimate a session's calorie burn from its duration + focus. Used for
+ * template days, which (unlike the hand-tuned original 6-day split) don't
+ * carry per-day burn numbers. Rest days (no exercises) burn nothing.
+ *
+ * Rates are deliberately conservative and land in the same ballpark as the
+ * legacy BURNS table (~7 cal/min strength, ~11 cal/min for intervals).
+ */
+export function estimateSessionBurn(day: {
+  duration?: string;
+  focus: string;
+  exercises: unknown[];
+}): number {
+  if (!day.exercises || day.exercises.length === 0) return 0;
+  const mins = parseDurationMinutes(day.duration);
+  const f = day.focus.toLowerCase();
+  const intervals = /hiit|sprint|interval|cardio/.test(f);
+  const rate = intervals ? 11 : 7;
+  return Math.round(mins * rate);
+}
+
 export interface Stats {
   bmr: number;
   lifeTDEE: number;

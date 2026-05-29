@@ -32,6 +32,7 @@ import {
   type WorkoutDay,
 } from "@/data/workouts";
 import { getTemplate } from "@/data/workout-templates";
+import { estimateSessionBurn } from "@/lib/calc";
 import { cn } from "@/lib/cn";
 import type { WorkoutMode } from "@/lib/types";
 import {
@@ -161,6 +162,8 @@ interface Props {
   dailyDeficit: number;
   lifeTDEE: number;
   weekTargets: number[];
+  weekBurns: number[];
+  restTarget: number;
   homePlan: UserExerciseRow[];
   gymPlan: UserExerciseRow[];
   activeTemplateId: string | null;
@@ -191,6 +194,8 @@ export function WorkoutClient({
   dailyDeficit,
   lifeTDEE,
   weekTargets,
+  weekBurns,
+  restTarget,
   homePlan,
   gymPlan,
   activeTemplateId,
@@ -232,7 +237,23 @@ export function WorkoutClient({
       setPickerOpen(true);
     }
   }, [activeTemplateId, hasCustomizations]);
-  const todayDayTarget = weekTargets[wDay] ?? todayTarget;
+  // Per-day calorie target + burn for the selected day.
+  //
+  // Legacy split (no template, or custom-6day) keeps the hand-tuned
+  // positional BURNS table. Real templates derive each day from its own
+  // structure: rest days fall to the rest target, training days estimate
+  // burn from duration + focus. This stops a 3-day template's rest slots
+  // from showing a workout-day calorie target.
+  const isLegacyPlan = !activeTemplate || activeTemplate.id === "custom-6day";
+  const isRestDay = d.exercises.length === 0 || d.focus === "Rest";
+  const selectedBurn = isLegacyPlan
+    ? (weekBurns[wDay] ?? todayBurn)
+    : estimateSessionBurn(d);
+  const todayDayTarget = isLegacyPlan
+    ? (weekTargets[wDay] ?? todayTarget)
+    : isRestDay
+      ? restTarget
+      : Math.max(1400, lifeTDEE + selectedBurn - dailyDeficit);
   const planRows = mode === "gym" ? gymPlan : homePlan;
 
   // Per (mode, dayIndex), if the user has ANY rows we treat the day as
@@ -415,7 +436,7 @@ export function WorkoutClient({
             <div className="text-right">
               <div className="text-[10px] text-chalk-400">🔥 Burn</div>
               <div className="text-base font-extrabold text-accent-amber">
-                ~{todayBurn}
+                {selectedBurn > 0 ? `~${selectedBurn}` : "—"}
               </div>
               <div className="mt-1 text-[10px] text-chalk-400">Deficit</div>
               <div className="text-sm font-bold text-accent-green">
@@ -432,7 +453,7 @@ export function WorkoutClient({
                 <span className="text-chalk-50">
                   Life TDEE: {lifeTDEE.toLocaleString()}
                 </span>
-                <span className="text-accent-green">+ burn: {todayBurn}</span>
+                <span className="text-accent-green">+ burn: {selectedBurn}</span>
                 <span className="text-accent-rose">
                   − deficit: {dailyDeficit}
                 </span>

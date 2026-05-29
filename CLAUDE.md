@@ -4,7 +4,7 @@ Context for future Claude Code sessions on this repo. Keep brief. Update when sc
 
 ## Roadmap (next up, in order)
 
-_Empty — backlog cleared. Add the next batch here when scope is set. Deferred polish: Canva hero imagery for workout templates; per-template calorie-banner targets (currently the 6-slot week is hard-coded); multiple saved custom workout plans._
+_Empty — backlog cleared. Add the next batch here when scope is set. Deferred polish: multiple saved custom workout plans; Canva-generated photography for template heroes (programmatic SVG art shipped in #36; Canva blocked by sandbox network policy)._
 
 ## Shipped (recent)
 
@@ -15,6 +15,8 @@ _Empty — backlog cleared. Add the next batch here when scope is set. Deferred 
 - **Macro % override** (#33) — new `Macros` section on profile lets users pick a custom P/C/F split via preset chips (Balanced, High-protein, Low-carb, Keto) or freeform percentage inputs. `profiles.macro_(protein|carb|fat)_pct` columns hold the override; `calcStats` falls back to the legacy 0.9 g/lb + 27% fat heuristic when null. DB check constraint enforces sum=100.
 - **Day navigator** (#34) — left/right `DayNavLink` chips flank the overview's date heading; next is disabled when viewing today. "Jump to today" pill appears under the chip row when off-today. All writes through `?date=…`, reusing the existing calendar URL flow.
 - **Daily tracker redesign** (#35) — "Log today" inline inputs replaced with tappable `MetricCard`s that open per-metric popups (`MetricPopups.tsx` + shared `Shell`). Weight (kg↔lb) and Water (oz↔ml) have unit toggles; cardio reuses `CardioLogPopup`. Unit prefs persist via `useUnitPref` (localStorage). Conversions in `src/lib/units.ts` — DB still stores base units (lb, oz). Mood + workout-complete stay inline toggles.
+- **Template hero art** (#36) — `TemplateHero` renders layered programmatic SVG per template (themed gradient + one of 6 motifs: burst/grid/waves/rings/bolts/plates + watermark icon + scrim). Replaces the plain gradient hero in `PlanPicker`. Canva was blocked by the sandbox network policy, so this ships self-contained vector art.
+- **Per-template calorie targets** (#37) — the calorie banner no longer uses the hard-coded 6-slot BURNS table for template plans. `estimateSessionBurn()` (calc.ts) derives each day's burn from duration + focus (~7 cal/min strength, ~11 for intervals); rest days fall to `restTarget`. Legacy/custom-6day keeps the hand-tuned positional BURNS. Banner burn now updates per selected day (also fixed a stale-burn display bug).
 
 ## Project shape
 
