@@ -49,7 +49,11 @@ _Empty — backlog cleared. Add the next batch here when scope is set._
 ## Conventions
 
 - Squash merge to `main`; PR titles end with `(#NN)`.
-- Branches: `claude/<short-slug>`.
+- Branches: `claude/<short-slug>`. Delete the branch after its PR merges. The
+  sandbox git proxy blocks `git push --delete` (403) and no MCP delete-branch
+  tool exists, so the real fix is the repo setting **"Automatically delete head
+  branches"** (Settings → Pull Requests). Until that's on, branches pile up
+  (~34 stale ones as of #45) and must be deleted from the GitHub UI.
 - No emoji in code or commits unless the user asks.
 - No backwards-compat shims for removed code — just delete it.
 - Comments only when the *why* is non-obvious. Don't restate what the code does.
