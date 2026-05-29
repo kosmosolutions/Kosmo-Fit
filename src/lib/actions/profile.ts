@@ -12,6 +12,7 @@ export type ProfileInput = Omit<
   | "updated_at"
   | "onboarded_at"
   | "active_template_id"
+  | "active_plan_id"
   | "macro_protein_pct"
   | "macro_carb_pct"
   | "macro_fat_pct"

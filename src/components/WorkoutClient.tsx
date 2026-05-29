@@ -39,6 +39,7 @@ import {
   removeExerciseFromDay,
   resetDayToDefaults,
   type UserExerciseRow,
+  type WorkoutPlanRow,
 } from "@/lib/actions/workout-plan";
 
 type AddTarget =
@@ -167,6 +168,9 @@ interface Props {
   homePlan: UserExerciseRow[];
   gymPlan: UserExerciseRow[];
   activeTemplateId: string | null;
+  plans: WorkoutPlanRow[];
+  activePlanId: string | null;
+  activePlanName: string | null;
   todayDate: string;
   todayCompleted: boolean;
   todayCardioMinutes: number;
@@ -199,6 +203,9 @@ export function WorkoutClient({
   homePlan,
   gymPlan,
   activeTemplateId,
+  plans,
+  activePlanId,
+  activePlanName,
   todayDate,
   todayCompleted,
   todayCardioMinutes,
@@ -229,14 +236,12 @@ export function WorkoutClient({
   // and no customizations). Existing users were backfilled to "custom-6day"
   // in migration so they won't see this.
   const hasCustomizations = homePlan.length > 0 || gymPlan.length > 0;
-  const [pickerOpen, setPickerOpen] = useState(
-    activeTemplateId === null && !hasCustomizations,
-  );
+  const isNewUser =
+    activeTemplateId === null && activePlanId === null && !hasCustomizations;
+  const [pickerOpen, setPickerOpen] = useState(isNewUser);
   useEffect(() => {
-    if (activeTemplateId === null && !hasCustomizations) {
-      setPickerOpen(true);
-    }
-  }, [activeTemplateId, hasCustomizations]);
+    if (isNewUser) setPickerOpen(true);
+  }, [isNewUser]);
   // Per-day calorie target + burn for the selected day.
   //
   // Legacy split (no template, or custom-6day) keeps the hand-tuned
@@ -302,12 +307,14 @@ export function WorkoutClient({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="label-tiny">
-            {activeTemplate
-              ? `${activeTemplate.dayCount}-day · ${activeTemplate.tagline}`
-              : "6-day split"}
+            {activePlanName
+              ? `Custom plan${activeTemplate ? ` · ${activeTemplate.dayCount}-day` : ""}`
+              : activeTemplate
+                ? `${activeTemplate.dayCount}-day · ${activeTemplate.tagline}`
+                : "6-day split"}
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-chalk-50">
-            {activeTemplate ? activeTemplate.name : "Workout plan"}
+            {activePlanName ?? (activeTemplate ? activeTemplate.name : "Workout plan")}
           </h1>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -687,7 +694,9 @@ export function WorkoutClient({
       <PlanPicker
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
-        activeTemplateId={activeTemplateId}
+        activeTemplateId={activePlanId ? null : activeTemplateId}
+        plans={plans}
+        activePlanId={activePlanId}
         hasCustomizations={hasCustomizations}
       />
 
