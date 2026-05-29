@@ -14,7 +14,7 @@ import {
   MoreVertical,
   Bike,
   Flame,
-  Timer,
+  Pencil,
   LayoutDashboard,
   Utensils,
 } from "lucide-react";
@@ -68,11 +68,25 @@ function parseCardio(raw: string): {
   return { duration, activity, calories };
 }
 
-function PostWorkoutCardio({ raw }: { raw: string }) {
+function PostWorkoutCardio({
+  raw,
+  loggedMinutes,
+  loggedCalories,
+  onLog,
+}: {
+  raw: string;
+  loggedMinutes: number;
+  loggedCalories: number;
+  onLog: () => void;
+}) {
   const { duration, activity, calories } = parseCardio(raw);
+  const hasLog = loggedMinutes > 0 || loggedCalories > 0;
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl border border-accent-amber/25"
+    <button
+      type="button"
+      onClick={onLog}
+      aria-label={hasLog ? "Edit cardio session" : "Log cardio session"}
+      className="group relative block w-full overflow-hidden rounded-2xl border border-accent-amber/25 text-left transition hover:border-accent-amber/45"
       style={{
         background:
           "linear-gradient(135deg, rgba(251,191,36,0.16), rgba(251,191,36,0.04) 60%, rgba(251,191,36,0.02))",
@@ -80,13 +94,26 @@ function PostWorkoutCardio({ raw }: { raw: string }) {
     >
       <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-accent-amber/15 blur-3xl" />
       <div className="relative p-4">
-        <div className="flex items-center gap-2 text-accent-amber">
-          <div className="grid h-7 w-7 place-items-center rounded-lg bg-accent-amber/20 ring-1 ring-accent-amber/30">
-            <Bike className="h-4 w-4" />
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-accent-amber">
+            <div className="grid h-7 w-7 place-items-center rounded-lg bg-accent-amber/20 ring-1 ring-accent-amber/30">
+              <Bike className="h-4 w-4" />
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-[3px]">
+              Post-workout cardio
+            </div>
           </div>
-          <div className="text-[10px] font-bold uppercase tracking-[3px]">
-            Post-workout cardio
-          </div>
+          <span className="inline-flex items-center gap-1 rounded-full border border-accent-amber/30 bg-accent-amber/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-amber transition group-hover:bg-accent-amber/20">
+            {hasLog ? (
+              <>
+                <Pencil className="h-3 w-3" /> Edit
+              </>
+            ) : (
+              <>
+                <Plus className="h-3 w-3" /> Log
+              </>
+            )}
+          </span>
         </div>
 
         <div className="mt-3 flex items-end justify-between gap-3">
@@ -101,7 +128,7 @@ function PostWorkoutCardio({ raw }: { raw: string }) {
           {calories ? (
             <div className="flex shrink-0 flex-col items-end rounded-xl border border-accent-amber/30 bg-accent-amber/10 px-3 py-1.5 leading-tight">
               <div className="text-[9px] font-bold uppercase tracking-wider text-accent-amber/80">
-                Extra burn
+                Target burn
               </div>
               <div className="text-base font-black text-accent-amber">
                 {calories.replace(/^\+/, "")}
@@ -110,23 +137,18 @@ function PostWorkoutCardio({ raw }: { raw: string }) {
           ) : null}
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
-          {duration ? (
-            <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-chalk-300">
-              <Timer className="h-3 w-3" />
-              {duration}
-            </span>
-          ) : null}
-          <span className="inline-flex items-center gap-1 rounded-full border border-accent-amber/25 bg-accent-amber/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-amber">
-            <Flame className="h-3 w-3" />
-            Zone 2
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-chalk-300">
-            Closes today&apos;s gap
-          </span>
+        <div className="mt-3 flex items-center justify-between gap-3 border-t border-accent-amber/15 pt-3">
+          <div className="text-[10px] font-bold uppercase tracking-[2px] text-chalk-500">
+            {hasLog ? "Logged today" : "Not logged"}
+          </div>
+          <div className="text-sm font-extrabold text-chalk-50">
+            {hasLog
+              ? `${loggedMinutes} min · ${loggedCalories.toLocaleString()} cal`
+              : "Tap to add — minutes or calories"}
+          </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -655,34 +677,51 @@ export function WorkoutClient({
         </div>
       </div>
 
-      {d.cardio ? <PostWorkoutCardio raw={d.cardio} /> : null}
-
-      {/* Today's cardio log — opens popup to enter minutes or calories */}
-      <button
-        type="button"
-        onClick={() => setCardioOpen(true)}
-        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left transition hover:bg-white/[0.06]"
-        aria-label="Log cardio session"
-      >
-        <div className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent-amber/15 ring-1 ring-accent-amber/30">
-            <Bike className="h-4 w-4 text-accent-amber" />
-          </div>
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[2px] text-chalk-500">
-              {todayCardioMinutes > 0 || todayCardioCalories > 0
-                ? "Today's cardio"
-                : "Log cardio"}
+      {/* Cardio: the day's prescription doubles as the log trigger. Days
+          without a prescription get a plain log card so logging stays
+          available everywhere. */}
+      {d.cardio ? (
+        <PostWorkoutCardio
+          raw={d.cardio}
+          loggedMinutes={todayCardioMinutes}
+          loggedCalories={todayCardioCalories}
+          onLog={() => setCardioOpen(true)}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setCardioOpen(true)}
+          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left transition hover:bg-white/[0.06]"
+          aria-label={
+            todayCardioMinutes > 0 || todayCardioCalories > 0
+              ? "Edit cardio session"
+              : "Log cardio session"
+          }
+        >
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent-amber/15 ring-1 ring-accent-amber/30">
+              <Bike className="h-4 w-4 text-accent-amber" />
             </div>
-            <div className="text-sm font-extrabold text-chalk-50">
-              {todayCardioMinutes > 0 || todayCardioCalories > 0
-                ? `${todayCardioMinutes} min · ${todayCardioCalories.toLocaleString()} cal`
-                : "Add a session — minutes or calories"}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-[2px] text-chalk-500">
+                {todayCardioMinutes > 0 || todayCardioCalories > 0
+                  ? "Today's cardio"
+                  : "Log cardio"}
+              </div>
+              <div className="text-sm font-extrabold text-chalk-50">
+                {todayCardioMinutes > 0 || todayCardioCalories > 0
+                  ? `${todayCardioMinutes} min · ${todayCardioCalories.toLocaleString()} cal`
+                  : "Add a session — minutes or calories"}
+              </div>
             </div>
           </div>
-        </div>
-        <Plus className="h-4 w-4 text-chalk-400" />
-      </button>
+          {todayCardioMinutes > 0 || todayCardioCalories > 0 ? (
+            <Pencil className="h-4 w-4 text-chalk-400" />
+          ) : (
+            <Plus className="h-4 w-4 text-chalk-400" />
+          )}
+        </button>
+      )}
       </>}
 
       {addTarget && (() => {
