@@ -16,6 +16,7 @@ import {
   Flame,
   Timer,
   LayoutDashboard,
+  Utensils,
 } from "lucide-react";
 import { ExerciseCard } from "./ExerciseCard";
 import { WellnessSection } from "./WellnessSection";
@@ -304,70 +305,75 @@ export function WorkoutClient({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <div className="label-tiny">
-            {activePlanName
-              ? `Custom plan${activeTemplate ? ` · ${activeTemplate.dayCount}-day` : ""}`
-              : activeTemplate
-                ? `${activeTemplate.dayCount}-day · ${activeTemplate.tagline}`
-                : "6-day split"}
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="label-tiny">
+              {activePlanName
+                ? `Custom plan${activeTemplate ? ` · ${activeTemplate.dayCount}-day` : ""}`
+                : activeTemplate
+                  ? `${activeTemplate.dayCount}-day · ${activeTemplate.tagline}`
+                  : "6-day split"}
+            </div>
+            <h1 className="truncate text-2xl font-extrabold tracking-tight text-chalk-50">
+              {activePlanName ?? (activeTemplate ? activeTemplate.name : "Workout plan")}
+            </h1>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-chalk-50">
-            {activePlanName ?? (activeTemplate ? activeTemplate.name : "Workout plan")}
-          </h1>
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-chalk-200 transition hover:bg-white/10"
+              aria-label="Change workout plan"
+            >
+              <LayoutDashboard className="h-3.5 w-3.5 text-accent-violet" />
+              Plan
+            </button>
+            <Link
+              href="/workout/catalog"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-chalk-200 transition hover:bg-white/10"
+              aria-label="Browse exercise library"
+            >
+              <Library className="h-3.5 w-3.5 text-accent-cyan" />
+              Library
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+
+        {/* Mode + view segmented control */}
+        <div className="flex gap-1 rounded-xl bg-white/[0.06] p-0.5">
+          {(
+            [
+              { k: "home", Icon: House, label: "Home" },
+              { k: "gym", Icon: Building, label: "Gym" },
+            ] as const
+          ).map(({ k, Icon, label }) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => {
+                setMode(k);
+                setView("training");
+              }}
+              className={cn(
+                "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition",
+                view === "training" && mode === k
+                  ? "bg-white/[0.12] text-chalk-50"
+                  : "text-chalk-400 hover:text-chalk-200",
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {label}
+            </button>
+          ))}
           <button
             type="button"
-            onClick={() => setPickerOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl border border-accent-violet/40 bg-accent-violet/10 px-3.5 py-2 text-sm font-bold text-accent-violet transition hover:bg-accent-violet/20"
-            aria-label="Change workout plan"
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            Change plan
-          </button>
-          <Link
-            href="/workout/catalog"
-            className="inline-flex items-center gap-2 rounded-xl border border-accent-blue/40 bg-accent-blue/10 px-3.5 py-2 text-sm font-bold text-accent-cyan shadow-glow transition hover:bg-accent-blue/20"
-            aria-label="Browse exercise library"
-          >
-            <Library className="h-4 w-4" />
-            Browse library
-          </Link>
-        </div>
-        <div className="flex w-full gap-1 sm:w-auto">
-          <div className="flex rounded-xl bg-white/[0.06] p-0.5">
-            {(
-              [
-                { k: "home", Icon: House, label: "Home" },
-                { k: "gym", Icon: Building, label: "Gym" },
-              ] as const
-            ).map(({ k, Icon, label }) => (
-              <button
-                key={k}
-                type="button"
-                onClick={() => { setMode(k); setView("training"); }}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition",
-                  view === "training" && mode === k
-                    ? "bg-white/[0.12] text-chalk-50"
-                    : "text-chalk-400",
-                )}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {label}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={() => setView(view === "wellness" ? "training" : "wellness")}
+            onClick={() => setView("wellness")}
             className={cn(
-              "flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition",
+              "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition",
               view === "wellness"
-                ? "bg-accent-violet/20 text-accent-violet ring-1 ring-accent-violet/40"
-                : "bg-white/[0.06] text-chalk-400 hover:text-chalk-200",
+                ? "bg-accent-violet/20 text-accent-violet"
+                : "text-chalk-400 hover:text-chalk-200",
             )}
           >
             <Sparkles className="h-3.5 w-3.5" />
@@ -408,11 +414,12 @@ export function WorkoutClient({
         ))}
       </div>
 
-      {/* Calorie banner */}
+      {/* Calorie scoreboard */}
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
         className="block w-full text-left"
+        aria-expanded={expanded}
       >
         <div
           className="rounded-2xl border p-4"
@@ -421,33 +428,41 @@ export function WorkoutClient({
             borderColor: `${d.color}55`,
           }}
         >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🍽️</span>
-              <div>
-                <div
-                  className="text-[10px] uppercase tracking-[2px]"
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <Utensils className="h-3.5 w-3.5" style={{ color: d.color }} />
+                <span
+                  className="text-[10px] font-bold uppercase tracking-[2px]"
                   style={{ color: d.color }}
                 >
                   Eat today · {d.focus}
-                </div>
-                <div
-                  className="text-3xl font-black leading-none"
-                  style={{ color: d.color }}
-                >
-                  {todayDayTarget.toLocaleString()}
-                </div>
-                <div className="text-[11px] text-chalk-400">cal target</div>
+                </span>
               </div>
+              <div
+                className="mt-1 text-4xl font-black leading-none tracking-tight"
+                style={{ color: d.color }}
+              >
+                {todayDayTarget.toLocaleString()}
+              </div>
+              <div className="mt-1 text-[11px] text-chalk-400">cal target</div>
             </div>
-            <div className="text-right">
-              <div className="text-[10px] text-chalk-400">🔥 Burn</div>
-              <div className="text-base font-extrabold text-accent-amber">
-                {selectedBurn > 0 ? `~${selectedBurn}` : "—"}
+            <div className="flex shrink-0 gap-2">
+              <div className="rounded-xl border border-accent-amber/30 bg-accent-amber/10 px-3 py-1.5 text-right leading-tight">
+                <div className="flex items-center justify-end gap-1 text-[9px] font-bold uppercase tracking-wider text-accent-amber/80">
+                  <Flame className="h-3 w-3" /> Burn
+                </div>
+                <div className="text-base font-black text-accent-amber">
+                  {selectedBurn > 0 ? `~${selectedBurn}` : "—"}
+                </div>
               </div>
-              <div className="mt-1 text-[10px] text-chalk-400">Deficit</div>
-              <div className="text-sm font-bold text-accent-green">
-                {dailyDeficit} cal
+              <div className="rounded-xl border border-accent-green/30 bg-accent-green/10 px-3 py-1.5 text-right leading-tight">
+                <div className="text-[9px] font-bold uppercase tracking-wider text-accent-green/80">
+                  Deficit
+                </div>
+                <div className="text-base font-black text-accent-green">
+                  {dailyDeficit}
+                </div>
               </div>
             </div>
           </div>
@@ -471,8 +486,7 @@ export function WorkoutClient({
               <div className="mt-2 text-chalk-300">{d.calNote}</div>
               {d.epoc ? (
                 <div className="mt-1 text-accent-amber">
-                  ⚡ EPOC: this session keeps burning 10–15% extra for hours
-                  after.
+                  EPOC: this session keeps burning 10–15% extra for hours after.
                 </div>
               ) : null}
             </div>
