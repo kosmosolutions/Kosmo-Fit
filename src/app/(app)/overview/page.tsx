@@ -11,7 +11,7 @@ import { GapMeter } from "@/components/GapMeter";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { fromISODate, toISODate, todayISO } from "@/lib/dates";
 import { getDays } from "@/data/workouts";
-import { Sparkles, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { Sparkles, ArrowRight, ChevronLeft, ChevronRight, Footprints, Flame } from "lucide-react";
 
 export default async function OverviewPage({
   searchParams,
@@ -160,8 +160,11 @@ export default async function OverviewPage({
       <div className="card-elev p-5">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <div className="label-tiny">Calorie target</div>
-            <div className="mt-1 text-4xl font-black text-chalk-50">
+            <div className="flex items-center gap-1.5">
+              <Flame className="h-3.5 w-3.5 text-accent-cyan" />
+              <span className="label-tiny text-accent-cyan">Calorie target</span>
+            </div>
+            <div className="mt-1 text-4xl font-black tracking-tight text-chalk-50">
               {target.toLocaleString()}
             </div>
             <div className="text-xs text-chalk-400">
@@ -190,27 +193,32 @@ export default async function OverviewPage({
             </div>
           </div>
         </div>
-        <div className="mt-5 grid grid-cols-3 gap-3">
-          <MacroRing label="Protein" g={protein} goal={protGoal} color="#a78bfa" />
-          <MacroRing label="Carbs" g={carbs} goal={carbGoal} color="#22d3ee" />
-          <MacroRing label="Fat" g={fat} goal={fatGoal} color="#fbbf24" />
+
+        <div className="mt-5 border-t border-white/[0.06] pt-4">
+          <div className="label-tiny mb-3">Macros</div>
+          <div className="grid grid-cols-3 gap-3">
+            <MacroRing label="Protein" g={protein} goal={protGoal} color="#a78bfa" />
+            <MacroRing label="Carbs" g={carbs} goal={carbGoal} color="#22d3ee" />
+            <MacroRing label="Fat" g={fat} goal={fatGoal} color="#fbbf24" />
+          </div>
         </div>
-        <div className="mt-5 flex items-center justify-between rounded-xl bg-white/[0.03] px-3 py-2">
-          <div className="flex items-center gap-2">
+
+        <Link
+          href="/diet"
+          className="mt-5 flex items-center justify-between gap-2 rounded-xl bg-white/[0.04] px-4 py-3 transition hover:bg-white/[0.08]"
+        >
+          <span className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-accent-cyan" />
-            <span className="text-xs text-chalk-300">
+            <span className="text-xs font-medium text-chalk-300">
               {eaten >= target
                 ? `${(eaten - target).toLocaleString()} cal over — close it with a walk`
-                : `${(target - eaten).toLocaleString()} cal of room`}
+                : `${(target - eaten).toLocaleString()} cal of room left today`}
             </span>
-          </div>
-          <Link
-            href="/diet"
-            className="flex items-center gap-1 text-xs font-bold text-accent-cyan"
-          >
+          </span>
+          <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-accent-cyan">
             Log a meal <ArrowRight className="h-3 w-3" />
-          </Link>
-        </div>
+          </span>
+        </Link>
       </div>
 
       {/* Gap meter — only when over target */}
@@ -247,19 +255,31 @@ export default async function OverviewPage({
       />
 
       {/* Steps progress */}
-      <div className="card p-4">
+      <div className="card-elev p-4">
         <div className="flex items-center justify-between">
-          <div className="label-tiny">Steps</div>
-          <div className="text-xs text-chalk-400">
-            goal {stepGoal.toLocaleString()}
+          <div className="flex items-center gap-2">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent-cyan/15 ring-1 ring-accent-cyan/30">
+              <Footprints className="h-4 w-4 text-accent-cyan" />
+            </div>
+            <div>
+              <div className="label-tiny">Steps</div>
+              <div className="text-2xl font-black leading-tight text-chalk-50">
+                {(daily?.steps ?? 0).toLocaleString()}
+              </div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-sm font-extrabold text-accent-cyan">
+              {Math.round(((daily?.steps ?? 0) / Math.max(1, stepGoal)) * 100)}%
+            </div>
+            <div className="text-[10px] text-chalk-400">
+              goal {stepGoal.toLocaleString()}
+            </div>
           </div>
         </div>
-        <div className="mt-2 text-2xl font-black text-chalk-50">
-          {(daily?.steps ?? 0).toLocaleString()}
-        </div>
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.06]">
           <div
-            className="h-full bg-gradient-to-r from-accent-cyan to-sky-300 transition-all"
+            className="h-full rounded-full bg-gradient-to-r from-accent-cyan to-sky-300 transition-all"
             style={{
               width: `${Math.min(100, ((daily?.steps ?? 0) / stepGoal) * 100)}%`,
             }}
