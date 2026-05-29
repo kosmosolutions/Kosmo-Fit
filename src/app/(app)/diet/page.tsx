@@ -7,7 +7,7 @@ import { Ring } from "@/components/Ring";
 import { AddMealDialog } from "@/components/AddMealDialog";
 import { FoodEntryRow } from "@/components/FoodEntryRow";
 import type { FoodEntry, MealType, Recipe } from "@/lib/types";
-import { BookOpen, ArrowRight, Sunrise, Coffee, Soup, Moon } from "lucide-react";
+import { BookOpen, ArrowRight, Sunrise, Coffee, Soup, Moon, Flame } from "lucide-react";
 
 const MEAL_ICONS: Record<MealType, React.ComponentType<{ className?: string }>> = {
   breakfast: Sunrise,
@@ -109,46 +109,60 @@ export default async function DietPage({
             </div>
           </div>
           <div className="flex-1">
-            <div className="label-tiny">Calories</div>
-            <div className="text-2xl font-black text-chalk-50">
+            <div className="flex items-center gap-1.5">
+              <Flame className="h-3.5 w-3.5 text-accent-cyan" />
+              <span className="label-tiny text-accent-cyan">Calories</span>
+            </div>
+            <div className="text-3xl font-black tracking-tight text-chalk-50">
               {totals.cal.toLocaleString()}
             </div>
             <div className="text-xs text-chalk-400">
-              {Math.max(0, target - totals.cal).toLocaleString()} cal left ·{" "}
-              {Math.round((totals.cal / target) * 100)}%
+              {totals.cal > target ? (
+                <span className="text-accent-amber">
+                  {(totals.cal - target).toLocaleString()} cal over
+                </span>
+              ) : (
+                `${(target - totals.cal).toLocaleString()} cal left`
+              )}{" "}
+              · {Math.round((totals.cal / target) * 100)}%
             </div>
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-3">
-          <MacroPill
-            label="Protein"
-            v={totals.p}
-            goal={stats.proteinG}
-            color="#a78bfa"
-          />
-          <MacroPill
-            label="Carbs"
-            v={totals.c}
-            goal={stats.workoutMacros.carbG}
-            color="#22d3ee"
-          />
-          <MacroPill
-            label="Fat"
-            v={totals.f}
-            goal={stats.workoutMacros.fatG}
-            color="#fbbf24"
-          />
+        <div className="mt-5 border-t border-white/[0.06] pt-4">
+          <div className="label-tiny mb-3">Macros</div>
+          <div className="grid grid-cols-3 gap-3">
+            <MacroPill
+              label="Protein"
+              v={totals.p}
+              goal={stats.proteinG}
+              color="#a78bfa"
+            />
+            <MacroPill
+              label="Carbs"
+              v={totals.c}
+              goal={stats.workoutMacros.carbG}
+              color="#22d3ee"
+            />
+            <MacroPill
+              label="Fat"
+              v={totals.f}
+              goal={stats.workoutMacros.fatG}
+              color="#fbbf24"
+            />
+          </div>
         </div>
       </div>
 
       {/* Recipes link */}
       <Link
         href="/diet/recipes"
-        className="flex items-center justify-between rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 hover:bg-white/[0.05]"
+        className="flex items-center justify-between rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4 transition hover:bg-white/[0.05]"
       >
         <div className="flex items-center gap-3">
-          <BookOpen className="h-5 w-5 text-accent-cyan" />
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent-cyan/15 ring-1 ring-accent-cyan/30">
+            <BookOpen className="h-5 w-5 text-accent-cyan" />
+          </div>
           <div>
             <div className="text-sm font-bold text-chalk-50">
               Recipe library
@@ -170,7 +184,9 @@ export default async function DietPage({
             <div key={meal} className="card p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-chalk-300" />
+                  <div className="grid h-8 w-8 place-items-center rounded-lg bg-white/[0.06]">
+                    <Icon className="h-4 w-4 text-chalk-300" />
+                  </div>
                   <div className="text-sm font-bold capitalize text-chalk-50">
                     {meal}
                   </div>
