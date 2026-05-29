@@ -6,7 +6,9 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Dumbbell,
   Loader2,
+  Salad,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { fromISODate, toISODate, todayISO } from "@/lib/dates";
@@ -62,6 +64,11 @@ export function Calendar({
   const dietSet = useMemo(() => new Set(data?.dietDays ?? []), [data]);
   const grid = useMemo(() => buildMonthGrid(year, month), [year, month]);
 
+  const monthStats = useMemo(
+    () => computeMonthStats(year, month, workoutSet, dietSet),
+    [year, month, workoutSet, dietSet],
+  );
+
   const yearOptions = useMemo(() => {
     const cy = todayDate.getFullYear();
     const out: number[] = [];
@@ -116,7 +123,6 @@ export function Calendar({
           )}
         </div>
         <div className="flex items-center gap-1">
-          <CalendarStats />
           <button
             type="button"
             onClick={prevMonth}
@@ -159,6 +165,27 @@ export function Calendar({
           ))}
         </div>
       )}
+
+      <div className="mb-3">
+        <div className="mb-1.5 flex items-center justify-between">
+          <span className="label-tiny">This month</span>
+        </div>
+        <div className="grid grid-cols-[1fr_1fr_auto] gap-1.5">
+          <MonthStat
+            label="Workouts"
+            value={monthStats.workouts}
+            Icon={Dumbbell}
+            color="#a78bfa"
+          />
+          <MonthStat
+            label="Diet"
+            value={monthStats.diet}
+            Icon={Salad}
+            color="#22d3ee"
+          />
+          <CalendarStats />
+        </div>
+      </div>
 
       <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-widest text-chalk-500">
         {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
@@ -216,6 +243,52 @@ export function Calendar({
       </div>
     </div>
   );
+}
+
+function MonthStat({
+  label,
+  value,
+  Icon,
+  color,
+}: {
+  label: string;
+  value: number;
+  Icon: typeof Dumbbell;
+  color: string;
+}) {
+  return (
+    <div
+      className="flex min-w-0 flex-col gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-2.5 py-2"
+      style={{ borderColor: `${color}22` }}
+    >
+      <div className="flex items-center gap-1">
+        <Icon className="h-3 w-3 shrink-0" style={{ color }} />
+        <span className="truncate text-[10px] font-bold uppercase tracking-wider text-chalk-400">
+          {label}
+        </span>
+      </div>
+      <span className="text-lg font-black leading-none" style={{ color }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function computeMonthStats(
+  year: number,
+  month: number,
+  workoutSet: Set<string>,
+  dietSet: Set<string>,
+): { workouts: number; diet: number } {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let workouts = 0;
+  let diet = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = toISODate(new Date(year, month, d));
+    if (workoutSet.has(iso)) workouts++;
+    if (dietSet.has(iso)) diet++;
+  }
+  return { workouts, diet };
 }
 
 function buildMonthGrid(year: number, month: number): (Date | null)[] {

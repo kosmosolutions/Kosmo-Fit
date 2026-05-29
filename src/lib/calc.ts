@@ -194,6 +194,26 @@ export function calcStats(
 }
 
 /**
+ * The user's effective calorie target for a given day. The "base" is the
+ * deficit-only target (Life TDEE − daily deficit) shown by default. Earned
+ * burn — completed workout + logged cardio — is added on top, so the target
+ * only rises once the work is actually done.
+ */
+export function dailyCalorieTarget(
+  stats: Stats,
+  dayIdx: number,
+  workoutCompleted: boolean,
+  cardioCalories: number,
+): number {
+  const workoutBurn =
+    dayIdx >= 0 && workoutCompleted ? stats.burns[dayIdx] : 0;
+  return Math.max(
+    1400,
+    stats.restTarget + workoutBurn + (cardioCalories || 0),
+  );
+}
+
+/**
  * Recommend how to close a gap between actual intake/burn and the target.
  * Negative gap means user has eaten *more* than target — needs extra activity.
  */
