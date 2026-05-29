@@ -30,9 +30,9 @@ export default async function Landing() {
         </div>
       </header>
 
-      {/* Hero — full-bleed image+copy on mobile, side-by-side editorial split on lg+ */}
-      <section className="relative isolate lg:mx-auto lg:max-w-6xl lg:px-6 lg:pt-10 lg:pb-28">
-        {/* Mobile background image (lg:hidden) */}
+      {/* Hero — one clean focal image with a single bottom scrim. Nothing
+          floats on top of the photo on mobile; copy sits on the wash. */}
+      <section className="relative isolate lg:mx-auto lg:max-w-6xl lg:px-6 lg:pt-10 lg:pb-24">
         <div className="absolute inset-0 -z-10 lg:hidden">
           <Image
             src={HERO_IMAGE}
@@ -42,37 +42,36 @@ export default async function Landing() {
             className="object-cover"
             priority
           />
-          {/* Top fade so the header + badge stay legible against bright sky */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-ink-950/70 to-transparent" />
-          {/* Bottom fade — heavy, so headline + CTAs sit on a solid ink wash */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/80 to-ink-950/10" />
+          {/* Single smooth bottom-up scrim — keeps the photo clean while the
+              copy stays legible. */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/75 to-ink-950/15" />
         </div>
 
-        <div className="grid min-h-[calc(100svh-env(safe-area-inset-top)-80px)] gap-8 px-4 pb-10 sm:px-6 lg:min-h-0 lg:grid-cols-[1.15fr_1fr] lg:gap-12 lg:px-0 lg:pb-0">
+        <div className="grid min-h-[calc(100svh-env(safe-area-inset-top)-80px)] gap-8 px-4 pb-12 sm:px-6 lg:min-h-0 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-12 lg:px-0 lg:pb-0">
           {/* Copy column */}
           <div className="relative z-10 flex flex-col justify-end lg:justify-center">
-            <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-accent-blue/40 bg-accent-blue/[0.15] px-3 py-1 text-[11px] font-bold uppercase tracking-[2.5px] text-accent-cyan backdrop-blur-md lg:border-accent-blue/30 lg:bg-accent-blue/[0.10] lg:backdrop-blur-none">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent-blue" />
-              Personal coach in your pocket
-            </div>
-            <h1 className="display text-balance text-5xl leading-[0.95] text-chalk-50 [text-shadow:0_2px_24px_rgba(8,11,16,0.6)] sm:text-6xl lg:text-7xl lg:[text-shadow:none] xl:text-8xl">
+            <h1 className="display text-balance text-5xl leading-[0.95] text-chalk-50 sm:text-6xl lg:text-7xl xl:text-[5.5rem]">
               TRAIN.
               <br />
               EAT.
               <br />
               RECOVER.{" "}
-              <span className="bg-brand-gradient bg-clip-text text-transparent">REPEAT.</span>
+              <span className="bg-brand-gradient bg-clip-text text-transparent">
+                REPEAT.
+              </span>
             </h1>
-            <p className="mt-6 max-w-lg text-pretty text-base leading-relaxed text-chalk-200 sm:text-lg lg:text-chalk-300">
-              Kosmo Fitness builds your daily calorie target from your body and
-              goals — then tells you exactly what to eat and how to move. Even
-              suggests walks or cardio to close the gap when you go over.
+            <p className="mt-6 max-w-md text-pretty text-base leading-relaxed text-chalk-200 sm:text-lg lg:text-chalk-300">
+              Your daily calorie target, built from your body and goals — with
+              exactly what to eat and how to move to hit it.
             </p>
-            <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-start">
               <Link href="/signup" className="btn-primary px-6 py-3.5 text-base">
                 Start free <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="/login" className="btn-secondary px-6 py-3.5 text-base">
+              <Link
+                href="/login"
+                className="btn-secondary px-6 py-3.5 text-base"
+              >
                 I already have an account
               </Link>
             </div>
@@ -80,23 +79,11 @@ export default async function Landing() {
               <ShieldCheck className="h-3.5 w-3.5 text-accent-cyan" />
               No credit card · your data stays yours
             </div>
-
-            {/* Mobile KPI proof card — sits inline below the CTAs as the bottom anchor */}
-            <div className="mt-8 rounded-2xl border border-white/10 bg-ink-950/85 p-4 backdrop-blur-xl lg:hidden">
-              <KpiCardContent />
-            </div>
-
-            {/* Stat row — desktop only (kept off the mobile hero to avoid clutter) */}
-            <dl className="mt-10 hidden max-w-md grid-cols-3 gap-6 border-t border-white/[0.08] pt-6 lg:grid">
-              <Stat k="2,180" v="kcal target" />
-              <Stat k="165g" v="protein/day" />
-              <Stat k="6-day" v="training split" />
-            </dl>
           </div>
 
           {/* Desktop image column */}
           <div className="relative hidden lg:block">
-            <div className="relative aspect-[3/4] w-full overflow-hidden rounded-3xl border border-white/[0.08] bg-ink-900 lg:aspect-auto lg:h-full lg:min-h-[560px]">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl border border-white/[0.08] bg-ink-900">
               <Image
                 src={HERO_IMAGE}
                 alt="Athlete training outdoors at sunrise"
@@ -104,30 +91,31 @@ export default async function Landing() {
                 sizes="50vw"
                 className="object-cover"
               />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-ink-950/60 via-transparent to-transparent" />
-              {/* Floating KPI card */}
-              <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/10 bg-ink-950/85 p-4 backdrop-blur-xl">
-                <KpiCardContent />
-              </div>
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/50 to-transparent" />
             </div>
-            {/* Accent flare */}
-            <div className="pointer-events-none absolute -inset-x-6 -top-6 -z-10 h-72 bg-[radial-gradient(ellipse_70%_80%_at_50%_0%,rgba(0,102,255,0.18),transparent_70%)]" />
+            <div className="pointer-events-none absolute -inset-x-6 -top-6 -z-10 h-72 bg-[radial-gradient(ellipse_70%_80%_at_50%_0%,rgba(0,102,255,0.16),transparent_70%)]" />
           </div>
         </div>
       </section>
 
       <main className="mx-auto max-w-6xl px-4 sm:px-6">
-        {/* Mobile-only stat strip — moved out of the hero to keep the first screen tight */}
-        <section className="border-t border-white/[0.06] py-8 lg:hidden">
-          <dl className="grid grid-cols-3 gap-6">
-            <Stat k="2,180" v="kcal target" />
-            <Stat k="165g" v="protein/day" />
-            <Stat k="6-day" v="training split" />
-          </dl>
+        {/* Product-preview band — proof moved OFF the hero image into a clean
+            card + stat row. */}
+        <section className="border-t border-white/[0.06] py-8">
+          <div className="grid gap-5 sm:grid-cols-[1.2fr_1fr] sm:items-center">
+            <div className="card-elev p-5">
+              <KpiCardContent />
+            </div>
+            <dl className="grid grid-cols-3 gap-6">
+              <Stat k="2,180" v="kcal target" />
+              <Stat k="165g" v="protein/day" />
+              <Stat k="6-day" v="training split" />
+            </dl>
+          </div>
         </section>
 
         {/* Feature carousel */}
-        <section className="pt-10 pb-16 lg:pt-0">
+        <section className="pb-16 pt-4">
           <div className="mb-6 flex items-end justify-between gap-4">
             <div>
               <div className="label-eyebrow">Inside Kosmo Fitness</div>
@@ -164,12 +152,12 @@ function Stat({ k, v }: { k: string; v: string }) {
 function KpiCardContent() {
   return (
     <>
-      <div className="label-eyebrow">Today</div>
-      <div className="mt-1 flex items-baseline gap-3">
+      <div className="label-eyebrow">A day on Kosmo</div>
+      <div className="mt-2 flex items-baseline gap-3">
         <span className="display text-4xl text-chalk-50">820</span>
         <span className="text-sm text-chalk-300">kcal left</span>
       </div>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
         <div className="h-full w-[62%] rounded-full bg-brand-gradient" />
       </div>
       <div className="mt-2 text-[11px] text-chalk-400">
