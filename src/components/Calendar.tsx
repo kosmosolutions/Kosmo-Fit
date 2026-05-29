@@ -14,6 +14,7 @@ import {
   getActivityYear,
   type YearActivity,
 } from "@/lib/actions/activity";
+import { CalendarStats } from "@/components/CalendarStats";
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -115,6 +116,7 @@ export function Calendar({
           )}
         </div>
         <div className="flex items-center gap-1">
+          <CalendarStats />
           <button
             type="button"
             onClick={prevMonth}
