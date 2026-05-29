@@ -62,11 +62,15 @@ export function AddMealDialog({
   recipes,
   defaultMeal,
   triggerClassName,
+  triggerLabel,
+  triggerVariant = "chip",
 }: {
   entryDate: string;
   recipes: Recipe[];
   defaultMeal?: MealType;
   triggerClassName?: string;
+  triggerLabel?: string;
+  triggerVariant?: "chip" | "primary";
 }) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("foods");
@@ -306,11 +310,14 @@ export function AddMealDialog({
           setOpen(true);
         }}
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-chalk-200 hover:bg-white/10",
+          triggerVariant === "primary"
+            ? "btn-primary w-full py-3 text-sm"
+            : "inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-chalk-200 hover:bg-white/10",
           triggerClassName,
         )}
       >
-        <Plus className="h-3.5 w-3.5" /> Add
+        <Plus className={cn(triggerVariant === "primary" ? "h-4 w-4" : "h-3.5 w-3.5")} />{" "}
+        {triggerLabel ?? "Add"}
       </button>
 
       {open && (
