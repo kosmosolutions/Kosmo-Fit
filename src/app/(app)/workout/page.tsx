@@ -53,6 +53,8 @@ export default async function WorkoutPage() {
       dailyDeficit={stats.dailyDeficit}
       lifeTDEE={stats.lifeTDEE}
       weekTargets={stats.dayTargets}
+      weekBurns={stats.burns}
+      restTarget={stats.restTarget}
       homePlan={homePlan}
       gymPlan={gymPlan}
       activeTemplateId={profile.active_template_id ?? null}
