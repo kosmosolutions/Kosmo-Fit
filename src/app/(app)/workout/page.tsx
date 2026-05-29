@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { calcStats, dayIndexForDate } from "@/lib/calc";
+import { calcStats, dailyCalorieTarget, dayIndexForDate } from "@/lib/calc";
 import { WorkoutClient } from "@/components/WorkoutClient";
 import { getUserPlanRows, getUserPlans } from "@/lib/actions/workout-plan";
 import { todayISO } from "@/lib/dates";
@@ -57,9 +57,12 @@ export default async function WorkoutPage() {
     <WorkoutClient
       initialMode={initialMode}
       initialDay={initialDay}
-      todayTarget={
-        dayIdx >= 0 ? stats.dayTargets[dayIdx] : stats.restTarget
-      }
+      todayTarget={dailyCalorieTarget(
+        stats,
+        dayIdx,
+        daily?.workout_completed ?? false,
+        daily?.cardio_calories ?? 0,
+      )}
       todayBurn={dayIdx >= 0 ? stats.burns[dayIdx] : 0}
       dailyDeficit={stats.dailyDeficit}
       lifeTDEE={stats.lifeTDEE}

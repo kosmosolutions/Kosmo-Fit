@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { calcStats, dayIndexForDate } from "@/lib/calc";
+import { calcStats, dailyCalorieTarget, dayIndexForDate } from "@/lib/calc";
 import { Ring } from "@/components/Ring";
 import { Calendar } from "@/components/Calendar";
 import { getActivityYear } from "@/lib/actions/activity";
@@ -11,7 +11,8 @@ import { GapMeter } from "@/components/GapMeter";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { fromISODate, toISODate, todayISO } from "@/lib/dates";
 import { getDays } from "@/data/workouts";
-import { Sparkles, ArrowRight, ChevronLeft, ChevronRight, Footprints, Flame } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Footprints, Flame } from "lucide-react";
+import { MealTileArt, WorkoutTileArt } from "@/components/ActionTileArt";
 
 export default async function OverviewPage({
   searchParams,
@@ -78,13 +79,16 @@ export default async function OverviewPage({
   const stats = calcStats(profile, mode);
   const days = getDays(mode);
 
-  const target =
-    dayIdx >= 0 ? stats.dayTargets[dayIdx] : stats.restTarget;
   const burn = dayIdx >= 0 ? stats.burns[dayIdx] : 0;
   const day = dayIdx >= 0 ? days[dayIdx] : null;
 
   const cardioBurn = daily?.cardio_calories ?? 0;
-  const totalBurn = (daily?.workout_completed ? burn : 0) + cardioBurn;
+  const workoutDone = !!daily?.workout_completed;
+  const totalBurn = (workoutDone ? burn : 0) + cardioBurn;
+  // Target starts at the deficit base; completed workouts and logged cardio
+  // unlock those calories back. Matches the dailyCalorieTarget contract.
+  const target = dailyCalorieTarget(stats, dayIdx, workoutDone, cardioBurn);
+  const earnable = !workoutDone && burn > 0 ? burn : 0;
 
   const protGoal = stats.proteinG;
   const carbGoal = stats.workoutMacros.carbG;
@@ -173,6 +177,11 @@ export default async function OverviewPage({
                 {totalBurn.toLocaleString()} burn
               </span>
             </div>
+            {earnable > 0 ? (
+              <div className="mt-1 text-[11px] font-bold text-accent-violet">
+                Complete today's workout to add +{earnable} cal
+              </div>
+            ) : null}
           </div>
           <div className="relative">
             <Ring
@@ -203,22 +212,50 @@ export default async function OverviewPage({
           </div>
         </div>
 
-        <Link
-          href="/diet"
-          className="mt-5 flex items-center justify-between gap-2 rounded-xl bg-white/[0.04] px-4 py-3 transition hover:bg-white/[0.08]"
-        >
-          <span className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-accent-cyan" />
-            <span className="text-xs font-medium text-chalk-300">
-              {eaten >= target
-                ? `${(eaten - target).toLocaleString()} cal over — close it with a walk`
-                : `${(target - eaten).toLocaleString()} cal of room left today`}
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <Link
+            href="/diet"
+            className="group flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3 transition hover:border-accent-cyan/40 hover:bg-white/[0.07]"
+            aria-label="Log a meal"
+          >
+            <MealTileArt className="h-16 w-16" />
+            <div>
+              <div className="text-sm font-extrabold text-chalk-50">
+                Log a meal
+              </div>
+              <div className="text-[11px] text-chalk-400">
+                {eaten >= target
+                  ? `${(eaten - target).toLocaleString()} over today`
+                  : `${(target - eaten).toLocaleString()} cal left`}
+              </div>
+            </div>
+            <span className="mt-auto inline-flex items-center gap-1 text-[11px] font-bold text-accent-cyan">
+              Open diet <ArrowRight className="h-3 w-3" />
             </span>
-          </span>
-          <span className="flex shrink-0 items-center gap-1 text-xs font-bold text-accent-cyan">
-            Log a meal <ArrowRight className="h-3 w-3" />
-          </span>
-        </Link>
+          </Link>
+          <Link
+            href="/workout"
+            className="group flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3 transition hover:border-accent-violet/40 hover:bg-white/[0.07]"
+            aria-label="Log workout"
+          >
+            <WorkoutTileArt className="h-16 w-16" />
+            <div>
+              <div className="text-sm font-extrabold text-chalk-50">
+                Log workout
+              </div>
+              <div className="text-[11px] text-chalk-400">
+                {day == null
+                  ? "Rest day"
+                  : workoutDone
+                    ? `Completed · +${burn} earned`
+                    : `Complete to earn +${burn} cal`}
+              </div>
+            </div>
+            <span className="mt-auto inline-flex items-center gap-1 text-[11px] font-bold text-accent-violet">
+              Open workout <ArrowRight className="h-3 w-3" />
+            </span>
+          </Link>
+        </div>
       </div>
 
       {/* Gap meter — only when over target */}

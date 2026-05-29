@@ -165,9 +165,15 @@ export function ProfileEditor({
         </div>
 
         <div className="mt-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-xs text-chalk-400">
-          Workout days {Math.min(...stats.dayTargets).toLocaleString()}–
-          {Math.max(...stats.dayTargets).toLocaleString()} cal · Rest{" "}
-          {stats.restTarget.toLocaleString()} cal
+          Daily base{" "}
+          <span className="font-bold text-chalk-100">
+            {stats.restTarget.toLocaleString()} cal
+          </span>{" "}
+          · earn up to{" "}
+          <span className="font-bold text-accent-violet">
+            +{Math.max(...stats.burns)} cal
+          </span>{" "}
+          when you complete a workout
           {stats.aggressive ? (
             <span className="font-bold text-accent-orange"> · aggressive pace</span>
           ) : null}

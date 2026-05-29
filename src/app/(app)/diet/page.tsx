@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { calcStats, dayIndexForDate } from "@/lib/calc";
+import { calcStats, dailyCalorieTarget, dayIndexForDate } from "@/lib/calc";
 import { fromISODate, todayISO } from "@/lib/dates";
 import { AddMealDialog } from "@/components/AddMealDialog";
 import { FoodEntryRow } from "@/components/FoodEntryRow";
@@ -38,7 +38,7 @@ export default async function DietPage({
     .single();
   if (!profile) redirect("/onboarding");
 
-  const [{ data: food }, { data: recipes }] = await Promise.all([
+  const [{ data: food }, { data: recipes }, { data: daily }] = await Promise.all([
     supabase
       .from("food_entries")
       .select("*")
@@ -51,6 +51,12 @@ export default async function DietPage({
       .eq("user_id", user.id)
       .order("is_favorite", { ascending: false })
       .order("name"),
+    supabase
+      .from("daily_entries")
+      .select("workout_completed, cardio_calories")
+      .eq("user_id", user.id)
+      .eq("entry_date", today)
+      .maybeSingle(),
   ]);
 
   const entries = (food ?? []) as FoodEntry[];
@@ -75,7 +81,12 @@ export default async function DietPage({
   const dayIdx = dayIndexForDate(fromISODate(today));
   const mode = profile.workout_mode === "gym" ? ("gym" as const) : ("home" as const);
   const stats = calcStats(profile, mode);
-  const target = dayIdx >= 0 ? stats.dayTargets[dayIdx] : stats.restTarget;
+  const target = dailyCalorieTarget(
+    stats,
+    dayIdx,
+    !!daily?.workout_completed,
+    daily?.cardio_calories ?? 0,
+  );
 
   const over = totals.cal > target;
   const calPct = Math.min(100, Math.round((totals.cal / Math.max(1, target)) * 100));
