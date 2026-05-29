@@ -49,3 +49,4 @@ _Empty — backlog cleared. Add the next batch here when scope is set. Deferred 
 - No backwards-compat shims for removed code — just delete it.
 - Comments only when the *why* is non-obvious. Don't restate what the code does.
 - Test plan in every PR body as a checklist.
+- **Migrations**: `apply_migration` (Supabase MCP) stamps its OWN timestamp version, which won't match a hand-named file. After applying, run `list_migrations` and name the committed file `supabase/migrations/<recorded_version>_<name>.sql` EXACTLY. A mismatch puts the main-branch Supabase action into `MIGRATIONS_FAILED` ("Remote migration versions not found in local migrations directory"). Fixed twice now (#30, #39).
