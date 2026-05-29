@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { applyTemplate } from "@/lib/actions/workout-plan";
+import { TemplateHero } from "./TemplateHero";
 import {
   WORKOUT_TEMPLATES,
   type WorkoutTemplate,
@@ -246,35 +247,21 @@ function TemplateCard({
           : undefined
       }
     >
-      {/* Hero — gradient with large icon + tagline */}
+      {/* Hero — themed gradient + decorative motif + watermark icon */}
       <button
         type="button"
         onClick={onSelect}
-        className="relative block h-32 w-full overflow-hidden text-left"
-        style={{
-          background: `linear-gradient(135deg, ${template.gradient.from}, ${template.gradient.to})`,
-        }}
+        className="block w-full text-left"
         aria-label={`Select ${template.name}`}
       >
-        <div className="pointer-events-none absolute -right-8 -top-8 h-44 w-44 rounded-full bg-white/15 blur-3xl" />
-        <div className="pointer-events-none absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-black/30 blur-3xl" />
-        <div className="relative flex h-full items-end justify-between p-4 text-ink-950">
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[3px] text-ink-950/75">
-              {template.tagline}
-            </div>
-            <div className="mt-0.5 text-xl font-black leading-tight tracking-tight">
-              {template.name}
-            </div>
-          </div>
-          <Icon className="h-12 w-12 shrink-0 text-ink-950/80" strokeWidth={1.5} />
-        </div>
-        {isActive && (
-          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-ink-950/85 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-chalk-50">
-            <Check className="h-3 w-3" />
-            Active
-          </div>
-        )}
+        <TemplateHero
+          Icon={Icon}
+          motif={template.motif}
+          gradient={template.gradient}
+          name={template.name}
+          tagline={template.tagline}
+          active={isActive}
+        />
       </button>
 
       {/* Body */}

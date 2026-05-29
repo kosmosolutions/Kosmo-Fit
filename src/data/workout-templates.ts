@@ -45,6 +45,14 @@ export interface TemplateBadge {
   tone: "cyan" | "violet" | "amber" | "green" | "rose";
 }
 
+export type TemplateMotif =
+  | "burst"
+  | "grid"
+  | "bolts"
+  | "waves"
+  | "rings"
+  | "plates";
+
 export interface WorkoutTemplate {
   id: string;
   name: string;
@@ -53,6 +61,8 @@ export interface WorkoutTemplate {
   // Lucide icon name, rendered in the card hero. Keeps the catalog
   // dependency-free; the picker maps name → component.
   icon: string;
+  // Decorative SVG motif drawn behind the icon in the hero (TemplateHero).
+  motif: TemplateMotif;
   // Two-stop gradient used as the hero background.
   gradient: { from: string; to: string };
   // Accent color used for badges and active-tile rings.
@@ -76,6 +86,7 @@ const CUSTOM_6DAY: WorkoutTemplate = {
   description:
     "The classic 6-day body-part split you started with — Shoulders, Back, Chest, Arms, Legs, Cardio. Fully customizable.",
   icon: "Sparkles",
+  motif: "burst",
   gradient: { from: "#22d3ee", to: "#a78bfa" },
   accent: "#22d3ee",
   dayCount: 6,
@@ -227,6 +238,7 @@ const FULLBODY_3DAY: WorkoutTemplate = {
   description:
     "Three full-body sessions per week. Hits every muscle group with the biggest, most efficient lifts. Ideal for beginners or anyone short on time.",
   icon: "Dumbbell",
+  motif: "grid",
   gradient: { from: "#4ade80", to: "#22d3ee" },
   accent: "#4ade80",
   dayCount: 3,
@@ -402,6 +414,7 @@ const UPPERLOWER_4DAY: WorkoutTemplate = {
   description:
     "Upper/Lower split four times a week. Hits each muscle group twice for steady strength + size gains. Sweet spot for most lifters.",
   icon: "LayoutGrid",
+  motif: "grid",
   gradient: { from: "#38bdf8", to: "#a78bfa" },
   accent: "#38bdf8",
   dayCount: 4,
@@ -605,6 +618,7 @@ const PPL_UL_5DAY: WorkoutTemplate = {
   description:
     "Push/Pull/Legs early in the week, then Upper/Lower to add extra volume. Five days of focused work for serious hypertrophy.",
   icon: "Flame",
+  motif: "waves",
   gradient: { from: "#f87171", to: "#fb923c" },
   accent: "#f87171",
   dayCount: 5,
@@ -809,6 +823,7 @@ const PPL_6DAY: WorkoutTemplate = {
   description:
     "Classic PPL rotation twice a week. Heavy day 1, volume day 2. The gold standard for intermediate and advanced lifters who want size + strength.",
   icon: "Repeat",
+  motif: "rings",
   gradient: { from: "#a78bfa", to: "#f87171" },
   accent: "#a78bfa",
   dayCount: 6,
@@ -887,6 +902,7 @@ const HIIT_3DAY: WorkoutTemplate = {
   description:
     "Three short, intense interval sessions per week. Builds conditioning and torches calories long after you finish via EPOC.",
   icon: "Zap",
+  motif: "bolts",
   gradient: { from: "#fbbf24", to: "#fb923c" },
   accent: "#fbbf24",
   dayCount: 3,
@@ -985,6 +1001,7 @@ const COMPOUND_5X5: WorkoutTemplate = {
   description:
     "Three short sessions per week of the big compound lifts: Squat, Bench, Row, Overhead Press, Deadlift. Add weight every session.",
   icon: "Anchor",
+  motif: "plates",
   gradient: { from: "#64748b", to: "#0f172a" },
   accent: "#94a3b8",
   dayCount: 3,
@@ -1082,6 +1099,7 @@ const CALISTHENICS_4DAY: WorkoutTemplate = {
   description:
     "No equipment needed (a pull-up bar helps). Build strength, control, and mobility using just your bodyweight.",
   icon: "PersonStanding",
+  motif: "waves",
   gradient: { from: "#4ade80", to: "#84cc16" },
   accent: "#4ade80",
   dayCount: 4,
