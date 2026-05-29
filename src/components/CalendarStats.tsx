@@ -80,10 +80,13 @@ export function CalendarStats() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-chalk-300 transition hover:bg-white/5 hover:text-chalk-100"
+        aria-label="Open activity stats"
+        className="flex h-full min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-xl border border-accent-cyan/30 bg-accent-cyan/10 px-2.5 text-accent-cyan transition hover:border-accent-cyan/50 hover:bg-accent-cyan/15"
       >
-        <BarChart3 className="h-3.5 w-3.5" />
-        Stats
+        <BarChart3 className="h-4 w-4" />
+        <span className="text-[9px] font-extrabold uppercase tracking-wider">
+          Stats
+        </span>
       </button>
 
       {open && (

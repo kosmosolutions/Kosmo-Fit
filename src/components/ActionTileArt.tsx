@@ -73,45 +73,60 @@ export function WorkoutTileArt({ className }: { className?: string }) {
       role="img"
     >
       <defs>
-        <radialGradient id="wk-bg" cx="65%" cy="30%" r="80%">
-          <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.4" />
-          <stop offset="60%" stopColor="#7c3aed" stopOpacity="0.1" />
-          <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
+        <radialGradient id="wk-bg" cx="50%" cy="35%" r="75%">
+          <stop offset="0%" stopColor="#c4b5fd" stopOpacity="0.55" />
+          <stop offset="60%" stopColor="#7c3aed" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="#4c1d95" stopOpacity="0" />
         </radialGradient>
-        <linearGradient id="wk-bar" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#cbd5e1" />
-          <stop offset="50%" stopColor="#f1f5f9" />
+        <radialGradient id="wk-bell" cx="40%" cy="35%" r="75%">
+          <stop offset="0%" stopColor="#a78bfa" />
+          <stop offset="55%" stopColor="#7c3aed" />
+          <stop offset="100%" stopColor="#4c1d95" />
+        </radialGradient>
+        <linearGradient id="wk-handle" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#e2e8f0" />
           <stop offset="100%" stopColor="#94a3b8" />
-        </linearGradient>
-        <linearGradient id="wk-plate" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#1e293b" />
-          <stop offset="100%" stopColor="#0f172a" />
         </linearGradient>
       </defs>
 
       <rect width="96" height="96" rx="20" fill="url(#wk-bg)" />
 
-      {/* Motion lines */}
-      <g stroke="#a78bfa" strokeOpacity="0.35" strokeLinecap="round" strokeWidth="2">
-        <line x1="10" y1="34" x2="20" y2="34" />
-        <line x1="10" y1="48" x2="24" y2="48" />
-        <line x1="10" y1="62" x2="20" y2="62" />
-      </g>
+      {/* Floor shadow */}
+      <ellipse cx="48" cy="80" rx="28" ry="4" fill="#000" fillOpacity="0.35" />
 
-      {/* Dumbbell — bar */}
-      <rect x="30" y="44" width="36" height="8" rx="2" fill="url(#wk-bar)" />
-      {/* Left plates */}
-      <rect x="24" y="34" width="8" height="28" rx="2" fill="url(#wk-plate)" />
-      <rect x="18" y="38" width="6" height="20" rx="2" fill="url(#wk-plate)" />
-      {/* Right plates */}
-      <rect x="64" y="34" width="8" height="28" rx="2" fill="url(#wk-plate)" />
-      <rect x="72" y="38" width="6" height="20" rx="2" fill="url(#wk-plate)" />
-      {/* End caps */}
-      <rect x="16" y="42" width="2" height="12" rx="1" fill="#475569" />
-      <rect x="78" y="42" width="2" height="12" rx="1" fill="#475569" />
+      {/* Handle — fat U so it reads at 64px */}
+      <path
+        d="M30 38c0-10 8-18 18-18s18 8 18 18v6h-8v-6c0-5.5-4.5-10-10-10s-10 4.5-10 10v6h-8v-6z"
+        fill="url(#wk-handle)"
+        stroke="#475569"
+        strokeWidth="1"
+      />
 
-      {/* Highlight on bar */}
-      <rect x="32" y="45.5" width="32" height="1.5" rx="0.75" fill="#fff" fillOpacity="0.5" />
+      {/* Bell body */}
+      <path
+        d="M22 56c0-9 11.6-16 26-16s26 7 26 16c0 13-11.6 22-26 22S22 69 22 56z"
+        fill="url(#wk-bell)"
+      />
+
+      {/* Top highlight */}
+      <ellipse
+        cx="38"
+        cy="50"
+        rx="9"
+        ry="4"
+        fill="#fff"
+        fillOpacity="0.45"
+      />
+
+      {/* Lower sheen */}
+      <path
+        d="M28 64c4 6 12 9 20 9s16-3 20-9"
+        stroke="#fff"
+        strokeOpacity="0.18"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
     </svg>
   );
 }

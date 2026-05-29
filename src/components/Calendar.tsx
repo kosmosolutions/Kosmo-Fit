@@ -6,7 +6,10 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Dumbbell,
+  Flame,
   Loader2,
+  Salad,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { fromISODate, toISODate, todayISO } from "@/lib/dates";
@@ -62,6 +65,14 @@ export function Calendar({
   const dietSet = useMemo(() => new Set(data?.dietDays ?? []), [data]);
   const grid = useMemo(() => buildMonthGrid(year, month), [year, month]);
 
+  // Month-scoped headline numbers for the inline stats strip. Streak is the
+  // longest run of consecutive days within the month that had ANY activity
+  // logged (diet or workout) — keeps the number tied to the month label.
+  const monthStats = useMemo(
+    () => computeMonthStats(year, month, workoutSet, dietSet),
+    [year, month, workoutSet, dietSet],
+  );
+
   const yearOptions = useMemo(() => {
     const cy = todayDate.getFullYear();
     const out: number[] = [];
@@ -116,7 +127,6 @@ export function Calendar({
           )}
         </div>
         <div className="flex items-center gap-1">
-          <CalendarStats />
           <button
             type="button"
             onClick={prevMonth}
@@ -159,6 +169,29 @@ export function Calendar({
           ))}
         </div>
       )}
+
+      <div className="mb-3 grid grid-cols-[1fr_1fr_1fr_auto] gap-1.5">
+        <MonthStat
+          label="Workouts"
+          value={monthStats.workouts}
+          Icon={Dumbbell}
+          color="#a78bfa"
+        />
+        <MonthStat
+          label="Diet"
+          value={monthStats.diet}
+          Icon={Salad}
+          color="#22d3ee"
+        />
+        <MonthStat
+          label="Best streak"
+          value={monthStats.streak}
+          suffix={monthStats.streak === 1 ? "day" : "days"}
+          Icon={Flame}
+          color="#fbbf24"
+        />
+        <CalendarStats />
+      </div>
 
       <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-widest text-chalk-500">
         {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
@@ -216,6 +249,69 @@ export function Calendar({
       </div>
     </div>
   );
+}
+
+function MonthStat({
+  label,
+  value,
+  suffix,
+  Icon,
+  color,
+}: {
+  label: string;
+  value: number;
+  suffix?: string;
+  Icon: typeof Dumbbell;
+  color: string;
+}) {
+  return (
+    <div
+      className="flex min-w-0 flex-col gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-2.5 py-2"
+      style={{ borderColor: `${color}22` }}
+    >
+      <div className="flex items-center gap-1">
+        <Icon className="h-3 w-3 shrink-0" style={{ color }} />
+        <span className="truncate text-[10px] font-bold uppercase tracking-wider text-chalk-400">
+          {label}
+        </span>
+      </div>
+      <div className="flex items-baseline gap-1">
+        <span className="text-lg font-black leading-none" style={{ color }}>
+          {value}
+        </span>
+        {suffix ? (
+          <span className="text-[10px] font-bold text-chalk-500">{suffix}</span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function computeMonthStats(
+  year: number,
+  month: number,
+  workoutSet: Set<string>,
+  dietSet: Set<string>,
+): { workouts: number; diet: number; streak: number } {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let workouts = 0;
+  let diet = 0;
+  let streak = 0;
+  let run = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = toISODate(new Date(year, month, d));
+    const w = workoutSet.has(iso);
+    const f = dietSet.has(iso);
+    if (w) workouts++;
+    if (f) diet++;
+    if (w || f) {
+      run++;
+      if (run > streak) streak = run;
+    } else {
+      run = 0;
+    }
+  }
+  return { workouts, diet, streak };
 }
 
 function buildMonthGrid(year: number, month: number): (Date | null)[] {
