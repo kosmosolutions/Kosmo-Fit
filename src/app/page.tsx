@@ -18,13 +18,15 @@ export default async function Landing() {
 
   return (
     <div className="min-h-svh overflow-x-hidden">
-      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between px-4 pb-6 pt-safe-6 sm:px-6">
+      <header className="relative z-20 mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 pb-6 pt-safe-6 sm:px-6">
         <LogoMark />
-        <div className="flex items-center gap-2">
-          <Link href="/login" className="btn-ghost">
+        <div className="flex shrink-0 items-center gap-2">
+          <Link href="/login" className="btn-ghost shrink-0">
             Log in
           </Link>
-          <Link href="/signup" className="btn-primary">
+          {/* Primary signup lives in the hero on mobile — keep the header
+              uncrowded; show it here only from sm up. */}
+          <Link href="/signup" className="btn-primary hidden shrink-0 sm:inline-flex">
             Start free <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
