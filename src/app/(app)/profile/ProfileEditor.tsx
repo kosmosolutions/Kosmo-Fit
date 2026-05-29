@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { LogOut, Sparkles } from "lucide-react";
+import { ArrowRight, LogOut, Sparkles } from "lucide-react";
 import { LIFESTYLE, calcStats } from "@/lib/calc";
 import { saveProfile } from "@/lib/actions/profile";
 import type { Profile } from "@/lib/types";
@@ -74,47 +74,103 @@ export function ProfileEditor({
     });
   }
 
+  const current = Number(f.current_weight) || 0;
+  const goal = Number(f.goal_weight) || 0;
+  const delta = current - goal;
+  const cutting = delta >= 0;
+  const toChange = Math.abs(delta);
+
+  // Progress toward goal, measured from the earliest logged weight in range.
+  const startWeight = weightHistory.length ? weightHistory[0].weight : current;
+  const totalSpan = Math.abs(startWeight - goal);
+  const done = Math.abs(startWeight - current);
+  const progressPct = totalSpan > 0.5 ? Math.min(1, Math.max(0, done / totalSpan)) : 0;
+  const showProgress = weightHistory.length >= 2 && totalSpan > 0.5;
+
+  const initials =
+    ((f.full_name?.trim() || email)
+      .split(/\s+/)
+      .map((p) => p[0])
+      .slice(0, 2)
+      .join("") || "U").toUpperCase();
+
   return (
     <div className="space-y-5">
-      <div>
-        <div className="label-tiny">Profile</div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-chalk-50">
-          {f.full_name || "Your account"}
-        </h1>
-        <div className="mt-1 text-xs text-chalk-400">{email}</div>
+      {/* Identity header */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-accent-blue/40 to-accent-cyan/20 text-base font-black text-chalk-50 ring-1 ring-white/10">
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <div className="label-tiny">Profile</div>
+            <h1 className="truncate text-2xl font-extrabold tracking-tight text-chalk-50">
+              {f.full_name || "Your account"}
+            </h1>
+            <div className="truncate text-xs text-chalk-400">{email}</div>
+          </div>
+        </div>
+        <a
+          href="/auth/logout"
+          aria-label="Sign out"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.03] text-chalk-400 transition hover:bg-white/[0.07] hover:text-chalk-100"
+        >
+          <LogOut className="h-4 w-4" />
+        </a>
       </div>
 
-      {/* Live summary */}
+      {/* Plan scoreboard */}
       <div className="card-elev p-5">
-        <div className="flex items-center gap-4">
-          <Ring
-            pct={Math.min(1, (profile.current_weight - f.goal_weight) /
-              Math.max(1, profile.current_weight - f.goal_weight + 0.001))}
-            color="#22d3ee"
-            size={68}
-            stroke={7}
-          />
-          <div>
-            <div className="flex items-center gap-1 text-accent-cyan">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 text-accent-cyan">
               <Sparkles className="h-3.5 w-3.5" />
-              <div className="label-tiny text-accent-cyan">Plan summary</div>
+              <span className="label-eyebrow">Plan summary</span>
             </div>
-            <div className="text-sm text-chalk-300">
-              {stats.lbsToLose} lbs to lose in{" "}
-              <span className="font-bold text-chalk-50">
-                {f.weeks_to_goal}w
-              </span>{" "}
-              · {stats.weeklyLoss} lbs/wk
-              {stats.aggressive ? (
-                <span className="ml-1 text-accent-orange">⚠ aggressive</span>
-              ) : null}
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-3xl font-black tracking-tight text-chalk-50">
+                {current}
+              </span>
+              <ArrowRight className="h-4 w-4 shrink-0 text-chalk-500" />
+              <span className="text-3xl font-black tracking-tight text-accent-cyan">
+                {goal}
+              </span>
+              <span className="text-sm font-bold text-chalk-400">lbs</span>
             </div>
             <div className="mt-1 text-xs text-chalk-400">
-              Workout days: {Math.min(...stats.dayTargets).toLocaleString()}–
-              {Math.max(...stats.dayTargets).toLocaleString()} cal · Rest:{" "}
-              {stats.restTarget.toLocaleString()} cal
+              {toChange < 0.5
+                ? "Maintaining current weight"
+                : `${toChange.toLocaleString()} lbs to ${cutting ? "lose" : "gain"} · ${stats.weeklyLoss} lbs/wk`}
             </div>
           </div>
+          {showProgress ? (
+            <div className="relative grid h-[72px] w-[72px] shrink-0 place-items-center">
+              <Ring pct={progressPct} color="#22d3ee" size={72} stroke={7} />
+              <div className="absolute text-center leading-none">
+                <div className="text-sm font-black text-chalk-50">
+                  {Math.round(progressPct * 100)}%
+                </div>
+                <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-chalk-500">
+                  there
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <Stat label={cutting ? "To lose" : "To gain"} value={toChange.toLocaleString()} unit="lbs" />
+          <Stat label="Per week" value={String(stats.weeklyLoss)} unit="lbs" />
+          <Stat label="Timeframe" value={String(f.weeks_to_goal)} unit="wk" />
+        </div>
+
+        <div className="mt-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-xs text-chalk-400">
+          Workout days {Math.min(...stats.dayTargets).toLocaleString()}–
+          {Math.max(...stats.dayTargets).toLocaleString()} cal · Rest{" "}
+          {stats.restTarget.toLocaleString()} cal
+          {stats.aggressive ? (
+            <span className="font-bold text-accent-orange"> · aggressive pace</span>
+          ) : null}
         </div>
       </div>
 
@@ -334,13 +390,26 @@ export function ProfileEditor({
       <button onClick={save} disabled={pending} className="btn-primary w-full py-3">
         {pending ? "Saving…" : saved ? "Saved ✓" : "Save profile"}
       </button>
+    </div>
+  );
+}
 
-      <a
-        href="/auth/logout"
-        className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.025] p-3 text-sm font-bold text-chalk-300 hover:bg-white/[0.05]"
-      >
-        <LogOut className="h-4 w-4" /> Sign out
-      </a>
+function Stat({
+  label,
+  value,
+  unit,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+}) {
+  return (
+    <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] px-3 py-2">
+      <div className="label-tiny">{label}</div>
+      <div className="mt-0.5 flex items-baseline gap-1">
+        <span className="text-lg font-extrabold text-chalk-50">{value}</span>
+        <span className="text-[10px] text-chalk-400">{unit}</span>
+      </div>
     </div>
   );
 }
