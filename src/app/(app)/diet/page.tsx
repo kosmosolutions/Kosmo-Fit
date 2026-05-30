@@ -104,11 +104,13 @@ export default async function DietPage({
         </div>
         <Link
           href="/diet/recipes"
-          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-chalk-200 transition hover:bg-white/10"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full border border-accent-cyan/40 bg-accent-cyan/10 px-3.5 py-2 text-xs font-extrabold text-accent-cyan shadow-glow transition hover:bg-accent-cyan/20"
         >
-          <BookOpen className="h-3.5 w-3.5 text-accent-cyan" />
+          <BookOpen className="h-4 w-4" />
           Recipes
-          <span className="text-chalk-500">{rcps.length}</span>
+          <span className="rounded-full bg-accent-cyan/20 px-1.5 py-0.5 text-[10px] font-bold text-accent-cyan">
+            {rcps.length}
+          </span>
         </Link>
       </div>
 

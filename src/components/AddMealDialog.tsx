@@ -5,8 +5,11 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   ArrowLeft,
   Barcode,
+  BookmarkPlus,
   ChefHat,
   ChevronRight,
+  Clock,
+  ExternalLink,
   Loader2,
   Plus,
   Search,
@@ -14,13 +17,22 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { addFoodEntry } from "@/lib/actions/entries";
+import { saveCatalogRecipe } from "@/lib/actions/recipes";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
+import { RecipeHero } from "@/components/RecipeHero";
 import {
   lookupBarcode,
   searchFoods,
   type FoodItem,
   type FoodUnit,
 } from "@/lib/foods";
+import {
+  CATEGORY_BY_KEY,
+  categoryFor,
+  defaultMealType,
+  parseIngredient,
+  type CatalogRecipe,
+} from "@/lib/recipeCatalog";
 import type { MealType, Recipe } from "@/lib/types";
 
 // Lazy-load the scanner: @zxing/library is ~100 kB gzipped, only needed when
@@ -41,19 +53,6 @@ const BarcodeScanner = dynamic(
 const MEALS: MealType[] = ["breakfast", "snack", "lunch", "dinner"];
 const RECIPE_SEARCH_LIMIT = 30;
 const FOOD_SEARCH_DEBOUNCE_MS = 350;
-
-// Subset of the /recipe-catalog.json shape needed to display + log.
-interface CatalogRecipe {
-  id: string;
-  name: string;
-  servings: number;
-  calories_total: number;
-  protein_g: number;
-  carbs_g: number;
-  fat_g: number;
-  tags: string[];
-  ingredients: string[];
-}
 
 type Tab = "foods" | "recipes" | "new" | "saved";
 
@@ -76,6 +75,11 @@ export function AddMealDialog({
   const [tab, setTab] = useState<Tab>("foods");
   const [pending, start] = useTransition();
   useBodyScrollLock(open);
+
+  // The single scrollable body. Entering a detail view reuses this container,
+  // so reset its scroll to the top or the detail opens scrolled down to wherever
+  // the result list was (landing mid-page, e.g. on the ingredients).
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   // --- Recipes tab state (bundled catalog) ---
   const [catalog, setCatalog] = useState<CatalogRecipe[] | null>(null);
@@ -112,6 +116,12 @@ export function AddMealDialog({
       setScanLookupError(null);
     }
   }, [open]);
+
+  // Scroll the shared body back to the top whenever the view switches between
+  // the result list and a detail (or tab), so a detail never opens mid-page.
+  useEffect(() => {
+    bodyRef.current?.scrollTo({ top: 0 });
+  }, [tab, pickedCatalog, pickedFood, scanning]);
 
   // Escape collapses one layer at a time: scanner → detail → list → close.
   useEffect(() => {
@@ -322,13 +332,15 @@ export function AddMealDialog({
 
       {open && (
         <div
-          className="fixed inset-0 z-40 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center"
+          className="fixed inset-0 z-40 flex items-stretch justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4"
           onClick={() => setOpen(false)}
         >
           <div
-            className="w-full max-w-md rounded-t-3xl border border-white/10 bg-ink-900 p-5 sm:rounded-3xl"
+            className="flex h-full w-full flex-col overflow-hidden border-white/10 bg-ink-900 sm:h-auto sm:max-h-[88svh] sm:max-w-md sm:rounded-3xl sm:border"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Fixed header: title, meal target, tabs */}
+            <div className="shrink-0 border-b border-white/10 p-5 pb-3">
             <div className="mb-4 flex items-center justify-between">
               <div className="text-lg font-extrabold text-chalk-50">
                 Log a meal
@@ -343,7 +355,7 @@ export function AddMealDialog({
               </button>
             </div>
 
-            <div className="mb-4 grid grid-cols-4 gap-1">
+            <div className="mb-3 grid grid-cols-4 gap-1">
               {MEALS.map((m) => (
                 <button
                   key={m}
@@ -361,7 +373,7 @@ export function AddMealDialog({
               ))}
             </div>
 
-            <div className="mb-3 flex gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
+            <div className="flex gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
               <TabButton
                 active={tab === "foods"}
                 onClick={() => {
@@ -404,7 +416,11 @@ export function AddMealDialog({
                 Saved ({recipes.length})
               </TabButton>
             </div>
+            </div>
 
+            {/* Scrollable body — keeps inputs reachable above the mobile
+                keyboard; the browser scrolls a focused field into view here. */}
+            <div ref={bodyRef} className="flex-1 overflow-y-auto p-5 pt-4">
             {/* ----- Foods tab ----- */}
             {tab === "foods" && scanning ? (
               <BarcodeScanner
@@ -430,7 +446,6 @@ export function AddMealDialog({
                       placeholder="Search foods (e.g. Cheerios, banana)"
                       className="field pl-9"
                       autoComplete="off"
-                      autoFocus
                     />
                   </div>
                   <button
@@ -450,7 +465,7 @@ export function AddMealDialog({
                     {scanLookupError}
                   </div>
                 )}
-                <div className="max-h-80 space-y-2 overflow-y-auto">
+                <div className="space-y-2">
                   {foodError ? (
                     <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
                       {foodError}
@@ -510,10 +525,9 @@ export function AddMealDialog({
                     }
                     className="field pl-9"
                     autoComplete="off"
-                    autoFocus
                   />
                 </div>
-                <div className="max-h-80 space-y-2 overflow-y-auto">
+                <div className="space-y-2">
                   {catalogError ? (
                     <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
                       Failed to load catalog: {catalogError}
@@ -548,7 +562,6 @@ export function AddMealDialog({
                 <label className="block">
                   <span className="label-tiny">Name</span>
                   <input
-                    autoFocus
                     value={form.name}
                     onChange={(e) =>
                       setForm({ ...form, name: e.target.value })
@@ -605,7 +618,7 @@ export function AddMealDialog({
 
             {/* ----- Saved recipes tab ----- */}
             {tab === "saved" && (
-              <div className="max-h-80 space-y-2 overflow-y-auto">
+              <div className="space-y-2">
                 {recipes.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
                     <ChefHat className="mx-auto h-5 w-5 text-chalk-400" />
@@ -625,6 +638,7 @@ export function AddMealDialog({
                 )}
               </div>
             )}
+            </div>
           </div>
         </div>
       )}
@@ -698,12 +712,22 @@ function CatalogResultRow({
   const p = Math.round(recipe.protein_g * perServing);
   const c = Math.round(recipe.carbs_g * perServing);
   const f = Math.round(recipe.fat_g * perServing);
+  const cat = categoryFor(recipe);
+  const catMeta = cat ? CATEGORY_BY_KEY.get(cat) : null;
   return (
     <button
       type="button"
       onClick={onSelect}
-      className="flex w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-accent-cyan/40 hover:bg-white/[0.06]"
+      className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-2 text-left transition hover:border-accent-cyan/40 hover:bg-white/[0.06]"
     >
+      <RecipeHero
+        image={recipe.image}
+        query={recipe.name}
+        emoji={catMeta?.emoji ?? "🍴"}
+        gradient={catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0"}
+        className="h-12 w-12 shrink-0 rounded-lg"
+        emojiClassName="text-xl"
+      />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-bold text-chalk-50">
           {recipe.name}
@@ -729,11 +753,36 @@ function CatalogDetail({
   disabled: boolean;
 }) {
   const [servings, setServings] = useState(1);
+  const [saved, setSaved] = useState(false);
+  const [saving, startSave] = useTransition();
   const perServing = 1 / Math.max(1, recipe.servings);
   const kcal = Math.round(recipe.calories_total * perServing * servings);
   const p = Math.round(recipe.protein_g * perServing * servings);
   const c = Math.round(recipe.carbs_g * perServing * servings);
   const f = Math.round(recipe.fat_g * perServing * servings);
+
+  const cat = categoryFor(recipe);
+  const catMeta = cat ? CATEGORY_BY_KEY.get(cat) : null;
+
+  function save() {
+    if (saving || saved) return;
+    startSave(async () => {
+      await saveCatalogRecipe({
+        name: recipe.name,
+        source: recipe.source ?? null,
+        servings: recipe.servings,
+        calories_total: recipe.calories_total,
+        protein_g: recipe.protein_g,
+        carbs_g: recipe.carbs_g,
+        fat_g: recipe.fat_g,
+        instructions: recipe.instructions || null,
+        ingredients: recipe.ingredients.map((line) => parseIngredient(line)),
+        meal_type: defaultMealType(recipe.tags),
+      });
+      setSaved(true);
+    });
+  }
+
   return (
     <div className="space-y-4">
       <button
@@ -744,13 +793,34 @@ function CatalogDetail({
         <ArrowLeft className="h-3.5 w-3.5" /> Back to results
       </button>
 
+      {/* Visual hero — Pexels photo when matched, else emoji + gradient */}
+      <RecipeHero
+        image={recipe.image}
+        query={recipe.name}
+        emoji={catMeta?.emoji ?? "🍴"}
+        gradient={catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0"}
+        className="aspect-[16/7] rounded-2xl"
+        emojiClassName="text-5xl"
+      />
+
       <div>
         <div className="text-base font-extrabold leading-snug text-chalk-50">
           {recipe.name}
         </div>
+        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-chalk-400">
+          <span className="rounded bg-accent-amber/15 px-1.5 py-0.5 text-accent-amber">
+            {Math.round(recipe.calories_total * perServing)} cal/serving
+          </span>
+          <span>· {recipe.servings} servings</span>
+          {recipe.total_minutes > 0 && (
+            <span className="inline-flex items-center gap-0.5">
+              <Clock className="h-3 w-3" /> {recipe.total_minutes} min
+            </span>
+          )}
+        </div>
         {recipe.tags.length > 0 && (
-          <div className="mt-1.5 flex flex-wrap gap-1">
-            {recipe.tags.slice(0, 4).map((t) => (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {recipe.tags.slice(0, 6).map((t) => (
               <span
                 key={t}
                 className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-chalk-400"
@@ -769,6 +839,8 @@ function CatalogDetail({
         <DetailStat label="F" value={`${f}g`} color="#fbbf24" />
       </div>
 
+      {/* Actions kept above the recipe text so logging/saving is reachable
+          without scrolling past long ingredient + instruction lists. */}
       <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
         <div>
           <div className="label-tiny">Servings</div>
@@ -788,14 +860,75 @@ function CatalogDetail({
         />
       </div>
 
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => onLog(servings)}
-        className="btn-primary w-full py-3"
-      >
-        {disabled ? "Logging…" : "Log meal"}
-      </button>
+      <div className="space-y-2">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => onLog(servings)}
+          className="btn-primary w-full py-3"
+        >
+          {disabled ? "Logging…" : "Log meal"}
+        </button>
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving || saved}
+          className={cn(
+            "flex w-full items-center justify-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm font-bold transition disabled:opacity-60",
+            saved
+              ? "border-accent-green/40 bg-accent-green/10 text-accent-green"
+              : "border-white/10 bg-white/[0.04] text-chalk-200 hover:bg-white/[0.08]",
+          )}
+        >
+          {saved ? (
+            "Saved to your recipes ✓"
+          ) : saving ? (
+            "Saving…"
+          ) : (
+            <>
+              <BookmarkPlus className="h-4 w-4" /> Save to my recipes
+            </>
+          )}
+        </button>
+      </div>
+
+      {recipe.ingredients.length > 0 && (
+        <section>
+          <div className="label-tiny mb-2">Ingredients</div>
+          <ul className="space-y-1 text-sm text-chalk-200">
+            {recipe.ingredients.map((line, i) => (
+              <li key={i} className="flex gap-2">
+                <span className="text-chalk-500">·</span>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {recipe.instructions && (
+        <section>
+          <div className="label-tiny mb-2">Instructions</div>
+          <div className="whitespace-pre-line text-sm leading-relaxed text-chalk-200">
+            {recipe.instructions}
+          </div>
+        </section>
+      )}
+
+      {recipe.source && (
+        <a
+          href={
+            recipe.source.startsWith("http")
+              ? recipe.source
+              : `https://www.google.com/search?q=${encodeURIComponent(recipe.source)}`
+          }
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex items-center gap-1 text-xs font-bold text-chalk-400 hover:text-chalk-100"
+        >
+          <ExternalLink className="h-3 w-3" /> Source: {recipe.source}
+        </a>
+      )}
     </div>
   );
 }

@@ -14,98 +14,19 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { RecipeHero } from "@/components/RecipeHero";
 import { saveCatalogRecipe } from "@/lib/actions/recipes";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
+import {
+  CATEGORIES,
+  CATEGORY_BY_KEY,
+  categoryFor,
+  defaultMealType,
+  parseIngredient,
+  perServingMacros,
+  type CatalogRecipe,
+} from "@/lib/recipeCatalog";
 import type { MealType } from "@/lib/types";
-
-interface CatalogRecipe {
-  id: string;
-  name: string;
-  source: string | null;
-  servings: number;
-  calories_total: number;
-  protein_g: number;
-  carbs_g: number;
-  fat_g: number;
-  fiber_g: number;
-  sugar_g: number;
-  total_minutes: number;
-  instructions: string;
-  ingredients: string[];
-  tags: string[];
-}
-
-// Primary category tiles. Mirrors the workout muscle-group browser — emoji +
-// gradient + count, picked from the high-coverage tags in the catalog.
-type Category = {
-  key: string;
-  label: string;
-  emoji: string;
-  gradient: string;
-  // Tag predicate: recipe matches when ANY of these tags is present.
-  match: string[];
-};
-
-const CATEGORIES: Category[] = [
-  {
-    key: "breakfast",
-    label: "Breakfast",
-    emoji: "🍳",
-    gradient: "from-amber-500/45 to-amber-500/0",
-    match: ["breakfast"],
-  },
-  {
-    key: "mains",
-    label: "Mains",
-    emoji: "🍽️",
-    gradient: "from-rose-500/45 to-rose-500/0",
-    match: ["main"],
-  },
-  {
-    key: "salad",
-    label: "Salads",
-    emoji: "🥗",
-    gradient: "from-emerald-500/45 to-emerald-500/0",
-    match: ["salad"],
-  },
-  {
-    key: "pasta",
-    label: "Pasta",
-    emoji: "🍝",
-    gradient: "from-orange-500/45 to-orange-500/0",
-    match: ["pasta"],
-  },
-  {
-    key: "soup",
-    label: "Soups",
-    emoji: "🍜",
-    gradient: "from-amber-600/45 to-amber-600/0",
-    match: ["soup"],
-  },
-  {
-    key: "seafood",
-    label: "Seafood",
-    emoji: "🐟",
-    gradient: "from-sky-500/45 to-sky-500/0",
-    match: ["seafood", "shrimp", "salmon", "fish"],
-  },
-  {
-    key: "sandwich",
-    label: "Sandwich",
-    emoji: "🥪",
-    gradient: "from-yellow-500/45 to-yellow-500/0",
-    match: ["sandwich"],
-  },
-  {
-    key: "dessert",
-    label: "Dessert",
-    emoji: "🍰",
-    gradient: "from-pink-500/45 to-pink-500/0",
-    match: ["dessert", "icecream"],
-  },
-];
-
-const CATEGORY_BY_KEY = new Map(CATEGORIES.map((c) => [c.key, c]));
 
 // Diet style — derived from tags + an ingredient sniff.
 type DietStyle = "vegetarian" | "with-meat" | "vegan";
@@ -146,38 +67,6 @@ const MEALS: Array<MealType | "any"> = [
   "lunch",
   "dinner",
 ];
-
-function defaultMealType(tags: string[]): MealType | "any" {
-  const t = new Set(tags);
-  if (t.has("breakfast")) return "breakfast";
-  if (t.has("dessert") || t.has("drink") || t.has("appetizer")) return "snack";
-  if (t.has("soup") || t.has("salad") || t.has("sandwich")) return "lunch";
-  if (t.has("main") || t.has("pasta") || t.has("seafood")) return "dinner";
-  return "any";
-}
-
-// First-match wins so "Seafood" wins over "Mains" (a shrimp scampi is tagged
-// as both `main` and `seafood`; we want the more specific tile).
-const CATEGORY_PRIORITY = [
-  "breakfast",
-  "dessert",
-  "soup",
-  "salad",
-  "pasta",
-  "seafood",
-  "sandwich",
-  "mains",
-];
-
-function categoryFor(recipe: CatalogRecipe): string | null {
-  const tagSet = new Set(recipe.tags.map((t) => t.toLowerCase()));
-  for (const key of CATEGORY_PRIORITY) {
-    const cat = CATEGORY_BY_KEY.get(key);
-    if (!cat) continue;
-    if (cat.match.some((m) => tagSet.has(m))) return cat.key;
-  }
-  return null;
-}
 
 const DAIRY_EGG_RX =
   /\b(milk|cheese|butter|yogurt|cream|egg|eggs|parmesan|mozzarella|feta|ricotta|ghee|honey|whey)\b/i;
@@ -641,16 +530,6 @@ function FacetRow({
   );
 }
 
-function perServingMacros(r: CatalogRecipe) {
-  const s = Math.max(1, r.servings || 1);
-  return {
-    kcal: Math.round(r.calories_total / s),
-    p: Math.round(r.protein_g / s),
-    c: Math.round(r.carbs_g / s),
-    f: Math.round(r.fat_g / s),
-  };
-}
-
 function RecipeGridCard({
   recipe,
   category,
@@ -680,17 +559,15 @@ function RecipeGridCard({
       onClick={onClick}
       className="group flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] text-left transition-all hover:-translate-y-0.5 hover:border-accent-blue/40 hover:shadow-glow"
     >
-      {/* Visual header — gradient + emoji as the standin for a missing photo */}
-      <div
-        className={cn(
-          "relative grid aspect-[5/3] place-items-center overflow-hidden bg-gradient-to-br",
-          cat?.gradient ?? "from-ink-700/50 to-ink-900/0",
-        )}
+      {/* Visual header — Pexels photo when matched, else gradient + emoji */}
+      <RecipeHero
+        image={recipe.image}
+        query={recipe.name}
+        emoji={cat?.emoji ?? "🍴"}
+        gradient={cat?.gradient ?? "from-ink-700/50 to-ink-900/0"}
+        className="aspect-[5/3]"
+        emojiClassName="text-4xl"
       >
-        <div className="absolute inset-0 bg-ink-900/40" />
-        <span className="relative text-4xl drop-shadow-lg">
-          {cat?.emoji ?? "🍴"}
-        </span>
         <div className="absolute left-2 top-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-bold text-accent-amber backdrop-blur-sm">
           {kcalPerServing} cal
         </div>
@@ -716,7 +593,7 @@ function RecipeGridCard({
             {recipe.total_minutes}m
           </div>
         )}
-      </div>
+      </RecipeHero>
       <div className="flex flex-1 flex-col gap-2 p-3">
         <div className="line-clamp-2 text-sm font-bold leading-snug text-chalk-50">
           {recipe.name}
@@ -809,17 +686,15 @@ function RecipeDetail({
         className="flex max-h-[90svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-ink-900 sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Visual hero strip — same emoji + gradient as the grid card */}
-        <div
-          className={cn(
-            "relative grid aspect-[16/7] place-items-center overflow-hidden bg-gradient-to-br",
-            catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0",
-          )}
+        {/* Visual hero strip — Pexels photo when matched, else gradient + emoji */}
+        <RecipeHero
+          image={recipe.image}
+          query={recipe.name}
+          emoji={catMeta?.emoji ?? "🍴"}
+          gradient={catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0"}
+          className="aspect-[16/7]"
+          emojiClassName="text-6xl"
         >
-          <div className="absolute inset-0 bg-ink-900/40" />
-          <span className="relative text-6xl drop-shadow-lg">
-            {catMeta?.emoji ?? "🍴"}
-          </span>
           <button
             type="button"
             onClick={onClose}
@@ -828,7 +703,7 @@ function RecipeDetail({
           >
             <X className="h-4 w-4" />
           </button>
-        </div>
+        </RecipeHero>
 
         <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div className="min-w-0">
@@ -953,18 +828,4 @@ function RecipeDetail({
       </div>
     </div>
   );
-}
-
-// Split "1/2 cup oats" into {amount, name}; falls back to {name: line} when
-// no leading quantity is present.
-function parseIngredient(line: string): { name: string; amount?: string } {
-  const trimmed = line.trim();
-  if (!trimmed) return { name: "" };
-  const m = trimmed.match(
-    /^(\d[\d./\s-]*\s?(?:cup|cups|tablespoon|tablespoons|teaspoon|teaspoons|tbsp|tsp|oz|ounce|ounces|pound|pounds|lb|lbs|gram|grams|g|kg|ml|l|liter|liters|clove|cloves|slice|slices|piece|pieces|can|cans|stick|sticks)?)\s+(.+)$/i,
-  );
-  if (m) {
-    return { amount: m[1].trim(), name: m[2].trim() };
-  }
-  return { name: trimmed };
 }
