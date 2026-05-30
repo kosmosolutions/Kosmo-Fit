@@ -20,6 +20,9 @@ export interface CatalogRecipe {
   instructions: string;
   ingredients: string[];
   tags: string[];
+  // Populated offline by scripts/enrich-recipe-images.mjs (Pexels). Optional:
+  // recipes without a match fall back to the emoji + gradient hero.
+  image?: string | null;
 }
 
 // Primary category tiles. Mirrors the workout muscle-group browser — emoji +

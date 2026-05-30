@@ -19,6 +19,7 @@ import { cn } from "@/lib/cn";
 import { addFoodEntry } from "@/lib/actions/entries";
 import { saveCatalogRecipe } from "@/lib/actions/recipes";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
+import { RecipeHero } from "@/components/RecipeHero";
 import {
   lookupBarcode,
   searchFoods,
@@ -703,12 +704,21 @@ function CatalogResultRow({
   const p = Math.round(recipe.protein_g * perServing);
   const c = Math.round(recipe.carbs_g * perServing);
   const f = Math.round(recipe.fat_g * perServing);
+  const cat = categoryFor(recipe);
+  const catMeta = cat ? CATEGORY_BY_KEY.get(cat) : null;
   return (
     <button
       type="button"
       onClick={onSelect}
-      className="flex w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-accent-cyan/40 hover:bg-white/[0.06]"
+      className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-2 text-left transition hover:border-accent-cyan/40 hover:bg-white/[0.06]"
     >
+      <RecipeHero
+        image={recipe.image}
+        emoji={catMeta?.emoji ?? "🍴"}
+        gradient={catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0"}
+        className="h-12 w-12 shrink-0 rounded-lg"
+        emojiClassName="text-xl"
+      />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-bold text-chalk-50">
           {recipe.name}
@@ -774,18 +784,14 @@ function CatalogDetail({
         <ArrowLeft className="h-3.5 w-3.5" /> Back to results
       </button>
 
-      {/* Visual hero — same emoji + gradient as the library catalog cards */}
-      <div
-        className={cn(
-          "relative grid aspect-[16/7] place-items-center overflow-hidden rounded-2xl bg-gradient-to-br",
-          catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0",
-        )}
-      >
-        <div className="absolute inset-0 bg-ink-900/40" />
-        <span className="relative text-5xl drop-shadow-lg">
-          {catMeta?.emoji ?? "🍴"}
-        </span>
-      </div>
+      {/* Visual hero — Pexels photo when matched, else emoji + gradient */}
+      <RecipeHero
+        image={recipe.image}
+        emoji={catMeta?.emoji ?? "🍴"}
+        gradient={catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0"}
+        className="aspect-[16/7] rounded-2xl"
+        emojiClassName="text-5xl"
+      />
 
       <div>
         <div className="text-base font-extrabold leading-snug text-chalk-50">

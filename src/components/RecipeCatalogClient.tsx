@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { RecipeHero } from "@/components/RecipeHero";
 import { saveCatalogRecipe } from "@/lib/actions/recipes";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import {
@@ -558,17 +559,14 @@ function RecipeGridCard({
       onClick={onClick}
       className="group flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] text-left transition-all hover:-translate-y-0.5 hover:border-accent-blue/40 hover:shadow-glow"
     >
-      {/* Visual header — gradient + emoji as the standin for a missing photo */}
-      <div
-        className={cn(
-          "relative grid aspect-[5/3] place-items-center overflow-hidden bg-gradient-to-br",
-          cat?.gradient ?? "from-ink-700/50 to-ink-900/0",
-        )}
+      {/* Visual header — Pexels photo when matched, else gradient + emoji */}
+      <RecipeHero
+        image={recipe.image}
+        emoji={cat?.emoji ?? "🍴"}
+        gradient={cat?.gradient ?? "from-ink-700/50 to-ink-900/0"}
+        className="aspect-[5/3]"
+        emojiClassName="text-4xl"
       >
-        <div className="absolute inset-0 bg-ink-900/40" />
-        <span className="relative text-4xl drop-shadow-lg">
-          {cat?.emoji ?? "🍴"}
-        </span>
         <div className="absolute left-2 top-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-bold text-accent-amber backdrop-blur-sm">
           {kcalPerServing} cal
         </div>
@@ -594,7 +592,7 @@ function RecipeGridCard({
             {recipe.total_minutes}m
           </div>
         )}
-      </div>
+      </RecipeHero>
       <div className="flex flex-1 flex-col gap-2 p-3">
         <div className="line-clamp-2 text-sm font-bold leading-snug text-chalk-50">
           {recipe.name}
@@ -687,17 +685,14 @@ function RecipeDetail({
         className="flex max-h-[90svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-ink-900 sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Visual hero strip — same emoji + gradient as the grid card */}
-        <div
-          className={cn(
-            "relative grid aspect-[16/7] place-items-center overflow-hidden bg-gradient-to-br",
-            catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0",
-          )}
+        {/* Visual hero strip — Pexels photo when matched, else gradient + emoji */}
+        <RecipeHero
+          image={recipe.image}
+          emoji={catMeta?.emoji ?? "🍴"}
+          gradient={catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0"}
+          className="aspect-[16/7]"
+          emojiClassName="text-6xl"
         >
-          <div className="absolute inset-0 bg-ink-900/40" />
-          <span className="relative text-6xl drop-shadow-lg">
-            {catMeta?.emoji ?? "🍴"}
-          </span>
           <button
             type="button"
             onClick={onClose}
@@ -706,7 +701,7 @@ function RecipeDetail({
           >
             <X className="h-4 w-4" />
           </button>
-        </div>
+        </RecipeHero>
 
         <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div className="min-w-0">
