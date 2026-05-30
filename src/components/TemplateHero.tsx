@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Check, type LucideIcon } from "lucide-react";
 import type { TemplateMotif } from "@/data/workout-templates";
 
@@ -8,14 +11,46 @@ interface Props {
   name: string;
   tagline: string;
   active?: boolean;
+  // When set, a Pexels photo for this query is fetched and rendered over the
+  // gradient; the SVG motif shows until/unless a photo resolves. Keyed on the
+  // plan/template name. Falls back to the motif when no PEXELS_API_KEY is set.
+  query?: string;
+}
+
+// In-memory cache shared across every hero so a name resolves once per session.
+// `null` means "looked up, no photo" so a known miss isn't retried. Mirrors
+// the RecipeHero pattern.
+const imageCache = new Map<string, string | null>();
+const inflight = new Map<string, Promise<string | null>>();
+
+function fetchWorkoutImage(query: string): Promise<string | null> {
+  if (imageCache.has(query)) return Promise.resolve(imageCache.get(query)!);
+  const existing = inflight.get(query);
+  if (existing) return existing;
+  const p = fetch(`/api/workout-image?q=${encodeURIComponent(query)}`)
+    .then((r) => (r.ok ? r.json() : { image: null }))
+    .then((d: { image?: string | null }) => {
+      const img = d.image ?? null;
+      imageCache.set(query, img);
+      return img;
+    })
+    .catch(() => {
+      imageCache.set(query, null);
+      return null;
+    })
+    .finally(() => {
+      inflight.delete(query);
+    });
+  inflight.set(query, p);
+  return p;
 }
 
 /**
- * Layered, fully-programmatic hero for a workout-template card. No
- * external imagery — a themed gradient base, a decorative SVG motif,
- * an oversized watermark icon, and a bottom scrim that keeps the
- * name/tagline legible. Each template picks a `motif` that loosely
- * matches its vibe (bolts for HIIT, plates for 5×5, etc.).
+ * Layered hero for a workout-plan card. A themed gradient base, an optional
+ * Pexels photo (when `query` resolves one), a decorative SVG motif fallback,
+ * an oversized watermark icon, and a bottom scrim keeping the name/tagline
+ * legible. Each template picks a `motif` matching its vibe (bolts for HIIT,
+ * plates for 5×5, etc.).
  */
 export function TemplateHero({
   Icon,
@@ -24,7 +59,24 @@ export function TemplateHero({
   name,
   tagline,
   active,
+  query,
 }: Props) {
+  const [photo, setPhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!query) {
+      setPhoto(null);
+      return;
+    }
+    let cancelled = false;
+    fetchWorkoutImage(query).then((img) => {
+      if (!cancelled) setPhoto(img);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [query]);
+
   return (
     <div
       className="relative h-32 w-full overflow-hidden"
@@ -32,19 +84,39 @@ export function TemplateHero({
         background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})`,
       }}
     >
+      {photo && (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photo}
+            alt=""
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div
+            className="absolute inset-0 mix-blend-multiply"
+            style={{
+              background: `linear-gradient(135deg, ${gradient.from}cc, ${gradient.to}99)`,
+            }}
+          />
+        </>
+      )}
+
       {/* Soft depth blobs */}
       <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/20 blur-3xl" />
       <div className="pointer-events-none absolute -left-12 bottom-0 h-36 w-36 rounded-full bg-black/30 blur-3xl" />
 
-      {/* Decorative motif */}
-      <svg
-        viewBox="0 0 400 160"
-        preserveAspectRatio="xMidYMid slice"
-        className="pointer-events-none absolute inset-0 h-full w-full"
-        aria-hidden
-      >
-        <Motif motif={motif} />
-      </svg>
+      {/* Decorative motif — fallback art when no photo resolved */}
+      {!photo && (
+        <svg
+          viewBox="0 0 400 160"
+          preserveAspectRatio="xMidYMid slice"
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          aria-hidden
+        >
+          <Motif motif={motif} />
+        </svg>
+      )}
 
       {/* Oversized watermark icon */}
       <Icon
@@ -53,7 +125,7 @@ export function TemplateHero({
       />
 
       {/* Bottom scrim for text legibility */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/35 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/45 to-transparent" />
 
       {/* Foreground icon chip */}
       <Icon

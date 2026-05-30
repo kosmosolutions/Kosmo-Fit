@@ -42,6 +42,8 @@ import {
   type UserExerciseRow,
   type WorkoutPlanRow,
 } from "@/lib/actions/workout-plan";
+import type { BuiltDay } from "@/lib/workout-plan-types";
+import { WEEKDAY_LABELS } from "@/data/focus-presets";
 
 type AddTarget =
   | { kind: "add" }
@@ -191,6 +193,7 @@ interface Props {
   homePlan: UserExerciseRow[];
   gymPlan: UserExerciseRow[];
   activeTemplateId: string | null;
+  builtDays: BuiltDay[] | null;
   plans: WorkoutPlanRow[];
   activePlanId: string | null;
   activePlanName: string | null;
@@ -226,6 +229,7 @@ export function WorkoutClient({
   homePlan,
   gymPlan,
   activeTemplateId,
+  builtDays,
   plans,
   activePlanId,
   activePlanName,
@@ -247,12 +251,30 @@ export function WorkoutClient({
   // The active template defines the day layout (focus, color, default
   // exercises). If a template is set, its days replace the legacy
   // GYM_DAYS/HOME_DAYS defaults; otherwise we render the original split.
-  const activeTemplate = activeTemplateId ? getTemplate(activeTemplateId) : null;
-  const days: WorkoutDay[] = activeTemplate
-    ? activeTemplate.days[mode]
-    : mode === "gym"
-      ? GYM_DAYS
-      : HOME_DAYS;
+  // A built plan carries its own day layout (focus/weekday/visuals); its
+  // exercises live in plan-scoped rows, so the synthesized days start empty
+  // and the renderer fills them from planRows. Otherwise the active template
+  // (or the legacy split) defines the layout.
+  const isBuilt = builtDays != null;
+  const activeTemplate =
+    !isBuilt && activeTemplateId ? getTemplate(activeTemplateId) : null;
+  const days: WorkoutDay[] = isBuilt
+    ? builtDays.map((bd, i) => ({
+        day: `Day ${i + 1}`,
+        weekday: WEEKDAY_LABELS[bd.weekday] ?? "—",
+        focus: bd.focus,
+        icon: bd.icon,
+        color: bd.color,
+        duration: bd.duration,
+        epoc: false,
+        calNote: `${bd.focus} session.`,
+        exercises: [],
+      }))
+    : activeTemplate
+      ? activeTemplate.days[mode]
+      : mode === "gym"
+        ? GYM_DAYS
+        : HOME_DAYS;
   const d: WorkoutDay = days[wDay] ?? days[0];
 
   // Show picker automatically on first /workout visit (no template selected
@@ -272,17 +294,30 @@ export function WorkoutClient({
   // structure: rest days fall to the rest target, training days estimate
   // burn from duration + focus. This stops a 3-day template's rest slots
   // from showing a workout-day calorie target.
-  const isLegacyPlan = !activeTemplate || activeTemplate.id === "custom-6day";
-  const isRestDay = d.exercises.length === 0 || d.focus === "Rest";
+  const planRows = mode === "gym" ? gymPlan : homePlan;
+  // Built plans price each day by its own structure (like templates), never
+  // the legacy 6-slot BURNS table. Use the day's actual exercise count —
+  // customized rows when present, else the layout's defaults — so the estimate
+  // tracks what's really scheduled.
+  const isLegacyPlan =
+    !isBuilt && (!activeTemplate || activeTemplate.id === "custom-6day");
+  const dayRowCount = planRows.filter((r) => r.day_index === wDay).length;
+  const effectiveCount = dayRowCount > 0 ? dayRowCount : d.exercises.length;
+  const isRestDay = effectiveCount === 0 || d.focus === "Rest";
   const selectedBurn = isLegacyPlan
     ? (weekBurns[wDay] ?? todayBurn)
-    : estimateSessionBurn(d);
+    : isRestDay
+      ? 0
+      : estimateSessionBurn({
+          duration: d.duration,
+          focus: d.focus,
+          exercises: new Array(effectiveCount),
+        });
   const todayDayTarget = isLegacyPlan
     ? (weekTargets[wDay] ?? todayTarget)
     : isRestDay
       ? restTarget
       : Math.max(1400, lifeTDEE + selectedBurn - dailyDeficit);
-  const planRows = mode === "gym" ? gymPlan : homePlan;
 
   // Per (mode, dayIndex), if the user has ANY rows we treat the day as
   // customized and render only those rows. Otherwise we render the
@@ -332,7 +367,9 @@ export function WorkoutClient({
           <div className="min-w-0">
             <div className="label-tiny">
               {activePlanName
-                ? `Custom plan${activeTemplate ? ` · ${activeTemplate.dayCount}-day` : ""}`
+                ? isBuilt
+                  ? `Custom program · ${days.length}-day`
+                  : `Custom plan${activeTemplate ? ` · ${activeTemplate.dayCount}-day` : ""}`
                 : activeTemplate
                   ? `${activeTemplate.dayCount}-day · ${activeTemplate.tagline}`
                   : "6-day split"}
