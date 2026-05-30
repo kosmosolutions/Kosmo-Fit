@@ -562,6 +562,7 @@ function RecipeGridCard({
       {/* Visual header — Pexels photo when matched, else gradient + emoji */}
       <RecipeHero
         image={recipe.image}
+        query={recipe.name}
         emoji={cat?.emoji ?? "🍴"}
         gradient={cat?.gradient ?? "from-ink-700/50 to-ink-900/0"}
         className="aspect-[5/3]"
@@ -688,6 +689,7 @@ function RecipeDetail({
         {/* Visual hero strip — Pexels photo when matched, else gradient + emoji */}
         <RecipeHero
           image={recipe.image}
+          query={recipe.name}
           emoji={catMeta?.emoji ?? "🍴"}
           gradient={catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0"}
           className="aspect-[16/7]"

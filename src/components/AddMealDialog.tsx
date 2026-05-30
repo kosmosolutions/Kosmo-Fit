@@ -714,6 +714,7 @@ function CatalogResultRow({
     >
       <RecipeHero
         image={recipe.image}
+        query={recipe.name}
         emoji={catMeta?.emoji ?? "🍴"}
         gradient={catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0"}
         className="h-12 w-12 shrink-0 rounded-lg"
@@ -787,6 +788,7 @@ function CatalogDetail({
       {/* Visual hero — Pexels photo when matched, else emoji + gradient */}
       <RecipeHero
         image={recipe.image}
+        query={recipe.name}
         emoji={catMeta?.emoji ?? "🍴"}
         gradient={catMeta?.gradient ?? "from-ink-700/50 to-ink-900/0"}
         className="aspect-[16/7] rounded-2xl"
