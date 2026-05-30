@@ -446,7 +446,6 @@ export function AddMealDialog({
                       placeholder="Search foods (e.g. Cheerios, banana)"
                       className="field pl-9"
                       autoComplete="off"
-                      autoFocus
                     />
                   </div>
                   <button
@@ -526,7 +525,6 @@ export function AddMealDialog({
                     }
                     className="field pl-9"
                     autoComplete="off"
-                    autoFocus
                   />
                 </div>
                 <div className="space-y-2">
@@ -564,7 +562,6 @@ export function AddMealDialog({
                 <label className="block">
                   <span className="label-tiny">Name</span>
                   <input
-                    autoFocus
                     value={form.name}
                     onChange={(e) =>
                       setForm({ ...form, name: e.target.value })
