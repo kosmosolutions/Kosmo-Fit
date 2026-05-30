@@ -320,11 +320,11 @@ export function AddMealDialog({
 
       {open && (
         <div
-          className="fixed inset-0 z-40 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4"
+          className="fixed inset-0 z-40 flex items-stretch justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4"
           onClick={() => setOpen(false)}
         >
           <div
-            className="flex max-h-[92svh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl border border-white/10 bg-ink-900 sm:max-h-[88svh] sm:rounded-3xl"
+            className="flex h-full w-full flex-col overflow-hidden border-white/10 bg-ink-900 sm:h-auto sm:max-h-[88svh] sm:max-w-md sm:rounded-3xl sm:border"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Fixed header: title, meal target, tabs */}
@@ -823,44 +823,8 @@ function CatalogDetail({
         <DetailStat label="F" value={`${f}g`} color="#fbbf24" />
       </div>
 
-      {recipe.ingredients.length > 0 && (
-        <section>
-          <div className="label-tiny mb-2">Ingredients</div>
-          <ul className="space-y-1 text-sm text-chalk-200">
-            {recipe.ingredients.map((line, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="text-chalk-500">·</span>
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {recipe.instructions && (
-        <section>
-          <div className="label-tiny mb-2">Instructions</div>
-          <div className="whitespace-pre-line text-sm leading-relaxed text-chalk-200">
-            {recipe.instructions}
-          </div>
-        </section>
-      )}
-
-      {recipe.source && (
-        <a
-          href={
-            recipe.source.startsWith("http")
-              ? recipe.source
-              : `https://www.google.com/search?q=${encodeURIComponent(recipe.source)}`
-          }
-          target="_blank"
-          rel="noreferrer noopener"
-          className="inline-flex items-center gap-1 text-xs font-bold text-chalk-400 hover:text-chalk-100"
-        >
-          <ExternalLink className="h-3 w-3" /> Source: {recipe.source}
-        </a>
-      )}
-
+      {/* Actions kept above the recipe text so logging/saving is reachable
+          without scrolling past long ingredient + instruction lists. */}
       <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
         <div>
           <div className="label-tiny">Servings</div>
@@ -911,6 +875,44 @@ function CatalogDetail({
           )}
         </button>
       </div>
+
+      {recipe.ingredients.length > 0 && (
+        <section>
+          <div className="label-tiny mb-2">Ingredients</div>
+          <ul className="space-y-1 text-sm text-chalk-200">
+            {recipe.ingredients.map((line, i) => (
+              <li key={i} className="flex gap-2">
+                <span className="text-chalk-500">·</span>
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {recipe.instructions && (
+        <section>
+          <div className="label-tiny mb-2">Instructions</div>
+          <div className="whitespace-pre-line text-sm leading-relaxed text-chalk-200">
+            {recipe.instructions}
+          </div>
+        </section>
+      )}
+
+      {recipe.source && (
+        <a
+          href={
+            recipe.source.startsWith("http")
+              ? recipe.source
+              : `https://www.google.com/search?q=${encodeURIComponent(recipe.source)}`
+          }
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex items-center gap-1 text-xs font-bold text-chalk-400 hover:text-chalk-100"
+        >
+          <ExternalLink className="h-3 w-3" /> Source: {recipe.source}
+        </a>
+      )}
     </div>
   );
 }
