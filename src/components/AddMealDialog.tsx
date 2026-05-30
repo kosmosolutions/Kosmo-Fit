@@ -76,6 +76,11 @@ export function AddMealDialog({
   const [pending, start] = useTransition();
   useBodyScrollLock(open);
 
+  // The single scrollable body. Entering a detail view reuses this container,
+  // so reset its scroll to the top or the detail opens scrolled down to wherever
+  // the result list was (landing mid-page, e.g. on the ingredients).
+  const bodyRef = useRef<HTMLDivElement>(null);
+
   // --- Recipes tab state (bundled catalog) ---
   const [catalog, setCatalog] = useState<CatalogRecipe[] | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
@@ -111,6 +116,12 @@ export function AddMealDialog({
       setScanLookupError(null);
     }
   }, [open]);
+
+  // Scroll the shared body back to the top whenever the view switches between
+  // the result list and a detail (or tab), so a detail never opens mid-page.
+  useEffect(() => {
+    bodyRef.current?.scrollTo({ top: 0 });
+  }, [tab, pickedCatalog, pickedFood, scanning]);
 
   // Escape collapses one layer at a time: scanner → detail → list → close.
   useEffect(() => {
@@ -409,7 +420,7 @@ export function AddMealDialog({
 
             {/* Scrollable body — keeps inputs reachable above the mobile
                 keyboard; the browser scrolls a focused field into view here. */}
-            <div className="flex-1 overflow-y-auto p-5 pt-4">
+            <div ref={bodyRef} className="flex-1 overflow-y-auto p-5 pt-4">
             {/* ----- Foods tab ----- */}
             {tab === "foods" && scanning ? (
               <BarcodeScanner
