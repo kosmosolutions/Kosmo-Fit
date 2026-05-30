@@ -11,9 +11,12 @@ interface Props {
   name: string;
   tagline: string;
   active?: boolean;
-  // When set, a Pexels photo for this query is fetched and rendered over the
-  // gradient; the SVG motif shows until/unless a photo resolves. Keyed on the
-  // plan/template name. Falls back to the motif when no PEXELS_API_KEY is set.
+  // A pre-synced Supabase Storage URL for this card (from card-images.json).
+  // Renders on first paint with no runtime API call. Falls back to `query`
+  // (runtime Pexels proxy) and then the SVG motif if absent or it fails.
+  image?: string | null;
+  // Runtime fallback: a Pexels photo for this query is fetched client-side
+  // and rendered over the gradient. Used only when no baked `image` exists.
   query?: string;
 }
 
@@ -59,23 +62,35 @@ export function TemplateHero({
   name,
   tagline,
   active,
+  image,
   query,
 }: Props) {
-  const [photo, setPhoto] = useState<string | null>(null);
+  const [proxyPhoto, setProxyPhoto] = useState<string | null>(null);
+  const [errored, setErrored] = useState(false);
+
+  // A pre-synced Storage image wins and renders immediately. Only when there's
+  // no usable baked image do we fall back to the runtime Pexels proxy.
+  const baked = image && !errored ? image : null;
 
   useEffect(() => {
-    if (!query) {
-      setPhoto(null);
+    setErrored(false);
+  }, [image]);
+
+  useEffect(() => {
+    if (baked || !query) {
+      setProxyPhoto(null);
       return;
     }
     let cancelled = false;
     fetchWorkoutImage(query).then((img) => {
-      if (!cancelled) setPhoto(img);
+      if (!cancelled) setProxyPhoto(img);
     });
     return () => {
       cancelled = true;
     };
-  }, [query]);
+  }, [baked, query]);
+
+  const photo = baked ?? proxyPhoto;
 
   return (
     <div
@@ -91,6 +106,10 @@ export function TemplateHero({
             src={photo}
             alt=""
             loading="lazy"
+            onError={() => {
+              if (baked) setErrored(true);
+              else setProxyPhoto(null);
+            }}
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div

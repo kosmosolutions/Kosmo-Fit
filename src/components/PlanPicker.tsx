@@ -27,6 +27,8 @@ import {
 } from "@/lib/actions/workout-plan";
 import { TemplateHero } from "./TemplateHero";
 import { PlanBuilder } from "./PlanBuilder";
+import { templateImage, focusImage } from "@/lib/cardImages";
+import { dominantFocusKey } from "@/data/focus-presets";
 import {
   WORKOUT_TEMPLATES,
   getTemplate,
@@ -256,6 +258,7 @@ export function PlanPicker({
                 onSelect={() => setSelected(t.id)}
                 onApply={() => handleApplyTemplate(t.id)}
                 pending={pending && confirming === null}
+                image={templateImage(t.id)}
                 query={t.name}
               />
             ))}
@@ -340,6 +343,16 @@ function SavedPlanCard({
   const gradient = base?.gradient ?? { from: "#22d3ee", to: "#a78bfa" };
   const motif = base?.motif ?? "burst";
   const dayCount = isBuilt ? (plan.days?.length ?? 0) : null;
+  // Card image: a built plan uses its dominant focus's photo; a snapshot plan
+  // uses its base template's photo. Falls back to query/motif inside the hero.
+  const focusKey = isBuilt ? dominantFocusKey(plan.days) : undefined;
+  const heroImage = isBuilt
+    ? focusKey
+      ? focusImage(focusKey)
+      : null
+    : plan.base_template_id
+      ? templateImage(plan.base_template_id)
+      : null;
 
   return (
     <div
@@ -368,6 +381,7 @@ function SavedPlanCard({
           name={plan.name}
           tagline={isBuilt ? "Custom program" : "Saved plan"}
           active={isActive}
+          image={heroImage}
           query={plan.name}
         />
       </button>
@@ -443,6 +457,7 @@ interface CardProps {
   onSelect: () => void;
   onApply: () => void;
   pending: boolean;
+  image?: string | null;
   query?: string;
 }
 
@@ -453,6 +468,7 @@ function TemplateCard({
   onSelect,
   onApply,
   pending,
+  image,
   query,
 }: CardProps) {
   const Icon = ICONS[template.icon] ?? Sparkles;
@@ -485,6 +501,7 @@ function TemplateCard({
           name={template.name}
           tagline={template.tagline}
           active={isActive}
+          image={image}
           query={query}
         />
       </button>

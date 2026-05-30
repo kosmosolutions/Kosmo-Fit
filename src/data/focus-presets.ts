@@ -162,6 +162,35 @@ export function getFocusPreset(key: string): FocusPreset | undefined {
   return FOCUS_PRESETS.find((p) => p.key === key);
 }
 
+/** Reverse lookup: a stored focus label ("Push") back to its key ("push"). */
+export function focusKeyFromLabel(label: string): string | undefined {
+  return FOCUS_PRESETS.find((p) => p.label === label)?.key;
+}
+
+/**
+ * The most common focus key across a built plan's days — used to pick that
+ * plan's card image. Days store focus labels, so we map each back to its key.
+ */
+export function dominantFocusKey(
+  days: { focus: string }[] | null | undefined,
+): string | undefined {
+  if (!days?.length) return undefined;
+  const counts = new Map<string, number>();
+  for (const d of days) {
+    const key = focusKeyFromLabel(d.focus);
+    if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  let best: string | undefined;
+  let bestN = 0;
+  for (const [key, n] of counts) {
+    if (n > bestN) {
+      best = key;
+      bestN = n;
+    }
+  }
+  return best;
+}
+
 const LEVEL_RANK: Record<CatalogExercise["level"], number> = {
   beginner: 0,
   intermediate: 1,
