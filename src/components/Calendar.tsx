@@ -101,32 +101,32 @@ export function Calendar({
   }
 
   return (
-    <div className="card p-4">
-      <div className="mb-3 flex items-center justify-between">
+    <div className="card p-5">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => setShowYears((v) => !v)}
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-extrabold text-chalk-50 hover:bg-white/5"
+            className="flex min-h-[40px] items-center gap-1.5 rounded-full px-3 text-[15px] font-bold text-white transition-all duration-200 ease-ios active:scale-[0.97] hover:bg-white/[0.06]"
             aria-expanded={showYears}
           >
             {MONTH_NAMES[month]} {year}
             <ChevronDown
               className={cn(
-                "h-3.5 w-3.5 text-chalk-400 transition",
+                "h-4 w-4 text-chalk-400 transition-transform",
                 showYears && "rotate-180",
               )}
             />
           </button>
           {pending && (
-            <Loader2 className="h-3 w-3 animate-spin text-chalk-400" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-chalk-400" />
           )}
         </div>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={prevMonth}
-            className="rounded-lg p-1.5 text-chalk-400 hover:bg-white/5 hover:text-chalk-100"
+            className="grid h-9 w-9 place-items-center rounded-full text-chalk-300 transition-all duration-200 ease-ios active:scale-[0.92] hover:bg-white/[0.06] hover:text-white"
             aria-label="Previous month"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -135,7 +135,7 @@ export function Calendar({
             type="button"
             onClick={nextMonth}
             disabled={!canGoNext}
-            className="rounded-lg p-1.5 text-chalk-400 hover:bg-white/5 hover:text-chalk-100 disabled:cursor-not-allowed disabled:opacity-30"
+            className="grid h-9 w-9 place-items-center rounded-full text-chalk-300 transition-all duration-200 ease-ios active:scale-[0.92] hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
             aria-label="Next month"
           >
             <ChevronRight className="h-4 w-4" />
@@ -144,7 +144,7 @@ export function Calendar({
       </div>
 
       {showYears && (
-        <div className="mb-3 grid grid-cols-5 gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-2">
+        <div className="mb-4 grid grid-cols-5 gap-1.5 rounded-2xl bg-ink-800 p-2">
           {yearOptions.map((y) => (
             <button
               key={y}
@@ -154,10 +154,10 @@ export function Calendar({
                 setShowYears(false);
               }}
               className={cn(
-                "rounded-lg px-2 py-1.5 text-xs font-bold transition",
+                "min-h-[36px] rounded-full text-[12px] font-semibold transition-all duration-200 ease-ios active:scale-[0.96]",
                 y === year
-                  ? "bg-accent-cyan/15 text-accent-cyan"
-                  : "text-chalk-300 hover:bg-white/5",
+                  ? "bg-accent-blue/20 text-accent-blue"
+                  : "text-chalk-300 hover:bg-white/[0.06]",
               )}
             >
               {y}
@@ -166,28 +166,28 @@ export function Calendar({
         </div>
       )}
 
-      <div className="mb-3">
-        <div className="mb-1.5 flex items-center justify-between">
-          <span className="label-tiny">This month</span>
+      <div className="mb-4">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="metric-label">This month</span>
         </div>
-        <div className="grid grid-cols-[1fr_1fr_auto] gap-1.5">
+        <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
           <MonthStat
             label="Workouts"
             value={monthStats.workouts}
             Icon={Dumbbell}
-            color="#a78bfa"
+            color="#30D158"
           />
           <MonthStat
-            label="Diet"
+            label="Nutrition"
             value={monthStats.diet}
             Icon={Salad}
-            color="#22d3ee"
+            color="#FF9F0A"
           />
           <CalendarStats />
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-widest text-chalk-500">
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-[0.1em] text-chalk-400">
         {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
           <div key={i}>{d}</div>
         ))}
@@ -210,22 +210,22 @@ export function Calendar({
               disabled={future}
               onClick={() => router.push(`/overview?date=${iso}`)}
               className={cn(
-                "relative aspect-square rounded-lg border text-[12px] font-bold transition disabled:cursor-not-allowed disabled:opacity-30",
+                "relative aspect-square rounded-xl text-[13px] font-semibold transition-all duration-200 ease-ios active:scale-[0.93] disabled:cursor-not-allowed disabled:opacity-30",
                 isSelected
-                  ? "border-accent-cyan bg-accent-cyan/15 text-accent-cyan"
+                  ? "bg-accent-blue/20 text-accent-blue ring-1 ring-accent-blue/40"
                   : hasAny
-                    ? "border-white/15 bg-white/[0.06] text-chalk-50"
-                    : "border-white/[0.05] bg-transparent text-chalk-400 hover:bg-white/[0.03]",
-                isToday && !isSelected && "ring-1 ring-accent-cyan/40",
+                    ? "bg-ink-800 text-white hover:bg-ink-700"
+                    : "bg-transparent text-chalk-400 hover:bg-white/[0.04]",
+                isToday && !isSelected && "ring-1 ring-white/30",
               )}
             >
               {d.getDate()}
               <div className="absolute inset-x-0 bottom-1 flex items-center justify-center gap-0.5">
                 {hasDiet && (
-                  <span className="h-1 w-1 rounded-full bg-accent-cyan" />
+                  <span className="h-1 w-1 rounded-full bg-accent-orange" />
                 )}
                 {hasWorkout && (
-                  <span className="h-1 w-1 rounded-full bg-accent-violet" />
+                  <span className="h-1 w-1 rounded-full bg-accent-green" />
                 )}
               </div>
             </button>
@@ -233,12 +233,14 @@ export function Calendar({
         })}
       </div>
 
-      <div className="mt-3 flex items-center justify-end gap-3 text-[10px] text-chalk-400">
-        <span className="flex items-center gap-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-accent-cyan" /> Diet
+      <div className="mt-4 flex items-center justify-end gap-4 text-[11px] font-medium text-chalk-400">
+        <span className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent-orange" />
+          Nutrition
         </span>
-        <span className="flex items-center gap-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-accent-violet" /> Workout
+        <span className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent-green" />
+          Workout
         </span>
       </div>
     </div>
@@ -257,17 +259,15 @@ function MonthStat({
   color: string;
 }) {
   return (
-    <div
-      className="flex min-w-0 flex-col gap-0.5 rounded-xl border border-white/[0.06] bg-white/[0.03] px-2.5 py-2"
-      style={{ borderColor: `${color}22` }}
-    >
-      <div className="flex items-center gap-1">
-        <Icon className="h-3 w-3 shrink-0" style={{ color }} />
-        <span className="truncate text-[10px] font-bold uppercase tracking-wider text-chalk-400">
-          {label}
-        </span>
+    <div className="flex min-w-0 flex-col gap-1 rounded-2xl bg-ink-800 px-3 py-2.5">
+      <div className="flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 shrink-0" style={{ color }} />
+        <span className="truncate metric-label">{label}</span>
       </div>
-      <span className="text-lg font-black leading-none" style={{ color }}>
+      <span
+        className="font-display text-[22px] font-black leading-none tracking-tightest"
+        style={{ color }}
+      >
         {value}
       </span>
     </div>

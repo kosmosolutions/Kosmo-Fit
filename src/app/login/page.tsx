@@ -27,7 +27,7 @@ export default async function LoginPage({
           <h2 className="display mt-3 text-4xl leading-[0.95] text-chalk-50 xl:text-5xl">
             One more rep.
             <br />
-            <span className="text-accent-cyan">One more meal.</span>
+            <span className="text-accent-blue">One more meal.</span>
           </h2>
         </div>
       </aside>
@@ -58,7 +58,7 @@ export default async function LoginPage({
 
         <form action={loginAction} className="mt-8 space-y-4">
           <label className="block">
-            <span className="label-tiny">Email</span>
+            <span className="metric-label">Email</span>
             <input
               name="email"
               type="email"
@@ -69,7 +69,7 @@ export default async function LoginPage({
             />
           </label>
           <label className="block">
-            <span className="label-tiny">Password</span>
+            <span className="metric-label">Password</span>
             <input
               name="password"
               type="password"
@@ -79,14 +79,14 @@ export default async function LoginPage({
               placeholder="••••••••"
             />
           </label>
-          <button type="submit" className="btn-primary w-full py-3.5">
+          <button type="submit" className="btn-primary w-full">
             Log in
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-chalk-300">
           No account yet?{" "}
-          <Link href="/signup" className="font-bold text-accent-cyan">
+          <Link href="/signup" className="font-bold text-accent-blue">
             Sign up
           </Link>
         </p>

@@ -9,3 +9,7 @@ next-env.d.ts
 .tsbuildinfo
 tsconfig.tsbuildinfo
 .vercel
+
+# Claude Code project-local config (launch configs, etc.)
+.claude/
+

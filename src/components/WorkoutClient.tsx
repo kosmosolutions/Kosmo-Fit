@@ -88,24 +88,20 @@ function PostWorkoutCardio({
       type="button"
       onClick={onLog}
       aria-label={hasLog ? "Edit cardio session" : "Log cardio session"}
-      className="group relative block w-full overflow-hidden rounded-2xl border border-accent-amber/25 text-left transition hover:border-accent-amber/45"
-      style={{
-        background:
-          "linear-gradient(135deg, rgba(251,191,36,0.16), rgba(251,191,36,0.04) 60%, rgba(251,191,36,0.02))",
-      }}
+      className="group relative block w-full overflow-hidden rounded-2xl bg-ink-850 text-left transition-all duration-200 ease-ios active:scale-[0.99] hover:bg-ink-800"
     >
-      <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-accent-amber/15 blur-3xl" />
-      <div className="relative p-4">
+      <div className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-accent-rose/15 blur-3xl" />
+      <div className="relative p-5">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 text-accent-amber">
-            <div className="grid h-7 w-7 place-items-center rounded-lg bg-accent-amber/20 ring-1 ring-accent-amber/30">
+          <div className="flex items-center gap-2 text-accent-rose">
+            <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-rose/20">
               <Bike className="h-4 w-4" />
             </div>
-            <div className="text-[10px] font-bold uppercase tracking-[3px]">
+            <div className="metric-label text-accent-rose">
               Post-workout cardio
             </div>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full border border-accent-amber/30 bg-accent-amber/10 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-amber transition group-hover:bg-accent-amber/20">
+          <span className="inline-flex items-center gap-1 rounded-full bg-accent-rose/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-accent-rose">
             {hasLog ? (
               <>
                 <Pencil className="h-3 w-3" /> Edit
@@ -118,35 +114,33 @@ function PostWorkoutCardio({
           </span>
         </div>
 
-        <div className="mt-3 flex items-end justify-between gap-3">
+        <div className="mt-4 flex items-end justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-2xl font-black leading-tight tracking-tight text-chalk-50">
+            <div className="font-display text-[28px] font-black leading-none tracking-tightest text-white">
               {duration || raw}
             </div>
-            <div className="mt-0.5 truncate text-xs font-semibold capitalize text-chalk-300">
+            <div className="mt-1 truncate text-[13px] font-medium capitalize text-chalk-300">
               {activity}
             </div>
           </div>
           {calories ? (
-            <div className="flex shrink-0 flex-col items-end rounded-xl border border-accent-amber/30 bg-accent-amber/10 px-3 py-1.5 leading-tight">
-              <div className="text-[9px] font-bold uppercase tracking-wider text-accent-amber/80">
-                Target burn
-              </div>
-              <div className="text-base font-black text-accent-amber">
+            <div className="flex shrink-0 flex-col items-end rounded-2xl bg-accent-rose/15 px-3 py-2 leading-tight">
+              <div className="metric-label text-accent-rose">Target</div>
+              <div className="font-display text-[18px] font-black tracking-tightest text-accent-rose">
                 {calories.replace(/^\+/, "")}
               </div>
             </div>
           ) : null}
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-3 border-t border-accent-amber/15 pt-3">
-          <div className="text-[10px] font-bold uppercase tracking-[2px] text-chalk-500">
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3">
+          <div className="metric-label">
             {hasLog ? "Logged today" : "Not logged"}
           </div>
-          <div className="text-sm font-extrabold text-chalk-50">
+          <div className="text-[14px] font-semibold text-white">
             {hasLog
               ? `${loggedMinutes} min · ${loggedCalories.toLocaleString()} cal`
-              : "Tap to add — minutes or calories"}
+              : "Tap to add"}
           </div>
         </div>
       </div>
@@ -362,10 +356,10 @@ export function WorkoutClient({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="label-tiny">
+            <div className="metric-label">
               {activePlanName
                 ? isBuilt
                   ? `Custom program · ${days.length}-day`
@@ -374,7 +368,7 @@ export function WorkoutClient({
                   ? `${activeTemplate.dayCount}-day · ${activeTemplate.tagline}`
                   : "6-day split"}
             </div>
-            <h1 className="truncate text-2xl font-extrabold tracking-tight text-chalk-50">
+            <h1 className="display truncate text-[28px] leading-tight text-white">
               {activePlanName ?? (activeTemplate ? activeTemplate.name : "Workout plan")}
             </h1>
           </div>
@@ -382,25 +376,25 @@ export function WorkoutClient({
             <button
               type="button"
               onClick={() => setPickerOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-chalk-200 transition hover:bg-white/10"
+              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-ink-800 px-3 text-[12px] font-semibold text-white transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-ink-700"
               aria-label="Change workout plan"
             >
-              <LayoutDashboard className="h-3.5 w-3.5 text-accent-violet" />
+              <LayoutDashboard className="h-3.5 w-3.5 text-accent-green" />
               Plan
             </button>
             <Link
               href="/workout/catalog"
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-chalk-200 transition hover:bg-white/10"
+              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-ink-800 px-3 text-[12px] font-semibold text-white transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-ink-700"
               aria-label="Browse exercise library"
             >
-              <Library className="h-3.5 w-3.5 text-accent-cyan" />
+              <Library className="h-3.5 w-3.5 text-accent-blue" />
               Library
             </Link>
           </div>
         </div>
 
         {/* Mode + view segmented control */}
-        <div className="flex gap-1 rounded-xl bg-white/[0.06] p-0.5">
+        <div className="flex gap-1 rounded-full bg-ink-800 p-1">
           {(
             [
               { k: "home", Icon: House, label: "Home" },
@@ -415,10 +409,10 @@ export function WorkoutClient({
                 setView("training");
               }}
               className={cn(
-                "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition",
+                "flex min-h-[36px] flex-1 items-center justify-center gap-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 ease-ios",
                 view === "training" && mode === k
-                  ? "bg-white/[0.12] text-chalk-50"
-                  : "text-chalk-400 hover:text-chalk-200",
+                  ? "bg-ink-700 text-white"
+                  : "text-chalk-400 hover:text-white",
               )}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -429,10 +423,10 @@ export function WorkoutClient({
             type="button"
             onClick={() => setView("wellness")}
             className={cn(
-              "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition",
+              "flex min-h-[36px] flex-1 items-center justify-center gap-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 ease-ios",
               view === "wellness"
                 ? "bg-accent-violet/20 text-accent-violet"
-                : "text-chalk-400 hover:text-chalk-200",
+                : "text-chalk-400 hover:text-white",
             )}
           >
             <Sparkles className="h-3.5 w-3.5" />
@@ -445,7 +439,7 @@ export function WorkoutClient({
 
       {view === "training" && <>
       {/* Day picker */}
-      <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1">
+      <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1">
         {days.map((dd, i) => (
           <button
             key={i}
@@ -455,20 +449,18 @@ export function WorkoutClient({
               setExpanded(false);
             }}
             className={cn(
-              "shrink-0 rounded-xl border-2 px-3 py-2 text-center transition",
-              wDay === i
-                ? "text-ink-950"
-                : "border-white/[0.07] bg-white/[0.04] text-chalk-300",
+              "shrink-0 rounded-2xl px-3.5 py-2.5 text-center transition-all duration-200 ease-ios active:scale-[0.96]",
+              wDay === i ? "text-black" : "bg-ink-800 text-chalk-300 hover:bg-ink-700",
             )}
             style={
               wDay === i
-                ? { background: dd.color, borderColor: dd.color }
+                ? { background: dd.color }
                 : undefined
             }
           >
             <div className="text-base leading-none">{dd.icon}</div>
-            <div className="mt-1 text-[10px] font-extrabold">{dd.day}</div>
-            <div className="text-[9px] opacity-80">{dd.weekday}</div>
+            <div className="mt-1 text-[11px] font-bold">{dd.day}</div>
+            <div className="text-[10px] opacity-80">{dd.weekday}</div>
           </button>
         ))}
       </div>
@@ -480,65 +472,56 @@ export function WorkoutClient({
         className="block w-full text-left"
         aria-expanded={expanded}
       >
-        <div
-          className="rounded-2xl border p-4"
-          style={{
-            background: `linear-gradient(135deg, ${d.color}1f, ${d.color}07)`,
-            borderColor: `${d.color}55`,
-          }}
-        >
+        <div className="rounded-2xl bg-ink-850 p-5 shadow-bento">
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <Utensils className="h-3.5 w-3.5" style={{ color: d.color }} />
                 <span
-                  className="text-[10px] font-bold uppercase tracking-[2px]"
+                  className="metric-label"
                   style={{ color: d.color }}
                 >
                   Eat today · {d.focus}
                 </span>
               </div>
               <div
-                className="mt-1 text-4xl font-black leading-none tracking-tight"
+                className="metric-value mt-1"
                 style={{ color: d.color }}
               >
                 {todayDayTarget.toLocaleString()}
               </div>
-              <div className="mt-1 text-[11px] text-chalk-400">cal target</div>
+              <div className="mt-1 text-[12px] font-medium text-chalk-400">
+                cal target
+              </div>
             </div>
             <div className="flex shrink-0 gap-2">
-              <div className="rounded-xl border border-accent-amber/30 bg-accent-amber/10 px-3 py-1.5 text-right leading-tight">
-                <div className="flex items-center justify-end gap-1 text-[9px] font-bold uppercase tracking-wider text-accent-amber/80">
+              <div className="rounded-2xl bg-ink-800 px-3 py-2 text-right leading-tight">
+                <div className="flex items-center justify-end gap-1 metric-label text-accent-rose">
                   <Flame className="h-3 w-3" /> Burn
                 </div>
-                <div className="text-base font-black text-accent-amber">
+                <div className="mt-0.5 font-display text-[18px] font-black tracking-tightest text-accent-rose">
                   {selectedBurn > 0 ? `~${selectedBurn}` : "—"}
                 </div>
               </div>
-              <div className="rounded-xl border border-accent-green/30 bg-accent-green/10 px-3 py-1.5 text-right leading-tight">
-                <div className="text-[9px] font-bold uppercase tracking-wider text-accent-green/80">
-                  Deficit
-                </div>
-                <div className="text-base font-black text-accent-green">
+              <div className="rounded-2xl bg-ink-800 px-3 py-2 text-right leading-tight">
+                <div className="metric-label text-accent-green">Deficit</div>
+                <div className="mt-0.5 font-display text-[18px] font-black tracking-tightest text-accent-green">
                   {dailyDeficit}
                 </div>
               </div>
             </div>
           </div>
           {expanded ? (
-            <div
-              className="mt-3 border-t pt-3 text-[11px]"
-              style={{ borderColor: `${d.color}25` }}
-            >
+            <div className="mt-4 border-t border-white/[0.06] pt-3 text-[12px] font-medium">
               <div className="flex flex-wrap gap-2">
-                <span className="text-chalk-50">
+                <span className="text-white">
                   Life TDEE: {lifeTDEE.toLocaleString()}
                 </span>
                 <span className="text-accent-green">+ burn: {selectedBurn}</span>
                 <span className="text-accent-rose">
                   − deficit: {dailyDeficit}
                 </span>
-                <span className="font-bold" style={{ color: d.color }}>
+                <span className="font-semibold" style={{ color: d.color }}>
                   = eat: {todayDayTarget.toLocaleString()}
                 </span>
               </div>
@@ -568,52 +551,37 @@ export function WorkoutClient({
       )}
 
       {/* Day card with exercises */}
-      <div
-        className="rounded-2xl border"
-        style={{
-          background: `${d.color}10`,
-          borderColor: `${d.color}33`,
-        }}
-      >
-        <div
-          className="flex items-center gap-3 rounded-t-2xl px-4 py-3"
-          style={{
-            background: `${d.color}1f`,
-            borderBottom: `1px solid ${d.color}22`,
-          }}
-        >
+      <div className="overflow-hidden rounded-2xl bg-ink-850 shadow-bento">
+        <div className="flex items-center gap-3 px-4 py-3.5">
           <div
-            className="grid h-10 w-10 place-items-center rounded-xl border-2 text-lg"
-            style={{
-              background: `${d.color}28`,
-              borderColor: d.color,
-            }}
+            className="grid h-11 w-11 place-items-center rounded-full text-lg"
+            style={{ background: `${d.color}22` }}
           >
             {d.icon}
           </div>
           <div>
             <div
-              className="text-[10px] uppercase tracking-[3px]"
+              className="metric-label"
               style={{ color: d.color }}
             >
               {d.day} · {d.weekday}
             </div>
-            <div className="text-base font-extrabold text-chalk-50">
+            <div className="text-[17px] font-bold text-white">
               {d.focus}
             </div>
-            <div className="text-[10px] text-chalk-500">
+            <div className="text-[11px] font-medium text-chalk-400">
               {mode === "gym" ? "Gym" : "Home"} · {d.duration}
             </div>
           </div>
         </div>
-        <div className="rounded-b-2xl bg-ink-850 px-1 py-1">
+        <div className="bg-ink-850 px-1 py-1">
           {displayExercises.length === 0 && d.focus === "Rest" && (
-            <div className="px-3 py-6 text-center">
-              <div className="text-3xl">😴</div>
-              <div className="mt-2 text-sm font-bold text-chalk-200">
+            <div className="px-4 py-8 text-center">
+              <div className="text-4xl">😴</div>
+              <div className="mt-3 text-[17px] font-bold text-white">
                 Rest day
               </div>
-              <div className="mt-0.5 text-xs text-chalk-400">
+              <div className="mt-1 text-[13px] font-medium text-chalk-400">
                 Sleep, hydrate, light walking. Recovery is when growth happens.
               </div>
             </div>
@@ -629,7 +597,7 @@ export function WorkoutClient({
                     type="button"
                     onClick={() => handleReplace(row.position, row.exercise.name)}
                     disabled={mutPending}
-                    className="flex h-full flex-1 flex-col items-center justify-center gap-1 bg-accent-cyan/90 text-[11px] font-extrabold uppercase tracking-wider text-ink-950 transition hover:bg-accent-cyan disabled:opacity-60"
+                    className="flex h-full flex-1 flex-col items-center justify-center gap-1 bg-accent-blue text-[11px] font-semibold uppercase tracking-wider text-white transition hover:brightness-110 disabled:opacity-60"
                     aria-label={`Replace ${row.exercise.name}`}
                   >
                     <Repeat className="h-4 w-4" />
@@ -639,7 +607,7 @@ export function WorkoutClient({
                     type="button"
                     onClick={() => handleDelete(row.position)}
                     disabled={mutPending}
-                    className="flex h-full flex-1 flex-col items-center justify-center gap-1 bg-accent-rose/90 text-[11px] font-extrabold uppercase tracking-wider text-ink-950 transition hover:bg-accent-rose disabled:opacity-60"
+                    className="flex h-full flex-1 flex-col items-center justify-center gap-1 bg-accent-rose text-[11px] font-semibold uppercase tracking-wider text-white transition hover:brightness-110 disabled:opacity-60"
                     aria-label={`Delete ${row.exercise.name}`}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -671,31 +639,29 @@ export function WorkoutClient({
         </div>
       </div>
 
-      {/* Day-card footer: prominent Add CTA + Reset (when customized).
-          Swipe left on any exercise above for Replace / Delete. */}
-      <div className="space-y-2">
+      {/* Add CTA + Reset */}
+      <div className="space-y-3">
         <button
           type="button"
           onClick={() => setAddTarget({ kind: "add" })}
           disabled={mutPending}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-4 text-sm font-extrabold transition disabled:opacity-50"
+          className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full px-4 text-[15px] font-semibold transition-all duration-200 ease-ios active:scale-[0.98] disabled:opacity-50"
           style={{
             color: d.color,
-            borderColor: `${d.color}66`,
-            background: `${d.color}10`,
+            background: `${d.color}1f`,
           }}
         >
           <Plus className="h-5 w-5" />
           Add exercise to {d.day}
         </button>
 
-        <div className="flex items-center justify-between gap-2 px-1 text-[10px] uppercase tracking-wider text-chalk-500">
+        <div className="flex items-center justify-between gap-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-chalk-400">
           <span className="hidden sm:inline">
-            Swipe a row left for Replace / Delete · or tap{" "}
+            Swipe left for Replace / Delete · or tap{" "}
             <MoreVertical className="inline h-3 w-3 -translate-y-px" />
           </span>
           <span className="sm:hidden">
-            Swipe ← on a row for options
+            Swipe ← for options
           </span>
           <div className="flex items-center gap-2">
             <span>{customized ? "Custom" : "Default"}</span>
@@ -704,7 +670,7 @@ export function WorkoutClient({
                 type="button"
                 onClick={handleReset}
                 disabled={mutPending}
-                className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px] font-bold text-chalk-300 transition hover:bg-white/[0.08] disabled:opacity-50"
+                className="inline-flex items-center gap-1 rounded-full bg-ink-800 px-3 py-1 text-[11px] font-semibold text-chalk-200 transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-ink-700 disabled:opacity-50"
               >
                 <RotateCcw className="h-3 w-3" />
                 Reset
@@ -728,7 +694,7 @@ export function WorkoutClient({
         <button
           type="button"
           onClick={() => setCardioOpen(true)}
-          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left transition hover:bg-white/[0.06]"
+          className="flex min-h-[60px] w-full items-center justify-between gap-3 rounded-2xl bg-ink-850 px-4 text-left transition-all duration-200 ease-ios active:scale-[0.99] hover:bg-ink-800"
           aria-label={
             todayCardioMinutes > 0 || todayCardioCalories > 0
               ? "Edit cardio session"
@@ -736,19 +702,19 @@ export function WorkoutClient({
           }
         >
           <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent-amber/15 ring-1 ring-accent-amber/30">
-              <Bike className="h-4 w-4 text-accent-amber" />
+            <div className="grid h-11 w-11 place-items-center rounded-full bg-accent-rose/20">
+              <Bike className="h-5 w-5 text-accent-rose" />
             </div>
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-[2px] text-chalk-500">
+              <div className="metric-label">
                 {todayCardioMinutes > 0 || todayCardioCalories > 0
                   ? "Today's cardio"
                   : "Log cardio"}
               </div>
-              <div className="text-sm font-extrabold text-chalk-50">
+              <div className="text-[15px] font-semibold text-white">
                 {todayCardioMinutes > 0 || todayCardioCalories > 0
                   ? `${todayCardioMinutes} min · ${todayCardioCalories.toLocaleString()} cal`
-                  : "Add a session — minutes or calories"}
+                  : "Add session"}
               </div>
             </div>
           </div>

@@ -50,16 +50,12 @@ export function MarkCompleteToggle({
       disabled={pending}
       aria-pressed={completed}
       className={cn(
-        "flex w-full items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 text-sm font-extrabold transition disabled:opacity-60",
+        "flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-all duration-200 ease-ios active:scale-[0.98] disabled:opacity-60",
         completed
-          ? "border-accent-green/40 bg-accent-green/10 text-accent-green hover:bg-accent-green/15"
-          : "text-ink-950 hover:brightness-110",
+          ? "bg-accent-green/20 text-accent-green hover:bg-accent-green/25"
+          : "text-black hover:brightness-110",
       )}
-      style={
-        completed
-          ? undefined
-          : { background: color, borderColor: color }
-      }
+      style={completed ? undefined : { background: color }}
     >
       {pending ? (
         <Loader2 className="h-4 w-4 animate-spin" />

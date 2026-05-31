@@ -12,7 +12,15 @@ import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { fromISODate, toISODate, todayISO } from "@/lib/dates";
 import { getDays } from "@/data/workouts";
 import { ArrowRight, ChevronLeft, ChevronRight, Footprints, Flame } from "lucide-react";
-import { MealTileArt, WorkoutTileArt } from "@/components/ActionTileArt";
+
+// Apple Fitness palette
+const MOVE = "#FF2D55";   // calories burned / movement
+const EXERCISE = "#30D158"; // strength / workout
+const STAND = "#0A84FF";  // hydration / activity
+const DIET = "#FF9F0A";   // nutrition / total cals
+const PROTEIN = "#FF375F";
+const CARBS = "#FF9F0A";
+const FAT = "#FFD60A";
 
 export default async function OverviewPage({
   searchParams,
@@ -35,8 +43,6 @@ export default async function OverviewPage({
     .single();
   if (!profile) redirect("/onboarding");
 
-  // Default the heatmap to the year of the selected day (so when viewing a
-  // past entry, the calendar starts on that year, not always the current one).
   const heatmapYear = fromISODate(selected).getFullYear();
 
   const [{ data: daily }, { data: food }, heatmapData, weightHistory] =
@@ -56,18 +62,14 @@ export default async function OverviewPage({
       getWeightHistory(90),
     ]);
 
-  // Food totals
   const eaten = (food ?? []).reduce((s, e) => s + e.calories, 0);
   const protein = (food ?? []).reduce((s, e) => s + e.protein_g, 0);
   const carbs = (food ?? []).reduce((s, e) => s + e.carbs_g, 0);
   const fat = (food ?? []).reduce((s, e) => s + e.fat_g, 0);
 
-  // Selected day target
   const selectedDate = fromISODate(selected);
   const dayIdx = dayIndexForDate(selectedDate);
 
-  // Day navigator: previous date is always allowed; next is capped at today
-  // because the rest of the app assumes no future-day logging.
   const prevDate = new Date(selectedDate);
   prevDate.setDate(prevDate.getDate() - 1);
   const prevDateISO = toISODate(prevDate);
@@ -85,8 +87,6 @@ export default async function OverviewPage({
   const cardioBurn = daily?.cardio_calories ?? 0;
   const workoutDone = !!daily?.workout_completed;
   const totalBurn = (workoutDone ? burn : 0) + cardioBurn;
-  // Target starts at the deficit base; completed workouts and logged cardio
-  // unlock those calories back. Matches the dailyCalorieTarget contract.
   const target = dailyCalorieTarget(stats, dayIdx, workoutDone, cardioBurn);
   const earnable = !workoutDone && burn > 0 ? burn : 0;
 
@@ -94,10 +94,12 @@ export default async function OverviewPage({
   const carbGoal = stats.workoutMacros.carbG;
   const fatGoal = stats.workoutMacros.fatG;
   const stepGoal = profile.daily_step_goal;
+  const pctEaten = Math.min(1, eaten / target);
+  const stepPct = Math.min(100, ((daily?.steps ?? 0) / Math.max(1, stepGoal)) * 100);
 
   return (
-    <div className="space-y-5">
-      {/* Greeting with day navigator */}
+    <div className="space-y-4">
+      {/* Date heading + day navigator */}
       <div>
         <div className="flex items-center justify-between gap-2">
           <DayNavLink
@@ -110,10 +112,10 @@ export default async function OverviewPage({
             })}
           />
           <div className="min-w-0 text-center">
-            <div className="label-tiny">
-              {selected === todayISO() ? "Today" : "Logged day"}
+            <div className="metric-label">
+              {isToday ? "Today" : "Logged day"}
             </div>
-            <h1 className="truncate text-xl font-extrabold tracking-tight text-chalk-50 sm:text-2xl">
+            <h1 className="display truncate text-[26px] leading-tight text-white sm:text-[30px]">
               {selectedDate.toLocaleDateString(undefined, {
                 weekday: "long",
                 month: "long",
@@ -139,20 +141,20 @@ export default async function OverviewPage({
         <div className="mt-2 flex items-center justify-center gap-2">
           {day ? (
             <div
-              className="inline-flex items-center gap-1.5 text-xs font-bold"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold"
               style={{ color: day.color }}
             >
               {day.icon} {day.focus} day · {day.duration}
             </div>
           ) : (
-            <div className="text-xs font-bold text-chalk-400">
+            <div className="text-xs font-semibold text-chalk-400">
               😴 Rest day
             </div>
           )}
           {!isToday && (
             <Link
               href="/overview"
-              className="inline-flex items-center gap-1 rounded-full border border-accent-cyan/30 bg-accent-cyan/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-cyan hover:bg-accent-cyan/20"
+              className="inline-flex items-center gap-1 rounded-full bg-accent-blue/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-accent-blue transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-accent-blue/25"
             >
               Jump to today
             </Link>
@@ -160,42 +162,37 @@ export default async function OverviewPage({
         </div>
       </div>
 
-      {/* Hero: target ring + macros */}
-      <div className="card-elev p-5">
+      {/* Hero bento: calorie ring + earned + macros */}
+      <section className="card p-5">
         <div className="flex items-center justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <Flame className="h-3.5 w-3.5 text-accent-cyan" />
-              <span className="label-tiny text-accent-cyan">Calorie target</span>
+              <Flame className="h-3.5 w-3.5 text-accent-orange" />
+              <span className="metric-label text-accent-orange">
+                Calorie target
+              </span>
             </div>
-            <div className="mt-1 text-4xl font-black tracking-tight text-chalk-50">
-              {target.toLocaleString()}
-            </div>
-            <div className="text-xs text-chalk-400">
+            <div className="metric-value mt-1">{target.toLocaleString()}</div>
+            <div className="mt-1 text-[13px] font-medium text-chalk-300">
               {eaten.toLocaleString()} eaten ·{" "}
-              <span className="text-accent-amber">
+              <span className="text-accent-rose">
                 {totalBurn.toLocaleString()} burn
               </span>
             </div>
             {earnable > 0 ? (
-              <div className="mt-1 text-[11px] font-bold text-accent-violet">
+              <div className="mt-1.5 text-[11px] font-semibold text-accent-green">
                 Complete today's workout to add +{earnable} cal
               </div>
             ) : null}
           </div>
-          <div className="relative">
-            <Ring
-              pct={Math.min(1, eaten / target)}
-              color="#22d3ee"
-              size={96}
-              stroke={9}
-            />
+          <div className="relative shrink-0">
+            <Ring pct={pctEaten} color={DIET} size={108} stroke={11} />
             <div className="absolute inset-0 grid place-items-center">
               <div className="text-center">
-                <div className="text-lg font-black text-chalk-50">
-                  {Math.round((eaten / target) * 100)}%
+                <div className="text-[22px] font-black leading-none text-white">
+                  {Math.round(pctEaten * 100)}%
                 </div>
-                <div className="text-[9px] uppercase tracking-widest text-chalk-500">
+                <div className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-chalk-400">
                   of target
                 </div>
               </div>
@@ -204,61 +201,56 @@ export default async function OverviewPage({
         </div>
 
         <div className="mt-5 border-t border-white/[0.06] pt-4">
-          <div className="label-tiny mb-3">Macros</div>
+          <div className="metric-label mb-3">Macros</div>
           <div className="grid grid-cols-3 gap-3">
-            <MacroRing label="Protein" g={protein} goal={protGoal} color="#a78bfa" />
-            <MacroRing label="Carbs" g={carbs} goal={carbGoal} color="#22d3ee" />
-            <MacroRing label="Fat" g={fat} goal={fatGoal} color="#fbbf24" />
+            <MacroRing label="Protein" g={protein} goal={protGoal} color={PROTEIN} />
+            <MacroRing label="Carbs" g={carbs} goal={carbGoal} color={CARBS} />
+            <MacroRing label="Fat" g={fat} goal={fatGoal} color={FAT} />
           </div>
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
           <Link
             href="/diet"
-            className="group flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3 transition hover:border-accent-cyan/40 hover:bg-white/[0.07]"
+            className="group flex min-h-[88px] flex-col justify-between rounded-2xl bg-ink-800 p-4 transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-700"
             aria-label="Log a meal"
           >
-            <MealTileArt className="h-16 w-16" />
             <div>
-              <div className="text-sm font-extrabold text-chalk-50">
-                Log a meal
-              </div>
-              <div className="text-[11px] text-chalk-400">
+              <div className="text-[15px] font-bold text-white">Log meal</div>
+              <div className="mt-0.5 text-[12px] font-medium text-chalk-400">
                 {eaten >= target
                   ? `${(eaten - target).toLocaleString()} over today`
                   : `${(target - eaten).toLocaleString()} cal left`}
               </div>
             </div>
-            <span className="mt-auto inline-flex items-center gap-1 text-[11px] font-bold text-accent-cyan">
-              Open diet <ArrowRight className="h-3 w-3" />
+            <span className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-accent-orange">
+              Open nutrition <ArrowRight className="h-3 w-3" />
             </span>
           </Link>
           <Link
             href="/workout"
-            className="group flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3 transition hover:border-accent-violet/40 hover:bg-white/[0.07]"
+            className="group flex min-h-[88px] flex-col justify-between rounded-2xl bg-ink-800 p-4 transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-700"
             aria-label="Log workout"
           >
-            <WorkoutTileArt className="h-16 w-16" />
             <div>
-              <div className="text-sm font-extrabold text-chalk-50">
+              <div className="text-[15px] font-bold text-white">
                 Log workout
               </div>
-              <div className="text-[11px] text-chalk-400">
+              <div className="mt-0.5 text-[12px] font-medium text-chalk-400">
                 {day == null
                   ? "Rest day"
                   : workoutDone
                     ? `Completed · +${burn} earned`
-                    : `Complete to earn +${burn} cal`}
+                    : `Earn +${burn} cal`}
               </div>
             </div>
-            <span className="mt-auto inline-flex items-center gap-1 text-[11px] font-bold text-accent-violet">
-              Open workout <ArrowRight className="h-3 w-3" />
+            <span className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-accent-green">
+              Open fitness <ArrowRight className="h-3 w-3" />
             </span>
           </Link>
         </div>
-      </div>
+      </section>
 
-      {/* Gap meter — only when over target */}
       <GapMeter
         eaten={eaten}
         burned={totalBurn}
@@ -266,7 +258,6 @@ export default async function OverviewPage({
         weight={profile.current_weight}
       />
 
-      {/* Weight trend chart */}
       <WeightTrendChart
         points={weightHistory}
         currentWeight={Number(profile.current_weight) || 0}
@@ -274,7 +265,6 @@ export default async function OverviewPage({
         windowDays={90}
       />
 
-      {/* Daily tracker */}
       <DailyTrackerForm
         entryDate={selected}
         bodyWeightLbs={Number(profile.current_weight) || 0}
@@ -291,38 +281,42 @@ export default async function OverviewPage({
         }}
       />
 
-      {/* Steps progress */}
-      <div className="card-elev p-4">
+      {/* Steps bento */}
+      <section className="card p-5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-accent-cyan/15 ring-1 ring-accent-cyan/30">
-              <Footprints className="h-4 w-4 text-accent-cyan" />
+          <div className="flex items-center gap-3">
+            <div
+              className="grid h-11 w-11 place-items-center rounded-full"
+              style={{ background: `${STAND}22` }}
+            >
+              <Footprints className="h-5 w-5" style={{ color: STAND }} />
             </div>
             <div>
-              <div className="label-tiny">Steps</div>
-              <div className="text-2xl font-black leading-tight text-chalk-50">
+              <div className="metric-label">Steps</div>
+              <div className="text-[28px] font-black leading-tight tracking-tightest text-white">
                 {(daily?.steps ?? 0).toLocaleString()}
               </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm font-extrabold text-accent-cyan">
+            <div className="text-[18px] font-bold" style={{ color: STAND }}>
               {Math.round(((daily?.steps ?? 0) / Math.max(1, stepGoal)) * 100)}%
             </div>
-            <div className="text-[10px] text-chalk-400">
+            <div className="text-[11px] font-medium text-chalk-400">
               goal {stepGoal.toLocaleString()}
             </div>
           </div>
         </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+        <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-accent-cyan to-sky-300 transition-all"
+            className="h-full rounded-full transition-all duration-500 ease-ios"
             style={{
-              width: `${Math.min(100, ((daily?.steps ?? 0) / stepGoal) * 100)}%`,
+              width: `${stepPct}%`,
+              background: `linear-gradient(90deg, ${STAND} 0%, #5AC8FA 100%)`,
             }}
           />
         </div>
-      </div>
+      </section>
 
       <Calendar initial={heatmapData} selectedDate={selected} />
     </div>
@@ -342,16 +336,16 @@ function DayNavLink({
 }) {
   const Icon = direction === "prev" ? ChevronLeft : ChevronRight;
   const baseClasses =
-    "flex shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-white/[0.04] px-2.5 py-2 text-[11px] font-bold text-chalk-200 transition";
+    "flex min-h-[44px] shrink-0 items-center gap-1 rounded-full bg-ink-850 px-3 text-[12px] font-semibold text-chalk-200 transition-all duration-200 ease-ios active:scale-[0.96]";
   if (disabled) {
     return (
       <div
         aria-disabled
         className={`${baseClasses} cursor-not-allowed opacity-40`}
       >
-        {direction === "prev" && <Icon className="h-3.5 w-3.5" />}
+        {direction === "prev" && <Icon className="h-4 w-4" />}
         <span className="hidden sm:inline">{label}</span>
-        {direction === "next" && <Icon className="h-3.5 w-3.5" />}
+        {direction === "next" && <Icon className="h-4 w-4" />}
       </div>
     );
   }
@@ -359,11 +353,11 @@ function DayNavLink({
     <Link
       href={href}
       aria-label={`Go to ${label}`}
-      className={`${baseClasses} hover:bg-white/[0.08] hover:text-chalk-50`}
+      className={`${baseClasses} hover:bg-ink-800 hover:text-white`}
     >
-      {direction === "prev" && <Icon className="h-3.5 w-3.5" />}
+      {direction === "prev" && <Icon className="h-4 w-4" />}
       <span className="hidden sm:inline">{label}</span>
-      {direction === "next" && <Icon className="h-3.5 w-3.5" />}
+      {direction === "next" && <Icon className="h-4 w-4" />}
     </Link>
   );
 }
@@ -382,19 +376,23 @@ function MacroRing({
   return (
     <div className="flex flex-col items-center text-center">
       <div className="relative">
-        <Ring pct={g / Math.max(1, goal)} color={color} size={64} stroke={6} />
+        <Ring pct={g / Math.max(1, goal)} color={color} size={72} stroke={7} />
         <div className="absolute inset-0 grid place-items-center">
           <div>
-            <div className="text-sm font-black" style={{ color }}>
+            <div
+              className="text-[15px] font-black leading-none"
+              style={{ color }}
+            >
               {g}
-              <span className="text-[9px] text-chalk-500">g</span>
+              <span className="ml-0.5 text-[10px] font-semibold text-chalk-400">
+                g
+              </span>
             </div>
           </div>
         </div>
       </div>
-      <div className="mt-1 text-[11px] font-bold text-chalk-200">{label}</div>
-      <div className="text-[10px] text-chalk-400">/ {goal}g</div>
+      <div className="mt-2 text-[12px] font-semibold text-white">{label}</div>
+      <div className="text-[10px] font-medium text-chalk-400">/ {goal}g</div>
     </div>
   );
 }
-

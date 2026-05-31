@@ -83,16 +83,19 @@ export function WeightTrendChart({
   const hasAnyLog = series.some((d) => d.logged);
 
   return (
-    <div className={cn("card p-4", className)}>
+    <div className={cn("card p-5", className)}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="label-tiny">Weight trend</div>
-          <div className="text-base font-extrabold text-chalk-50">
-            {latest ? `${latest.weight.toFixed(1)} lbs` : "—"}
+          <div className="metric-label">Weight trend</div>
+          <div className="mt-1 font-display text-[28px] font-black leading-none tracking-tightest text-white">
+            {latest ? `${latest.weight.toFixed(1)}` : "—"}
+            <span className="ml-1 text-[13px] font-semibold text-chalk-400">
+              lb
+            </span>
           </div>
-          <div className="text-[11px] text-chalk-400">
-            Goal {goalWeight ? `${goalWeight.toFixed(0)} lbs` : "—"}
-            <span className="mx-1.5 text-chalk-600">·</span>
+          <div className="mt-1 text-[12px] font-medium text-chalk-400">
+            Goal {goalWeight ? `${goalWeight.toFixed(0)} lb` : "—"}
+            <span className="mx-1.5 text-chalk-500">·</span>
             Last {windowDays} days
           </div>
         </div>
@@ -110,8 +113,8 @@ export function WeightTrendChart({
         >
           <defs>
             <linearGradient id="weight-area" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
+              <stop offset="0%" stopColor="#0A84FF" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#0A84FF" stopOpacity="0" />
             </linearGradient>
           </defs>
 
@@ -149,7 +152,7 @@ export function WeightTrendChart({
                 x2={W - PAD.right}
                 y1={goalY}
                 y2={goalY}
-                stroke="rgba(124,92,255,0.45)"
+                stroke="rgba(48,209,88,0.55)"
                 strokeWidth="1.5"
                 strokeDasharray="4 4"
               />
@@ -157,7 +160,7 @@ export function WeightTrendChart({
                 x={W - PAD.right - 4}
                 y={goalY - 6}
                 textAnchor="end"
-                className="fill-accent-violet"
+                className="fill-accent-green"
                 style={{ font: "bold 11px ui-sans-serif, system-ui" }}
               >
                 Goal {goalWeight.toFixed(0)}
@@ -172,7 +175,7 @@ export function WeightTrendChart({
               <path
                 d={pathD}
                 fill="none"
-                stroke="#22d3ee"
+                stroke="#0A84FF"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -185,7 +188,7 @@ export function WeightTrendChart({
                     cx={xFor(i)}
                     cy={yFor(d.weight)}
                     r="2.5"
-                    fill="#22d3ee"
+                    fill="#0A84FF"
                   />
                 ) : null,
               )}
@@ -196,14 +199,14 @@ export function WeightTrendChart({
                     cx={xFor(series.length - 1)}
                     cy={yFor(latest.weight)}
                     r="6"
-                    fill="#22d3ee"
+                    fill="#0A84FF"
                     fillOpacity="0.2"
                   />
                   <circle
                     cx={xFor(series.length - 1)}
                     cy={yFor(latest.weight)}
                     r="3.5"
-                    fill="#22d3ee"
+                    fill="#0A84FF"
                   />
                 </>
               )}
