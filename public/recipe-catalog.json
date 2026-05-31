@@ -32,7 +32,8 @@
       "seafood",
       "shrimp",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/baked-shrimp-scampi-2.jpg"
   },
   {
     "id": "15",
@@ -66,7 +67,8 @@
       "greek",
       "salad",
       "dressing"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/greek-salad-15.jpg"
   },
   {
     "id": "19",
@@ -103,7 +105,8 @@
       "salad",
       "dressing",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/margherita-salad-19.jpg"
   },
   {
     "id": "21",
@@ -138,7 +141,8 @@
       "FUF",
       "main",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/mexican-ensalada-21.jpg"
   },
   {
     "id": "28",
@@ -169,7 +173,8 @@
       "mexican",
       "FUF",
       "sides"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/guacamole-28.jpg"
   },
   {
     "id": "32",
@@ -202,7 +207,8 @@
       "beans",
       "FUF",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/super-protein-salad-32.jpg"
   },
   {
     "id": "36",
@@ -231,7 +237,8 @@
       "smoothie",
       "FUF",
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/the-shake-36.jpg"
   },
   {
     "id": "42",
@@ -263,7 +270,8 @@
       "asian",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/extreme-green-salad-42.jpg"
   },
   {
     "id": "51",
@@ -296,7 +304,8 @@
       "FUF",
       "spinach",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/popeye-s-muscle-salad-51.jpg"
   },
   {
     "id": "54",
@@ -320,7 +329,8 @@
     ],
     "tags": [
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/breakfast-mediterranean-scramble-54.jpg"
   },
   {
     "id": "55",
@@ -345,7 +355,8 @@
     ],
     "tags": [
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/best-oatmeal-ever-55.jpg"
   },
   {
     "id": "id1",
@@ -376,7 +387,8 @@
     "tags": [
       "snack",
       "party"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/the-original-chex-party-mix-id1.jpg"
   },
   {
     "id": "id3",
@@ -403,7 +415,8 @@
       "pasta",
       "components",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/handmade-pasta-id3.jpg"
   },
   {
     "id": "id4",
@@ -432,7 +445,8 @@
       "seasoning",
       "components",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/emeril-essence-creole-seasoning-id4.jpg"
   },
   {
     "id": "id5",
@@ -476,7 +490,8 @@
       "soup",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/vegetarian-chili-id5.jpg"
   },
   {
     "id": "id6",
@@ -502,7 +517,8 @@
     "tags": [
       "dressing",
       "components"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/basil-lime-vinaigrette-id6.jpg"
   },
   {
     "id": "id8",
@@ -534,7 +550,8 @@
       "soup",
       "lentils",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/lentil-soup-id8.jpg"
   },
   {
     "id": "id9",
@@ -559,7 +576,8 @@
     "tags": [
       "FUF",
       "drink"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/natural-sports-drink-id9.jpg"
   },
   {
     "id": "id12",
@@ -590,7 +608,8 @@
       "stock",
       "vegetarian",
       "components"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/vegetable-stock-id12.jpg"
   },
   {
     "id": "id15",
@@ -622,7 +641,8 @@
       "vegetarian",
       "rice",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/spicy-rice-casserole-id15.jpg"
   },
   {
     "id": "id17",
@@ -652,7 +672,8 @@
       "vegetarian",
       "rice",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/citrus-rice-salad-id17.jpg"
   },
   {
     "id": "id18",
@@ -677,7 +698,8 @@
       "vegetarian",
       "pasta",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/straw-and-hay-fettuccine-tangle-id18.jpg"
   },
   {
     "id": "id19",
@@ -711,7 +733,8 @@
       "vegetarian",
       "asian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/green-packed-stir-fry-with-fresh-herbs-id19.jpg"
   },
   {
     "id": "id27",
@@ -742,7 +765,8 @@
     "tags": [
       "salad",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/almond-caesar-salad-with-croutons-id27.jpg"
   },
   {
     "id": "id32",
@@ -775,7 +799,8 @@
       "vegetarian",
       "mexican",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/black-bean-and-cheese-tacos-id32.jpg"
   },
   {
     "id": "id33",
@@ -803,7 +828,8 @@
     "tags": [
       "sides",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/joan-s-broccoli-madness-id33.jpg"
   },
   {
     "id": "id35",
@@ -834,7 +860,8 @@
       "soup",
       "main",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/creamy-tomato-soup-id35.jpg"
   },
   {
     "id": "id36",
@@ -860,7 +887,8 @@
       "sandwich",
       "cheese",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/triple-grilled-cheese-id36.jpg"
   },
   {
     "id": "id38",
@@ -892,7 +920,8 @@
       "noodles",
       "shrimp",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/soba-salad-with-asparagus-and-shrimp-id38.jpg"
   },
   {
     "id": "id39",
@@ -922,7 +951,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/tofu-and-sweet-potato-jambalaya-id39.jpg"
   },
   {
     "id": "id44",
@@ -957,7 +987,8 @@
       "risotto",
       "mushrooms",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/wild-mushroom-risotto-id44.jpg"
   },
   {
     "id": "id46",
@@ -988,7 +1019,8 @@
       "rice",
       "salad",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/brown-rice-chickpea-feta-and-mint-salad-id46.jpg"
   },
   {
     "id": "id52",
@@ -1015,7 +1047,8 @@
     "tags": [
       "spinach",
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/spinach-souffle-id52.jpg"
   },
   {
     "id": "id55",
@@ -1049,7 +1082,8 @@
       "salad",
       "asian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/peanut-noodle-salad-id55.jpg"
   },
   {
     "id": "id64",
@@ -1081,7 +1115,8 @@
       "pizza",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/pizza-bianca-id64.jpg"
   },
   {
     "id": "id73",
@@ -1113,7 +1148,8 @@
     "tags": [
       "dessert",
       "lime"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/cherry-lime-cups-id73.jpg"
   },
   {
     "id": "id75",
@@ -1142,7 +1178,8 @@
       "shrimp",
       "seafood",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/shrimp-and-edamame-with-lime-id75.jpg"
   },
   {
     "id": "id79",
@@ -1169,7 +1206,8 @@
       "dessert",
       "untried",
       "strawberries"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/strawberries-and-cream-bars-id79.jpg"
   },
   {
     "id": "id81",
@@ -1197,7 +1235,8 @@
       "dessert",
       "chocolate",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/frozen-chocolate-mousse-trifles-id81.jpg"
   },
   {
     "id": "id82",
@@ -1226,7 +1265,8 @@
       "lemon",
       "dessert",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/frozen-lemon-souffle-id82.jpg"
   },
   {
     "id": "id83",
@@ -1255,7 +1295,8 @@
       "coconut",
       "untried",
       "dessert"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/coconut-lime-semifreddo-id83.jpg"
   },
   {
     "id": "id84",
@@ -1282,7 +1323,8 @@
       "dessert",
       "untried",
       "cherries"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/sweet-cherry-granita-id84.jpg"
   },
   {
     "id": "id104",
@@ -1312,7 +1354,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/tex-mex-rice-and-black-eyed-peas-id104.jpg"
   },
   {
     "id": "id105",
@@ -1346,7 +1389,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/baked-eggs-and-beans-on-toast-id105.jpg"
   },
   {
     "id": "id107",
@@ -1383,7 +1427,8 @@
       "seafood",
       "salad",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/warm-shrimp-and-potato-salad-id107.jpg"
   },
   {
     "id": "id111",
@@ -1411,7 +1456,8 @@
       "sides",
       "vegetarian",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/spicy-sauteed-kale-with-lemon-id111.jpg"
   },
   {
     "id": "id119",
@@ -1440,7 +1486,8 @@
       "bento",
       "untried",
       "asian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/asian-salad-id119.jpg"
   },
   {
     "id": "id136",
@@ -1470,7 +1517,8 @@
     "tags": [
       "soup",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/broccoli-soup-with-cheddar-toasts-id136.jpg"
   },
   {
     "id": "id151",
@@ -1507,7 +1555,8 @@
       "noodle",
       "salad",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/dang-cold-asian-noodle-salad-id151.jpg"
   },
   {
     "id": "id163",
@@ -1543,7 +1592,8 @@
       "stir_fry",
       "main",
       "shrimp"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/shrimp-and-cabbage-stir-fry-id163.jpg"
   },
   {
     "id": "id171",
@@ -1582,7 +1632,8 @@
       "vegetarian",
       "pasta",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/orecchiette-with-roasted-cauliflower-id171.jpg"
   },
   {
     "id": "id173",
@@ -1611,7 +1662,8 @@
       "beans",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/black-bean-salad-with-chipotle-honey-dressing-id173.jpg"
   },
   {
     "id": "id174",
@@ -1638,7 +1690,8 @@
       "vegetarian",
       "egg",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/pasta-with-asparagus-and-egg-id174.jpg"
   },
   {
     "id": "id175",
@@ -1668,7 +1721,8 @@
       "appetizer",
       "vegetarian",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/spanakopita-id175.jpg"
   },
   {
     "id": "id182",
@@ -1702,7 +1756,8 @@
       "cake",
       "dessert",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/simple-lemon-cake-id182.jpg"
   },
   {
     "id": "id183",
@@ -1733,7 +1788,8 @@
     "tags": [
       "dessert",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/gooey-layered-everything-bars-id183.jpg"
   },
   {
     "id": "id184",
@@ -1758,7 +1814,8 @@
     "tags": [
       "sides",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/chili-lemon-cauliflower-id184.jpg"
   },
   {
     "id": "id185",
@@ -1785,7 +1842,8 @@
     "tags": [
       "breakfast",
       "granola"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/pecan-molasses-granola-id185.jpg"
   },
   {
     "id": "id187",
@@ -1814,7 +1872,8 @@
     "tags": [
       "salmon",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/salmon-and-potatoes-in-tomato-sauce-id187.jpg"
   },
   {
     "id": "id195",
@@ -1850,7 +1909,8 @@
       "salad",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/marinated-feta-spinach-poached-egg-salad-id195.jpg"
   },
   {
     "id": "id206",
@@ -1884,7 +1944,8 @@
       "sandwich",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/smoky-white-bean-and-arugula-panini-id206.jpg"
   },
   {
     "id": "id207",
@@ -1919,7 +1980,8 @@
       "indian",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/easy-chickpea-and-vegetable-curry-id207.jpg"
   },
   {
     "id": "id218",
@@ -1945,7 +2007,8 @@
       "dessert",
       "icecream",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/maple-brown-butter-semifreddo-id218.jpg"
   },
   {
     "id": "id219",
@@ -1979,7 +2042,8 @@
       "pie",
       "dessert",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/brown-sugar-buttermilk-pie-id219.jpg"
   },
   {
     "id": "id222",
@@ -2013,7 +2077,8 @@
       "lentils",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/mushroom-and-lentil-soup-id222.jpg"
   },
   {
     "id": "id228",
@@ -2048,7 +2113,8 @@
       "indian",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/indian-chickpea-wrap-id228.jpg"
   },
   {
     "id": "id247",
@@ -2076,7 +2142,8 @@
       "salad",
       "kale",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/kale-and-feta-salad-id247.jpg"
   },
   {
     "id": "id256",
@@ -2108,7 +2175,8 @@
     "tags": [
       "salad",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/antipasto-chef-s-salad-id256.jpg"
   },
   {
     "id": "id260",
@@ -2143,7 +2211,8 @@
     "tags": [
       "salad",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/moroccan-lentil-salad-id260.jpg"
   },
   {
     "id": "id261",
@@ -2175,7 +2244,8 @@
     "tags": [
       "salad",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/tuscan-panzanella-salad-id261.jpg"
   },
   {
     "id": "id271",
@@ -2195,7 +2265,8 @@
     ],
     "tags": [
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/eggs-id271.jpg"
   },
   {
     "id": "id280",
@@ -2230,7 +2301,8 @@
     "tags": [
       "salmon",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/salmon-tuscano-with-herbed-orzo-id280.jpg"
   },
   {
     "id": "id282",
@@ -2263,7 +2335,8 @@
       "soup",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/tomato-basil-soup-with-ricotta-dumplings-id282.jpg"
   },
   {
     "id": "id283",
@@ -2296,7 +2369,8 @@
     "tags": [
       "salad",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/tomato-basil-and-portobello-napoleons-id283.jpg"
   },
   {
     "id": "id284",
@@ -2328,7 +2402,8 @@
       "vegetarian",
       "pasta",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/creamy-broccoli-sun-dried-tomato-orzotto-id284.jpg"
   },
   {
     "id": "id288",
@@ -2353,7 +2428,8 @@
     "tags": [
       "components",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/gnocchi-id288.jpg"
   },
   {
     "id": "id289",
@@ -2387,7 +2463,8 @@
       "pasta",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/grilled-cheese-tomato-skillet-id289.jpg"
   },
   {
     "id": "id290",
@@ -2424,7 +2501,8 @@
       "pizza",
       "main",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/mediterranean-patio-pizza-id290.jpg"
   },
   {
     "id": "id291",
@@ -2460,7 +2538,8 @@
     "tags": [
       "main",
       "pasta"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/baked-ziti-with-crunchy-italian-salad-and-garlic-bread-id291.jpg"
   },
   {
     "id": "id298",
@@ -2494,7 +2573,8 @@
       "slow_cooker",
       "main",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/all-day-minestrone-slow-cooker-id298.jpg"
   },
   {
     "id": "id300",
@@ -2516,7 +2596,8 @@
     ],
     "tags": [
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/berry-granola-parfait-id300.jpg"
   },
   {
     "id": "id302",
@@ -2542,7 +2623,8 @@
       "potatoes",
       "salmon",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/smoked-salmon-baked-potatoes-id302.jpg"
   },
   {
     "id": "id308",
@@ -2573,7 +2655,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/samosa-baked-potatoes-id308.jpg"
   },
   {
     "id": "id309",
@@ -2598,7 +2681,8 @@
     "tags": [
       "main,",
       "pork"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/apple-cheddar-baked-sweet-potatoes-id309.jpg"
   },
   {
     "id": "id310",
@@ -2631,7 +2715,8 @@
       "vegetarian",
       "sides",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/paella-pasta-salad-id310.jpg"
   },
   {
     "id": "id313",
@@ -2662,7 +2747,8 @@
       "vegetarian",
       "mexican",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/pinto-bean-and-poblano-tacos-id313.jpg"
   },
   {
     "id": "id317",
@@ -2694,7 +2780,8 @@
       "main",
       "vegetarian",
       "tofu"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/tofu-parmesan-id317.jpg"
   },
   {
     "id": "id318",
@@ -2726,7 +2813,8 @@
       "main",
       "pasta",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/pasta-with-escarole-id318.jpg"
   },
   {
     "id": "id319",
@@ -2759,7 +2847,8 @@
       "main",
       "vegetarian",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/squash-and-bean-burritos-id319.jpg"
   },
   {
     "id": "id321",
@@ -2790,7 +2879,8 @@
     "tags": [
       "seafood",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/broiled-halibut-with-ricotta-pea-puree-id321.jpg"
   },
   {
     "id": "id322",
@@ -2821,7 +2911,8 @@
       "panini",
       "main",
       "sandwich"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/veggie-carribean-panini-id322.jpg"
   },
   {
     "id": "id324",
@@ -2857,7 +2948,8 @@
       "seafood",
       "main",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/baja-fish-tacos-id324.jpg"
   },
   {
     "id": "id331",
@@ -2882,7 +2974,8 @@
     ],
     "tags": [
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/open-face-egg-and-tomato-sandwich-id331.jpg"
   },
   {
     "id": "id339",
@@ -2912,7 +3005,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/black-bean-and-brown-rice-cakes-id339.jpg"
   },
   {
     "id": "id341",
@@ -2936,7 +3030,8 @@
     "tags": [
       "breakfast",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/english-muffin-with-apple-and-cheddar-id341.jpg"
   },
   {
     "id": "id344",
@@ -2977,7 +3072,8 @@
       "vegetarian",
       "main",
       "slow_cooker"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/couscous-stuffed-bellpeppers-with-basil-sauce-id344.jpg"
   },
   {
     "id": "id348",
@@ -3009,7 +3105,8 @@
       "vegetarian",
       "salad",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/salad-with-egg-nuts-and-veggies-id348.jpg"
   },
   {
     "id": "id357",
@@ -3048,7 +3145,8 @@
       "vegetarian",
       "main",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/pesto-millet-grits-with-tomato-ragout-id357.jpg"
   },
   {
     "id": "id359",
@@ -3081,7 +3179,8 @@
     "tags": [
       "seafood",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/coconut-shrimp-with-tropical-rice-id359.jpg"
   },
   {
     "id": "id365",
@@ -3116,7 +3215,8 @@
       "vegetarian",
       "israeli",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/shakshuka-with-chickpeas-id365.jpg"
   },
   {
     "id": "id378",
@@ -3144,7 +3244,8 @@
     "tags": [
       "vegetarian",
       "salad"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/mediterranean-grain-salad-id378.jpg"
   },
   {
     "id": "id394",
@@ -3179,7 +3280,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/vegetable-and-tofu-pad-thai-id394.jpg"
   },
   {
     "id": "id396",
@@ -3209,7 +3311,8 @@
       "salmon",
       "seafood",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/wasabi-salmon-with-miso-sesame-sauce-id396.jpg"
   },
   {
     "id": "id399",
@@ -3237,7 +3340,8 @@
       "vegetarian",
       "breakfast",
       "sauce"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/egg-sauce-id399.jpg"
   },
   {
     "id": "id400",
@@ -3273,7 +3377,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/black-eyed-pea-burgers-with-summer-squash-slaw-id400.jpg"
   },
   {
     "id": "id401",
@@ -3311,7 +3416,8 @@
       "vegetarian",
       "asian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/korean-scallion-pancakes-with-vegetable-salad-id401.jpg"
   },
   {
     "id": "id406",
@@ -3337,7 +3443,8 @@
       "snack",
       "appetizer",
       "party"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/sweet-spicy-salty-candied-pecans-id406.jpg"
   },
   {
     "id": "id408",
@@ -3373,7 +3480,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/panko-crusted-tofu-with-black-bean-salad-id408.jpg"
   },
   {
     "id": "id409",
@@ -3411,7 +3519,8 @@
       "vegetarian",
       "main",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/farro-fagioli-minestrone-id409.jpg"
   },
   {
     "id": "id410",
@@ -3448,7 +3557,8 @@
       "vegetarian",
       "main",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/spanish-frittata-with-mixed-greens-salad-id410.jpg"
   },
   {
     "id": "id411",
@@ -3487,7 +3597,8 @@
       "vegetarian",
       "main",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/roasted-root-vegetables-with-creamy-grits-id411.jpg"
   },
   {
     "id": "id412",
@@ -3523,7 +3634,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/farmer-s-market-vegetable-pot-pie-id412.jpg"
   },
   {
     "id": "id415",
@@ -3560,7 +3672,8 @@
       "vegetarian",
       "main",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/barley-risotto-verde-id415.jpg"
   },
   {
     "id": "id416",
@@ -3594,7 +3707,8 @@
       "vegetarian",
       "main",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/french-onion-potato-tart-id416.jpg"
   },
   {
     "id": "id417",
@@ -3616,7 +3730,8 @@
     "tags": [
       "breakfast",
       "components"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/perfect-soft-cooked-egg-id417.jpg"
   },
   {
     "id": "id420",
@@ -3667,7 +3782,8 @@
       "vegetarian",
       "main",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/wild-mushroom-and-cauliflower-lasagna-id420.jpg"
   },
   {
     "id": "id421",
@@ -3691,7 +3807,8 @@
     ],
     "tags": [
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/hot-cereal-with-apple-butter-and-walnuts-id421.jpg"
   },
   {
     "id": "id422",
@@ -3723,7 +3840,8 @@
       "main",
       "brunch",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/mexican-potato-omelet-id422.jpg"
   },
   {
     "id": "id426",
@@ -3756,7 +3874,8 @@
       "soup",
       "appetizer",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/gazpacho-soup-id426.jpg"
   },
   {
     "id": "id427",
@@ -3786,7 +3905,8 @@
     "tags": [
       "breakfast",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/eggs-with-mushrooms-and-tomatoes-id427.jpg"
   },
   {
     "id": "id428",
@@ -3809,7 +3929,8 @@
     "tags": [
       "breakfast",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/fruit-and-cheese-breakfast-id428.jpg"
   },
   {
     "id": "id430",
@@ -3833,7 +3954,8 @@
     ],
     "tags": [
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/mustard-avocado-and-dill-on-a-whole-wheat-muffin-with-boiled-egg-id430.jpg"
   },
   {
     "id": "id437",
@@ -3858,7 +3980,8 @@
     ],
     "tags": [
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/savory-oatmeal-and-soft-cooked-egg-id437.jpg"
   },
   {
     "id": "id449",
@@ -3885,7 +4008,8 @@
       "main",
       "lunch",
       "bento"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/adult-lunchable-with-veggies-egg-and-boursin-id449.jpg"
   },
   {
     "id": "id450",
@@ -3924,7 +4048,8 @@
       "bento",
       "lunch",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/seitan-and-three-color-pepper-stir-fry-bento-id450.jpg"
   },
   {
     "id": "id454",
@@ -3952,7 +4077,8 @@
     "tags": [
       "dessert",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/the-best-angel-food-cake-id454.jpg"
   },
   {
     "id": "id456",
@@ -3979,7 +4105,8 @@
     "tags": [
       "bento",
       "side"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/carrot-and-celeriac-celery-root-salad-id456.jpg"
   },
   {
     "id": "id457",
@@ -4017,7 +4144,8 @@
       "vegetarian",
       "pasta",
       "salad"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/spring-chickpea-pasta-salad-id457.jpg"
   },
   {
     "id": "id458",
@@ -4043,7 +4171,8 @@
       "bento",
       "lunch",
       "sides"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/carrot-kinpira-id458.jpg"
   },
   {
     "id": "id460",
@@ -4069,7 +4198,8 @@
     ],
     "tags": [
       "sides"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/salt-block-cucumber-salad-id460.jpg"
   },
   {
     "id": "id461",
@@ -4097,7 +4227,8 @@
     "tags": [
       "dessert",
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/salt-baked-walnut-brioche-scones-id461.jpg"
   },
   {
     "id": "id465",
@@ -4129,7 +4260,8 @@
       "bento",
       "lunch",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/basic-bento-tofu-and-egg-id465.jpg"
   },
   {
     "id": "id466",
@@ -4159,7 +4291,8 @@
       "vegetarian",
       "main",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/petite-vegetable-frittatas-id466.jpg"
   },
   {
     "id": "id468",
@@ -4191,7 +4324,8 @@
       "main",
       "seafood",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/roasted-shrimp-endive-and-red-onion-salad-id468.jpg"
   },
   {
     "id": "id471",
@@ -4225,7 +4359,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/udon-noodle-soup-id471.jpg"
   },
   {
     "id": "id472",
@@ -4256,7 +4391,8 @@
       "vegetarian",
       "main",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/oaxaca-cheese-plantain-tortas-with-tangelo-radish-salad-id472.jpg"
   },
   {
     "id": "id475",
@@ -4287,7 +4423,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/mushroom-broccoli-casserole-with-baked-pastry-id475.jpg"
   },
   {
     "id": "id476",
@@ -4316,7 +4453,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/penne-arrabbiata-sauce-with-roasted-carrot-tangelo-salad-id476.jpg"
   },
   {
     "id": "id477",
@@ -4348,7 +4486,8 @@
     "tags": [
       "fish",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/smoky-seared-cod-with-roasted-potatoes-dates-id477.jpg"
   },
   {
     "id": "id478",
@@ -4382,7 +4521,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/kale-white-cheddar-quesadillas-with-radishes-fried-eggs-id478.jpg"
   },
   {
     "id": "id482",
@@ -4421,7 +4561,8 @@
       "vegetarian",
       "main",
       "salad"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/baked-tofu-banh-mi-salad-id482.jpg"
   },
   {
     "id": "id483",
@@ -4448,7 +4589,8 @@
       "mexican",
       "salad",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/mexican-caprese-salad-id483.jpg"
   },
   {
     "id": "id484",
@@ -4472,7 +4614,8 @@
     ],
     "tags": [
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/chocolate-covered-strawberry-quick-oatmeal-id484.jpg"
   },
   {
     "id": "id485",
@@ -4496,7 +4639,8 @@
     ],
     "tags": [
       "sides"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/golden-crusted-brussels-sprouts-id485.jpg"
   },
   {
     "id": "id487",
@@ -4531,7 +4675,8 @@
       "main",
       "vegetarian",
       "asian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/sweet-and-spicy-tofu-with-jasmine-rice-and-crispy-shallot-id487.jpg"
   },
   {
     "id": "id488",
@@ -4561,7 +4706,8 @@
       "main",
       "vegetarian",
       "sandwich"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/olive-and-pepper-grilled-cheese-sandwiches-id488.jpg"
   },
   {
     "id": "id490",
@@ -4593,7 +4739,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/tofu-katsu-onigirazu-id490.jpg"
   },
   {
     "id": "id491",
@@ -4626,7 +4773,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/super-veggie-onigirazu-id491.jpg"
   },
   {
     "id": "id493",
@@ -4653,7 +4801,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/oregano-halloumi-with-orzo-salad-id493.jpg"
   },
   {
     "id": "id495",
@@ -4687,7 +4836,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/cucumber-avocado-and-miso-spinach-rice-bowl-id495.jpg"
   },
   {
     "id": "id496",
@@ -4717,7 +4867,8 @@
       "vegetarian",
       "main",
       "sandwich"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/spicy-poblano-pepper-and-cheese-tortas-id496.jpg"
   },
   {
     "id": "id497",
@@ -4750,7 +4901,8 @@
     "tags": [
       "main",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/chirashi-style-rice-bowls-id497.jpg"
   },
   {
     "id": "id498",
@@ -4783,7 +4935,8 @@
     "tags": [
       "main",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/sweet-savory-korean-rice-cakes-id498.jpg"
   },
   {
     "id": "id500",
@@ -4809,7 +4962,8 @@
       "breakfast",
       "quick",
       "make_ahead"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/salsa-scramble-id500.jpg"
   },
   {
     "id": "id501",
@@ -4834,7 +4988,8 @@
     "tags": [
       "vegetarian",
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/cheesy-mushroom-omelette-id501.jpg"
   },
   {
     "id": "id502",
@@ -4865,7 +5020,8 @@
       "breakfast",
       "quick",
       "make_ahead"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/black-forest-bircher-overnight-oats-id502.jpg"
   },
   {
     "id": "id506",
@@ -4892,7 +5048,8 @@
     "tags": [
       "breakfast",
       "quick"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/almond-muffin-in-a-minute-id506.jpg"
   },
   {
     "id": "id509",
@@ -4922,7 +5079,8 @@
       "vegetarian",
       "pasta",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/pesto-cavatelli-w-mushrooms-and-spicy-breadcrumbs-id509.jpg"
   },
   {
     "id": "id510",
@@ -4950,7 +5108,8 @@
     "tags": [
       "vegetarian",
       "bento"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/black-bean-mini-burgers-id510.jpg"
   },
   {
     "id": "id511",
@@ -4982,7 +5141,8 @@
     "tags": [
       "bento",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/mini-hamburger-bento-select-a-mini-burger-recipe-too-id511.jpg"
   },
   {
     "id": "id512",
@@ -5011,7 +5171,8 @@
     "tags": [
       "bento",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/fresh-salmon-mini-burgers-id512.jpg"
   },
   {
     "id": "id513",
@@ -5039,7 +5200,8 @@
       "breakfast",
       "vegetarian",
       "quick"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/avocado-olive-tapenade-and-chedder-toast-id513.jpg"
   },
   {
     "id": "id514",
@@ -5068,7 +5230,8 @@
     "tags": [
       "breakfast",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/cozy-bean-and-egg-skillet-for-two-id514.jpg"
   },
   {
     "id": "id516",
@@ -5093,7 +5256,8 @@
     "tags": [
       "breakfast",
       "eggs"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/whipped-eggs-on-toast-id516.jpg"
   },
   {
     "id": "id517",
@@ -5129,7 +5293,8 @@
       "vegetarian",
       "main",
       "sandwich"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/peach-pickled-pepper-grilled-cheese-id517.jpg"
   },
   {
     "id": "id518",
@@ -5163,7 +5328,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/black-bean-and-zucchini-enchiladas-id518.jpg"
   },
   {
     "id": "id520",
@@ -5199,7 +5365,8 @@
       "vegetarian",
       "main",
       "sandwiches"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/banh-mi-sandwiches-with-roasted-broccoli-id520.jpg"
   },
   {
     "id": "id521",
@@ -5233,7 +5400,8 @@
       "quesadilla",
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/roasted-sweet-potato-quesadillas-id521.jpg"
   },
   {
     "id": "id526",
@@ -5268,7 +5436,8 @@
       "vegetarian",
       "main",
       "pasta"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/baked-macaroni-and-cheese-id526.jpg"
   },
   {
     "id": "id527",
@@ -5302,7 +5471,8 @@
       "vegetarian",
       "main",
       "pasta"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/cavatelli-and-kale-with-fried-rosemary-and-walnuts-id527.jpg"
   },
   {
     "id": "id528",
@@ -5345,7 +5515,8 @@
       "vegetarian",
       "main",
       "beans"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/falafel-with-spicy-feta-sauce-and-vegetable-salad-id528.jpg"
   },
   {
     "id": "id538",
@@ -5380,7 +5551,8 @@
       "vegetarian",
       "main",
       "sandwich"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/pickled-beet-hard-boiled-egg-sandwiches-with-smoky-mayonnaise-id538.jpg"
   },
   {
     "id": "id539",
@@ -5412,7 +5584,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/butternut-squash-fontina-calzones-with-apple-arugula-salad-id539.jpg"
   },
   {
     "id": "id541",
@@ -5446,7 +5619,8 @@
     "tags": [
       "vegetarian",
       "sandwich"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/egg-cucumber-and-smoked-gouda-spread-sandwiches-id541.jpg"
   },
   {
     "id": "id549",
@@ -5476,7 +5650,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/indian-style-paneer-and-creamy-tomato-curry-id549.jpg"
   },
   {
     "id": "id554",
@@ -5505,7 +5680,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/smoky-brussels-sprouts-black-bean-tacos-id554.jpg"
   },
   {
     "id": "id555",
@@ -5534,7 +5710,8 @@
     "tags": [
       "vegetarian",
       "sandwich"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/japanese-egg-salad-sandwich-tamago-sando-id555.jpg"
   },
   {
     "id": "id559",
@@ -5570,7 +5747,8 @@
     "tags": [
       "seafood",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/scallops-over-truffled-mushroom-risotto-id559.jpg"
   },
   {
     "id": "id561",
@@ -5601,7 +5779,8 @@
     "tags": [
       "breakfast",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/dark-chocolate-raspberry-breakfast-bake-id561.jpg"
   },
   {
     "id": "id562",
@@ -5629,7 +5808,8 @@
     "tags": [
       "breakfast",
       "vegetarian"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/oatmeal-cookie-dough-breakfast-bake-id562.jpg"
   },
   {
     "id": "id567",
@@ -5660,7 +5840,8 @@
       "vegetarian",
       "pizza",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/broccoli-and-mozzarella-pizza-id567.jpg"
   },
   {
     "id": "id568",
@@ -5694,7 +5875,8 @@
       "vegetarian",
       "main",
       "pasta"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/roasted-broccoli-and-fregola-sarda-pasta-id568.jpg"
   },
   {
     "id": "id570",
@@ -5724,7 +5906,8 @@
     "tags": [
       "untried",
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/single-serve-mug-coffee-cake-id570.jpg"
   },
   {
     "id": "id571",
@@ -5754,7 +5937,8 @@
     ],
     "tags": [
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/mediterranean-egg-salad-id571.jpg"
   },
   {
     "id": "id577",
@@ -5791,7 +5975,8 @@
       "low_tyramine",
       "main",
       "pasta"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/mediterranean-pasta-salad-id577.jpg"
   },
   {
     "id": "id578",
@@ -5822,7 +6007,8 @@
       "vegetarian",
       "soup",
       "low_tyramine"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/boursin-broccoli-soup-id578.jpg"
   },
   {
     "id": "id580",
@@ -5855,7 +6041,8 @@
       "vegetarian",
       "main",
       "low_tyramine"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/broccoli-rice-casserole-id580.jpg"
   },
   {
     "id": "id584",
@@ -5881,7 +6068,8 @@
     "tags": [
       "breakfast",
       "low_tiramine"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/overnight-chia-pudding-id584.jpg"
   },
   {
     "id": "id587",
@@ -5913,7 +6101,8 @@
       "vegetarian",
       "main",
       "low_tyramine"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/creamy-summer-veggie-risotto-id587.jpg"
   },
   {
     "id": "id590",
@@ -5941,7 +6130,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/potato-and-kale-hash-with-baked-eggs-and-hot-sauce-id590.jpg"
   },
   {
     "id": "id591",
@@ -5967,7 +6157,8 @@
       "vegetarian",
       "sandwich",
       "low_tyramine"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/goat-cheese-sandwich-with-arugula-cucumber-id591.jpg"
   },
   {
     "id": "id592",
@@ -5999,7 +6190,8 @@
       "main",
       "low_tyramine",
       "pasta"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/cheesy-portobello-mushroom-caps-id592.jpg"
   },
   {
     "id": "id593",
@@ -6039,7 +6231,8 @@
       "main",
       "low_tyramine",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/sweet-potato-bowl-with-creamy-tahini-dressing-id593.jpg"
   },
   {
     "id": "id594",
@@ -6074,7 +6267,8 @@
       "vegetarian",
       "main",
       "soup"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/italian-garden-veggie-soup-id594.jpg"
   },
   {
     "id": "id595",
@@ -6112,7 +6306,8 @@
     ],
     "tags": [
       "breakfast"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/perfectly-pillowly-cinnamon-rolls-id595.jpg"
   },
   {
     "id": "id597",
@@ -6139,7 +6334,8 @@
       "appetizer",
       "bento",
       "untried"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/vegetable-tortilla-roll-ups-id597.jpg"
   },
   {
     "id": "id598",
@@ -6169,7 +6365,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/crunchy-chickpea-pita-pockets-id598.jpg"
   },
   {
     "id": "id602",
@@ -6196,7 +6393,8 @@
     "tags": [
       "vegetarian",
       "bento"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/cheese-board-bento-id602.jpg"
   },
   {
     "id": "id604",
@@ -6228,7 +6426,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/vegetable-fried-rice-with-broccoli-carrots-spicy-pepper-sauce-id604.jpg"
   },
   {
     "id": "id606",
@@ -6260,7 +6459,8 @@
     ],
     "tags": [
       "seafood"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/seared-tilapia-and-lemon-caper-sauce-id606.jpg"
   },
   {
     "id": "id608",
@@ -6292,7 +6492,8 @@
     ],
     "tags": [
       "bento"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/gyoza-bento-id608.jpg"
   },
   {
     "id": "id609",
@@ -6327,7 +6528,8 @@
     ],
     "tags": [
       "bento"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/pan-fried-tofu-and-soba-noodle-bento-id609.jpg"
   },
   {
     "id": "id610",
@@ -6366,7 +6568,8 @@
       "main",
       "rice",
       "beans"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/black-bean-plantain-bowls-id610.jpg"
   },
   {
     "id": "id612",
@@ -6400,7 +6603,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/elote-style-vegetable-tostadas-id612.jpg"
   },
   {
     "id": "id613",
@@ -6429,7 +6633,8 @@
       "vegetarian",
       "main",
       "grill"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/grilled-halloumi-and-vegetables-id613.jpg"
   },
   {
     "id": "id614",
@@ -6465,7 +6670,8 @@
       "vegetarian",
       "main",
       "grill"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/grilled-veggies-and-gnocchi-with-salsa-verde-id614.jpg"
   },
   {
     "id": "id617",
@@ -6503,7 +6709,8 @@
     "tags": [
       "vegetarian",
       "main"
-    ]
+    ],
+    "image": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/recipes/katsu-style-eggplant-with-stir-fried-green-beans-and-sweet-peppers-id617.jpg"
   },
   {
     "id": "id620",

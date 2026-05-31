@@ -10,7 +10,12 @@ import {
   type WorkoutDay,
 } from "@/data/workouts";
 import { getTemplate, WORKOUT_TEMPLATES } from "@/data/workout-templates";
+import { getFocusPreset } from "@/data/focus-presets";
 import type { WorkoutMode } from "@/lib/types";
+import type {
+  BuiltDay,
+  CreateBuiltPlanInput,
+} from "@/lib/workout-plan-types";
 
 /**
  * Per-user customization model:
@@ -32,8 +37,13 @@ interface ActiveContext {
   activeTemplateId: string | null;
   activePlanId: string | null;
   // The template whose day layout + defaults apply right now: a saved
-  // plan's base template when on a plan, else the active template.
+  // plan's base template when on a plan, else the active template. NULL for
+  // a built plan, which carries its own day layout instead.
   effectiveTemplateId: string | null;
+  // True when the active plan is a fully-custom built plan.
+  isBuilt: boolean;
+  // The built plan's day layout, when on one.
+  builtDays: BuiltDay[] | null;
 }
 
 function defaultsFor(
@@ -60,17 +70,32 @@ async function resolveContext(
   const activePlanId = (data?.active_plan_id as string | null) ?? null;
 
   let effectiveTemplateId = activeTemplateId;
+  let isBuilt = false;
+  let builtDays: BuiltDay[] | null = null;
   if (activePlanId) {
     const { data: plan } = await supabase
       .from("workout_plans")
-      .select("base_template_id")
+      .select("base_template_id, is_built, days")
       .eq("id", activePlanId)
       .eq("user_id", userId)
       .single();
-    effectiveTemplateId =
-      (plan?.base_template_id as string | null) ?? activeTemplateId;
+    isBuilt = (plan?.is_built as boolean | null) ?? false;
+    if (isBuilt) {
+      // Built plans carry their own day layout; no underlying template.
+      effectiveTemplateId = null;
+      builtDays = (plan?.days as BuiltDay[] | null) ?? [];
+    } else {
+      effectiveTemplateId =
+        (plan?.base_template_id as string | null) ?? activeTemplateId;
+    }
   }
-  return { activeTemplateId, activePlanId, effectiveTemplateId };
+  return {
+    activeTemplateId,
+    activePlanId,
+    effectiveTemplateId,
+    isBuilt,
+    builtDays,
+  };
 }
 
 export type UserExerciseRow = {
@@ -91,7 +116,9 @@ export type UserExerciseRow = {
 export type WorkoutPlanRow = {
   id: string;
   name: string;
-  base_template_id: string;
+  base_template_id: string | null;
+  is_built: boolean;
+  days: BuiltDay[] | null;
   created_at: string;
 };
 
@@ -150,6 +177,10 @@ async function forkDayIfPristine(
   mode: WorkoutMode,
   dayIndex: number,
 ): Promise<void> {
+  // Built plans have no template defaults to fork — their rows are seeded at
+  // creation, and an emptied day stays empty until the user adds to it.
+  if (ctx.isBuilt) return;
+
   let countQuery = supabase
     .from("user_workout_exercises")
     .select("id", { count: "exact", head: true })
@@ -394,95 +425,11 @@ export async function getUserPlans(): Promise<WorkoutPlanRow[]> {
   if (!user) return [];
   const { data, error } = await supabase
     .from("workout_plans")
-    .select("id, name, base_template_id, created_at")
+    .select("id, name, base_template_id, is_built, days, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
   return (data ?? []) as WorkoutPlanRow[];
-}
-
-/**
- * Snapshot the current effective plan (scratch or active saved plan) into a
- * new named saved plan, then switch onto it. The source rows are COPIED, not
- * moved — so the scratch working copy survives for the underlying template.
- */
-export async function createPlanFromCurrent(name: string): Promise<void> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const trimmed = name.trim();
-  if (!trimmed) throw new Error("Plan name can't be empty.");
-
-  const ctx = await resolveContext(supabase, user.id);
-  const baseTemplateId = ctx.effectiveTemplateId ?? "custom-6day";
-
-  const { data: created, error: planErr } = await supabase
-    .from("workout_plans")
-    .insert({
-      user_id: user.id,
-      name: trimmed,
-      base_template_id: baseTemplateId,
-    })
-    .select("id")
-    .single();
-  if (planErr) throw new Error(planErr.message);
-  const newPlanId = created!.id as string;
-
-  // Pull all current-context rows for both modes up front.
-  let currentQuery = supabase
-    .from("user_workout_exercises")
-    .select("*")
-    .eq("user_id", user.id);
-  currentQuery = ctx.activePlanId
-    ? currentQuery.eq("plan_id", ctx.activePlanId)
-    : currentQuery.is("plan_id", null);
-  const { data: currentRows, error: curErr } = await currentQuery;
-  if (curErr) throw new Error(curErr.message);
-  const rows = (currentRows ?? []) as UserExerciseRow[];
-
-  const inserts: ReturnType<typeof exerciseToInsertRow>[] = [];
-  for (const mode of ["home", "gym"] as const) {
-    const days = defaultsFor(mode, baseTemplateId);
-    for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
-      const customForDay = rows
-        .filter((r) => r.mode === mode && r.day_index === dayIndex)
-        .sort((a, b) => a.position - b.position);
-      const source: Array<Exercise & { catalog_id?: string | null }> =
-        customForDay.length > 0
-          ? customForDay.map((r) => ({
-              name: r.name,
-              sets: r.sets,
-              note: r.note ?? undefined,
-              images: r.images ?? undefined,
-              searchQuery: r.search_query ?? `${r.name} proper form tutorial`,
-              catalog_id: r.catalog_id,
-            }))
-          : (days[dayIndex]?.exercises ?? []);
-      source.forEach((ex, i) =>
-        inserts.push(
-          exerciseToInsertRow(user.id, newPlanId, mode, dayIndex, i, ex),
-        ),
-      );
-    }
-  }
-
-  if (inserts.length > 0) {
-    const { error: insErr } = await supabase
-      .from("user_workout_exercises")
-      .insert(inserts);
-    if (insErr) throw new Error(insErr.message);
-  }
-
-  const { error: upErr } = await supabase
-    .from("profiles")
-    .update({ active_plan_id: newPlanId })
-    .eq("user_id", user.id);
-  if (upErr) throw new Error(upErr.message);
-
-  revalidatePath("/workout");
 }
 
 export async function applyPlan(planId: string): Promise<void> {
@@ -531,6 +478,86 @@ export async function deletePlan(planId: string): Promise<void> {
     .eq("id", planId)
     .eq("user_id", user.id);
   if (error) throw new Error(error.message);
+
+  revalidatePath("/workout");
+}
+
+/**
+ * Create a fully-custom ("built") plan from the plan builder: a user-chosen
+ * set of training weekdays, each with a focus and an auto-filled exercise set
+ * for both home and gym. Stores its own day layout in workout_plans.days and
+ * seeds plan-scoped exercise rows, then switches onto it.
+ */
+export async function createBuiltPlan(
+  input: CreateBuiltPlanInput,
+): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const name = input.name.trim();
+  if (!name) throw new Error("Plan name can't be empty.");
+  if (!input.days.length) throw new Error("Pick at least one training day.");
+
+  // Build the stored day layout, deriving visuals from each day's focus.
+  const builtDays: BuiltDay[] = input.days.map((d) => {
+    const preset = getFocusPreset(d.focus);
+    if (!preset) throw new Error(`Unknown focus: ${d.focus}`);
+    return {
+      weekday: d.weekday,
+      focus: preset.label,
+      icon: preset.icon,
+      color: preset.color,
+      duration: preset.duration,
+    };
+  });
+
+  const { data: created, error: planErr } = await supabase
+    .from("workout_plans")
+    .insert({
+      user_id: user.id,
+      name,
+      base_template_id: null,
+      is_built: true,
+      days: builtDays,
+    })
+    .select("id")
+    .single();
+  if (planErr) throw new Error(planErr.message);
+  const newPlanId = created!.id as string;
+
+  const inserts: ReturnType<typeof exerciseToInsertRow>[] = [];
+  for (const mode of ["home", "gym"] as const) {
+    const perDay = mode === "home" ? input.home : input.gym;
+    perDay.forEach((exercises, dayIndex) => {
+      exercises.forEach((ex, i) =>
+        inserts.push(
+          exerciseToInsertRow(user.id, newPlanId, mode, dayIndex, i, {
+            name: ex.name,
+            sets: ex.sets,
+            searchQuery: ex.search_query,
+            images: ex.images ?? undefined,
+            catalog_id: ex.catalog_id,
+          }),
+        ),
+      );
+    });
+  }
+
+  if (inserts.length > 0) {
+    const { error: insErr } = await supabase
+      .from("user_workout_exercises")
+      .insert(inserts);
+    if (insErr) throw new Error(insErr.message);
+  }
+
+  const { error: upErr } = await supabase
+    .from("profiles")
+    .update({ active_plan_id: newPlanId })
+    .eq("user_id", user.id);
+  if (upErr) throw new Error(upErr.message);
 
   revalidatePath("/workout");
 }

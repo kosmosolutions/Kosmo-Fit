@@ -26,7 +26,6 @@ export default async function WorkoutPage() {
 
   const today = new Date();
   const dayIdx = dayIndexForDate(today);
-  const initialDay = dayIdx >= 0 ? dayIdx : 0;
   const todayDate = todayISO();
 
   // Fetch both modes up-front so the user can switch home<->gym without
@@ -47,11 +46,27 @@ export default async function WorkoutPage() {
   const activePlan = activePlanId
     ? (plans.find((p) => p.id === activePlanId) ?? null)
     : null;
-  // Day layout + calorie banner resolve from the effective template: a
-  // saved plan's base template when on a plan, else the active template.
-  const effectiveTemplateId = activePlan
-    ? activePlan.base_template_id
-    : (profile.active_template_id ?? null);
+
+  // A built plan carries its own day layout; otherwise the day layout +
+  // calorie banner resolve from the effective template (a snapshot plan's
+  // base template when on a plan, else the active template).
+  const builtDays = activePlan?.is_built ? (activePlan.days ?? []) : null;
+  const effectiveTemplateId = builtDays
+    ? null
+    : activePlan
+      ? activePlan.base_template_id
+      : (profile.active_template_id ?? null);
+
+  // Default the day picker to today: for a built plan, the training day whose
+  // weekday matches; for template/legacy layouts, the legacy weekday map.
+  const initialDay = builtDays
+    ? Math.max(
+        0,
+        builtDays.findIndex((bd) => bd.weekday === today.getDay()),
+      )
+    : dayIdx >= 0
+      ? dayIdx
+      : 0;
 
   return (
     <WorkoutClient
@@ -72,6 +87,7 @@ export default async function WorkoutPage() {
       homePlan={homePlan}
       gymPlan={gymPlan}
       activeTemplateId={effectiveTemplateId}
+      builtDays={builtDays}
       plans={plans}
       activePlanId={activePlanId}
       activePlanName={activePlan?.name ?? null}

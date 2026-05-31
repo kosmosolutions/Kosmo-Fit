@@ -1,0 +1,22 @@
+{
+  "focus/arms": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/arms.jpg",
+  "focus/back": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/back.jpg",
+  "focus/cardio": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/cardio.jpg",
+  "focus/chest": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/chest.jpg",
+  "focus/core": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/core.jpg",
+  "focus/full": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/full.jpg",
+  "focus/legs": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/legs.jpg",
+  "focus/lower": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/lower.jpg",
+  "focus/pull": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/pull.jpg",
+  "focus/push": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/push.jpg",
+  "focus/shoulders": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/shoulders.jpg",
+  "focus/upper": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/focus/upper.jpg",
+  "templates/calisthenics-4day": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/templates/calisthenics-4day.jpg",
+  "templates/compound-5x5": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/templates/compound-5x5.jpg",
+  "templates/custom-6day": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/templates/custom-6day.jpg",
+  "templates/fullbody-3day": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/templates/fullbody-3day.jpg",
+  "templates/hiit-3day": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/templates/hiit-3day.jpg",
+  "templates/ppl-6day": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/templates/ppl-6day.jpg",
+  "templates/ppl-upperlower-5day": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/templates/ppl-upperlower-5day.jpg",
+  "templates/upperlower-4day": "https://mazlpgilmaengwpeycjx.supabase.co/storage/v1/object/public/card-images/templates/upperlower-4day.jpg"
+}

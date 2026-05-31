@@ -12,7 +12,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "enrich:images": "node scripts/enrich-recipe-images.mjs"
+    "enrich:images": "node scripts/enrich-recipe-images.mjs",
+    "sync:images": "node scripts/sync-card-images.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

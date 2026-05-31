@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import {
   X,
   Check,
-  Plus,
+  Wand2,
   Pencil,
   Trash2,
   Sparkles,
@@ -23,10 +23,12 @@ import {
   applyPlan,
   deletePlan,
   renamePlan,
-  createPlanFromCurrent,
   type WorkoutPlanRow,
 } from "@/lib/actions/workout-plan";
 import { TemplateHero } from "./TemplateHero";
+import { PlanBuilder } from "./PlanBuilder";
+import { templateImage, focusImage } from "@/lib/cardImages";
+import { dominantFocusKey } from "@/data/focus-presets";
 import {
   WORKOUT_TEMPLATES,
   getTemplate,
@@ -73,9 +75,8 @@ export function PlanPicker({
   const [selected, setSelected] = useState<string | null>(activeTemplateId);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<WorkoutPlanRow | null>(null);
-  const [naming, setNaming] = useState<
-    { kind: "create" } | { kind: "rename"; plan: WorkoutPlanRow } | null
-  >(null);
+  const [renaming, setRenaming] = useState<WorkoutPlanRow | null>(null);
+  const [building, setBuilding] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -84,7 +85,8 @@ export function PlanPicker({
       setSelected(activeTemplateId);
       setConfirming(null);
       setDeleting(null);
-      setNaming(null);
+      setRenaming(null);
+      setBuilding(false);
       setError(null);
     }
   }, [open, activeTemplateId]);
@@ -155,19 +157,15 @@ export function PlanPicker({
     });
   }
 
-  function runSaveName(name: string) {
+  function runRename(name: string) {
+    if (!renaming) return;
     setError(null);
     startTransition(async () => {
       try {
-        if (naming?.kind === "rename") {
-          await renamePlan(naming.plan.id, name);
-        } else {
-          await createPlanFromCurrent(name);
-        }
-        setNaming(null);
-        if (naming?.kind === "create") onClose();
+        await renamePlan(renaming.id, name);
+        setRenaming(null);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Could not save plan");
+        setError(e instanceof Error ? e.message : "Could not rename plan");
       }
     });
   }
@@ -217,15 +215,15 @@ export function PlanPicker({
             </div>
           )}
 
-          {/* Save current as a new plan */}
+          {/* Create your own program */}
           <button
             type="button"
-            onClick={() => setNaming({ kind: "create" })}
+            onClick={() => setBuilding(true)}
             disabled={pending}
-            className="mb-5 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-accent-violet/40 bg-accent-violet/[0.06] px-4 py-3 text-sm font-extrabold text-accent-violet transition hover:bg-accent-violet/[0.12] disabled:opacity-50"
+            className="mb-5 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-accent-cyan/40 bg-accent-cyan/[0.06] px-4 py-3 text-sm font-extrabold text-accent-cyan transition hover:bg-accent-cyan/[0.12] disabled:opacity-50"
           >
-            <Plus className="h-4 w-4" />
-            Save current workout as a plan
+            <Wand2 className="h-4 w-4" />
+            Create your own program
           </button>
 
           {/* Saved plans */}
@@ -239,7 +237,7 @@ export function PlanPicker({
                     plan={plan}
                     isActive={plan.id === activePlanId}
                     onApply={() => runApplyPlan(plan.id)}
-                    onRename={() => setNaming({ kind: "rename", plan })}
+                    onRename={() => setRenaming(plan)}
                     onDelete={() => setDeleting(plan)}
                     pending={pending}
                   />
@@ -260,6 +258,8 @@ export function PlanPicker({
                 onSelect={() => setSelected(t.id)}
                 onApply={() => handleApplyTemplate(t.id)}
                 pending={pending && confirming === null}
+                image={templateImage(t.id)}
+                query={t.name}
               />
             ))}
           </div>
@@ -290,17 +290,27 @@ export function PlanPicker({
         />
       )}
 
-      {/* Name input (create / rename) */}
-      {naming && (
+      {/* Rename plan */}
+      {renaming && (
         <NameModal
-          title={naming.kind === "create" ? "Save as new plan" : "Rename plan"}
-          initial={naming.kind === "rename" ? naming.plan.name : ""}
-          confirmLabel={naming.kind === "create" ? "Save plan" : "Rename"}
+          title="Rename plan"
+          initial={renaming.name}
+          confirmLabel="Rename"
           pending={pending}
-          onCancel={() => !pending && setNaming(null)}
-          onConfirm={runSaveName}
+          onCancel={() => !pending && setRenaming(null)}
+          onConfirm={runRename}
         />
       )}
+
+      {/* Create-your-own builder */}
+      <PlanBuilder
+        open={building}
+        onClose={() => setBuilding(false)}
+        onCreated={() => {
+          setBuilding(false);
+          onClose();
+        }}
+      />
     </div>
   );
 }
@@ -324,11 +334,25 @@ function SavedPlanCard({
   onDelete,
   pending,
 }: SavedPlanCardProps) {
-  const base = getTemplate(plan.base_template_id);
+  const isBuilt = plan.is_built;
+  const base = plan.base_template_id
+    ? getTemplate(plan.base_template_id)
+    : undefined;
   const Icon = (base && ICONS[base.icon]) ?? Sparkles;
-  const accent = base?.accent ?? "#7c5cff";
-  const gradient = base?.gradient ?? { from: "#7c5cff", to: "#22d3ee" };
+  const accent = base?.accent ?? "#22d3ee";
+  const gradient = base?.gradient ?? { from: "#22d3ee", to: "#a78bfa" };
   const motif = base?.motif ?? "burst";
+  const dayCount = isBuilt ? (plan.days?.length ?? 0) : null;
+  // Card image: a built plan uses its dominant focus's photo; a snapshot plan
+  // uses its base template's photo. Falls back to query/motif inside the hero.
+  const focusKey = isBuilt ? dominantFocusKey(plan.days) : undefined;
+  const heroImage = isBuilt
+    ? focusKey
+      ? focusImage(focusKey)
+      : null
+    : plan.base_template_id
+      ? templateImage(plan.base_template_id)
+      : null;
 
   return (
     <div
@@ -355,17 +379,24 @@ function SavedPlanCard({
           motif={motif}
           gradient={gradient}
           name={plan.name}
-          tagline="Saved plan"
+          tagline={isBuilt ? "Custom program" : "Saved plan"}
           active={isActive}
+          image={heroImage}
+          query={plan.name}
         />
       </button>
 
       <div className="space-y-3 p-4">
         <div className="flex flex-wrap gap-1.5">
-          <span className="inline-flex items-center rounded-full border border-accent-violet/30 bg-accent-violet/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-violet">
-            Custom
+          <span className="inline-flex items-center rounded-full border border-accent-cyan/30 bg-accent-cyan/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-cyan">
+            {isBuilt ? "Built" : "Custom"}
           </span>
-          {base && (
+          {isBuilt && dayCount != null && (
+            <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-chalk-300">
+              {dayCount} day{dayCount === 1 ? "" : "s"}
+            </span>
+          )}
+          {!isBuilt && base && (
             <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-chalk-300">
               Based on {base.name}
             </span>
@@ -426,6 +457,8 @@ interface CardProps {
   onSelect: () => void;
   onApply: () => void;
   pending: boolean;
+  image?: string | null;
+  query?: string;
 }
 
 function TemplateCard({
@@ -435,6 +468,8 @@ function TemplateCard({
   onSelect,
   onApply,
   pending,
+  image,
+  query,
 }: CardProps) {
   const Icon = ICONS[template.icon] ?? Sparkles;
   return (
@@ -466,6 +501,8 @@ function TemplateCard({
           name={template.name}
           tagline={template.tagline}
           active={isActive}
+          image={image}
+          query={query}
         />
       </button>
 
