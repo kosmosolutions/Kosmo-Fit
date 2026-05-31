@@ -175,12 +175,9 @@ async function rehostRecipes() {
   for (const r of recipes) {
     if (!r.image) continue;
     if (r.image.startsWith(storagePrefix) && !FORCE) continue; // already hosted
-    // Use the catalog's own slug (stable, unique) for the object path.
-    const slug = r.slug || slugify(r.name);
-    if (!slug) {
-      console.error(`✗ recipe ${r.name}: no slug`);
-      continue;
-    }
+    // Append the catalog id so same-named recipes (a few pairs exist) get
+    // distinct, stable object paths.
+    const slug = `${slugify(r.name) || "recipe"}-${r.id}`;
     try {
       r.image = await uploadFromUrl(`recipes/${slug}.jpg`, r.image);
       updated++;
