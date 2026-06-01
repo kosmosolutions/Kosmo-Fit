@@ -12,6 +12,7 @@ import { MacroOverrideEditor } from "@/components/MacroOverrideEditor";
 import { cn } from "@/lib/cn";
 
 const TIMEFRAMES = [12, 16, 20, 24, 30, 40, 52];
+const ACCENT = "#0A84FF";
 
 export function ProfileEditor({
   profile,
@@ -80,7 +81,6 @@ export function ProfileEditor({
   const cutting = delta >= 0;
   const toChange = Math.abs(delta);
 
-  // Progress toward goal, measured from the earliest logged weight in range.
   const startWeight = weightHistory.length ? weightHistory[0].weight : current;
   const totalSpan = Math.abs(startWeight - goal);
   const done = Math.abs(startWeight - current);
@@ -95,62 +95,62 @@ export function ProfileEditor({
       .join("") || "U").toUpperCase();
 
   return (
-    <div className="space-y-5">
-      {/* Identity header */}
+    <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-accent-blue/40 to-accent-cyan/20 text-base font-black text-chalk-50 ring-1 ring-white/10">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-accent-blue/20 text-[15px] font-bold text-white">
             {initials}
           </div>
           <div className="min-w-0">
-            <div className="label-tiny">Profile</div>
-            <h1 className="truncate text-2xl font-extrabold tracking-tight text-chalk-50">
+            <div className="metric-label">Profile</div>
+            <h1 className="display truncate text-[26px] leading-tight text-white">
               {f.full_name || "Your account"}
             </h1>
-            <div className="truncate text-xs text-chalk-400">{email}</div>
+            <div className="truncate text-[12px] font-medium text-chalk-400">
+              {email}
+            </div>
           </div>
         </div>
         <a
           href="/auth/logout"
           aria-label="Sign out"
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.03] text-chalk-400 transition hover:bg-white/[0.07] hover:text-chalk-100"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ink-800 text-chalk-400 transition-all duration-200 ease-ios active:scale-[0.92] hover:bg-accent-rose/15 hover:text-accent-rose"
         >
           <LogOut className="h-4 w-4" />
         </a>
       </div>
 
-      {/* Plan scoreboard */}
-      <div className="card-elev p-5">
+      <section className="card p-5">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-accent-cyan">
+            <div className="flex items-center gap-1.5 text-accent-blue">
               <Sparkles className="h-3.5 w-3.5" />
-              <span className="label-eyebrow">Plan summary</span>
+              <span className="metric-label text-accent-blue">Plan summary</span>
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-black tracking-tight text-chalk-50">
+              <span className="font-display text-[32px] font-black tracking-tightest text-white">
                 {current}
               </span>
               <ArrowRight className="h-4 w-4 shrink-0 text-chalk-500" />
-              <span className="text-3xl font-black tracking-tight text-accent-cyan">
+              <span className="font-display text-[32px] font-black tracking-tightest text-accent-blue">
                 {goal}
               </span>
-              <span className="text-sm font-bold text-chalk-400">lbs</span>
+              <span className="text-[14px] font-semibold text-chalk-400">lb</span>
             </div>
-            <div className="mt-1 text-xs text-chalk-400">
+            <div className="mt-1 text-[12px] font-medium text-chalk-400">
               {toChange < 0.5
                 ? "Maintaining current weight"
-                : `${toChange.toLocaleString()} lbs to ${cutting ? "lose" : "gain"} · ${stats.weeklyLoss} lbs/wk`}
+                : `${toChange.toLocaleString()} lb to ${cutting ? "lose" : "gain"} · ${stats.weeklyLoss} lb/wk`}
             </div>
           </div>
           {showProgress ? (
-            <div className="relative grid h-[72px] w-[72px] shrink-0 place-items-center">
-              <Ring pct={progressPct} color="#22d3ee" size={72} stroke={7} />
+            <div className="relative grid h-[80px] w-[80px] shrink-0 place-items-center">
+              <Ring pct={progressPct} color={ACCENT} size={80} stroke={8} />
               <div className="absolute text-center leading-none">
-                <div className="text-sm font-black text-chalk-50">
+                <div className="text-[15px] font-black text-white">
                   {Math.round(progressPct * 100)}%
                 </div>
-                <div className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-chalk-500">
+                <div className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-chalk-400">
                   there
                 </div>
               </div>
@@ -159,28 +159,27 @@ export function ProfileEditor({
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-2">
-          <Stat label={cutting ? "To lose" : "To gain"} value={toChange.toLocaleString()} unit="lbs" />
-          <Stat label="Per week" value={String(stats.weeklyLoss)} unit="lbs" />
+          <Stat label={cutting ? "To lose" : "To gain"} value={toChange.toLocaleString()} unit="lb" />
+          <Stat label="Per week" value={String(stats.weeklyLoss)} unit="lb" />
           <Stat label="Timeframe" value={String(f.weeks_to_goal)} unit="wk" />
         </div>
 
-        <div className="mt-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-xs text-chalk-400">
+        <div className="mt-3 rounded-2xl bg-ink-800 px-4 py-3 text-[12px] font-medium text-chalk-300">
           Daily base{" "}
-          <span className="font-bold text-chalk-100">
+          <span className="font-semibold text-white">
             {stats.restTarget.toLocaleString()} cal
           </span>{" "}
           · earn up to{" "}
-          <span className="font-bold text-accent-violet">
+          <span className="font-semibold text-accent-green">
             +{Math.max(...stats.burns)} cal
           </span>{" "}
           when you complete a workout
           {stats.aggressive ? (
-            <span className="font-bold text-accent-orange"> · aggressive pace</span>
+            <span className="font-semibold text-accent-orange"> · aggressive pace</span>
           ) : null}
         </div>
-      </div>
+      </section>
 
-      {/* Weight trend chart */}
       <WeightTrendChart
         points={weightHistory}
         currentWeight={Number(f.current_weight) || 0}
@@ -188,10 +187,9 @@ export function ProfileEditor({
         windowDays={90}
       />
 
-      {/* Name & basics */}
       <Section title="About you">
         <label className="block">
-          <span className="label-tiny">Full name</span>
+          <span className="metric-label">Full name</span>
           <input
             value={f.full_name}
             onChange={(e) => setF({ ...f, full_name: e.target.value })}
@@ -205,9 +203,10 @@ export function ProfileEditor({
               type="button"
               onClick={() => setF({ ...f, sex: s })}
               className={cn(
-                "btn-secondary capitalize",
-                f.sex === s &&
-                  "border-accent-cyan/60 bg-accent-cyan/10 text-accent-cyan",
+                "btn capitalize",
+                f.sex === s
+                  ? "bg-accent-blue/20 text-accent-blue"
+                  : "bg-ink-800 text-chalk-200 hover:bg-ink-700",
               )}
             >
               {s}
@@ -216,7 +215,6 @@ export function ProfileEditor({
         </div>
       </Section>
 
-      {/* Body */}
       <Section title="Body">
         <div className="grid grid-cols-3 gap-2">
           <Num label="Age" unit="yrs" v={f.age} min={13} max={100}
@@ -227,16 +225,15 @@ export function ProfileEditor({
             onChange={(v) => setF({ ...f, height_in: v })} />
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <Num label="Current weight" unit="lbs" v={f.current_weight}
+          <Num label="Current weight" unit="lb" v={f.current_weight}
             min={80} max={500} step={0.5}
             onChange={(v) => setF({ ...f, current_weight: v })} />
-          <Num label="Goal weight" unit="lbs" v={f.goal_weight}
+          <Num label="Goal weight" unit="lb" v={f.goal_weight}
             min={80} max={500} step={0.5} accent
             onChange={(v) => setF({ ...f, goal_weight: v })} />
         </div>
       </Section>
 
-      {/* Goal & timeframe */}
       <Section title="Timeframe">
         <div className="flex flex-wrap gap-1.5">
           {TIMEFRAMES.map((w) => (
@@ -245,10 +242,10 @@ export function ProfileEditor({
               type="button"
               onClick={() => setF({ ...f, weeks_to_goal: w })}
               className={cn(
-                "rounded-lg border px-3 py-1.5 text-sm font-bold",
+                "min-h-[40px] rounded-full px-4 text-[13px] font-semibold transition-all duration-200 ease-ios active:scale-[0.96]",
                 f.weeks_to_goal === w
-                  ? "border-accent-cyan bg-accent-cyan text-ink-950"
-                  : "border-white/10 bg-white/[0.03] text-chalk-300",
+                  ? "bg-accent-blue text-white"
+                  : "bg-ink-800 text-chalk-300 hover:bg-ink-700",
               )}
             >
               {w}w
@@ -257,10 +254,9 @@ export function ProfileEditor({
         </div>
       </Section>
 
-      {/* Primary goal & fitness experience */}
       <Section title="Goal & experience">
         <div>
-          <div className="label-tiny mb-2">Primary focus</div>
+          <div className="metric-label mb-2">Primary focus</div>
           <div className="grid grid-cols-2 gap-2">
             {(
               [
@@ -275,10 +271,10 @@ export function ProfileEditor({
                 type="button"
                 onClick={() => setF({ ...f, primary_goal: g.v })}
                 className={cn(
-                  "rounded-xl border px-3 py-2 text-left text-sm font-bold transition",
+                  "min-h-[48px] rounded-2xl px-4 text-left text-[14px] font-semibold transition-all duration-200 ease-ios active:scale-[0.98]",
                   f.primary_goal === g.v
-                    ? "border-accent-cyan/50 bg-accent-cyan/10 text-accent-cyan"
-                    : "border-white/10 bg-white/[0.025] text-chalk-100 hover:bg-white/[0.05]",
+                    ? "bg-accent-blue/20 text-accent-blue"
+                    : "bg-ink-800 text-white hover:bg-ink-700",
                 )}
               >
                 {g.label}
@@ -287,7 +283,7 @@ export function ProfileEditor({
           </div>
         </div>
         <div>
-          <div className="label-tiny mb-2">Fitness experience</div>
+          <div className="metric-label mb-2">Fitness experience</div>
           <div className="grid grid-cols-3 gap-2">
             {(
               [
@@ -301,9 +297,10 @@ export function ProfileEditor({
                 type="button"
                 onClick={() => setF({ ...f, fitness_experience: e.v })}
                 className={cn(
-                  "btn-secondary",
-                  f.fitness_experience === e.v &&
-                    "border-accent-cyan/60 bg-accent-cyan/10 text-accent-cyan",
+                  "btn",
+                  f.fitness_experience === e.v
+                    ? "bg-accent-blue/20 text-accent-blue"
+                    : "bg-ink-800 text-chalk-200 hover:bg-ink-700",
                 )}
               >
                 {e.label}
@@ -313,7 +310,6 @@ export function ProfileEditor({
         </div>
       </Section>
 
-      {/* Macros */}
       <Section title="Macros">
         <MacroOverrideEditor
           initialProtein={profile.macro_protein_pct}
@@ -324,7 +320,6 @@ export function ProfileEditor({
         />
       </Section>
 
-      {/* Lifestyle & workout mode */}
       <Section title="Lifestyle">
         <div className="space-y-2">
           {(Object.keys(LIFESTYLE) as Array<keyof typeof LIFESTYLE>).map((k) => {
@@ -336,22 +331,26 @@ export function ProfileEditor({
                 type="button"
                 onClick={() => setF({ ...f, lifestyle: k })}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition",
+                  "flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left transition-all duration-200 ease-ios active:scale-[0.98]",
                   sel
-                    ? "border-accent-cyan/50 bg-accent-cyan/10"
-                    : "border-white/10 bg-white/[0.025] hover:bg-white/[0.05]",
+                    ? "bg-accent-blue/15"
+                    : "bg-ink-800 hover:bg-ink-700",
                 )}
               >
                 <div>
                   <div className={cn(
-                    "text-sm font-bold",
-                    sel ? "text-accent-cyan" : "text-chalk-100",
+                    "text-[15px] font-semibold",
+                    sel ? "text-accent-blue" : "text-white",
                   )}>
                     {opt.label}
                   </div>
-                  <div className="text-xs text-chalk-400">{opt.desc}</div>
+                  <div className="text-[12px] font-medium text-chalk-400">
+                    {opt.desc}
+                  </div>
                 </div>
-                <div className="text-xs text-chalk-400">×{opt.multiplier}</div>
+                <div className="text-[12px] font-medium text-chalk-400">
+                  ×{opt.multiplier}
+                </div>
               </button>
             );
           })}
@@ -363,9 +362,10 @@ export function ProfileEditor({
               type="button"
               onClick={() => setF({ ...f, workout_mode: m })}
               className={cn(
-                "btn-secondary capitalize",
-                f.workout_mode === m &&
-                  "border-accent-cyan/60 bg-accent-cyan/10 text-accent-cyan",
+                "btn capitalize",
+                f.workout_mode === m
+                  ? "bg-accent-blue/20 text-accent-blue"
+                  : "bg-ink-800 text-chalk-200 hover:bg-ink-700",
               )}
             >
               {m}
@@ -393,7 +393,11 @@ export function ProfileEditor({
         />
       </Section>
 
-      <button onClick={save} disabled={pending} className="btn-primary w-full py-3">
+      <button
+        onClick={save}
+        disabled={pending}
+        className="btn-primary w-full"
+      >
         {pending ? "Saving…" : saved ? "Saved ✓" : "Save profile"}
       </button>
     </div>
@@ -410,11 +414,13 @@ function Stat({
   unit: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.07] bg-white/[0.025] px-3 py-2">
-      <div className="label-tiny">{label}</div>
+    <div className="rounded-2xl bg-ink-800 px-3 py-2.5">
+      <div className="metric-label">{label}</div>
       <div className="mt-0.5 flex items-baseline gap-1">
-        <span className="text-lg font-extrabold text-chalk-50">{value}</span>
-        <span className="text-[10px] text-chalk-400">{unit}</span>
+        <span className="font-display text-[22px] font-black tracking-tightest text-white">
+          {value}
+        </span>
+        <span className="text-[11px] font-medium text-chalk-400">{unit}</span>
       </div>
     </div>
   );
@@ -429,10 +435,8 @@ function Section({
 }) {
   return (
     <section className="space-y-3">
-      <div className="label-tiny">{title}</div>
-      <div className="space-y-3 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
-        {children}
-      </div>
+      <div className="metric-label">{title}</div>
+      <div className="card space-y-3 p-4">{children}</div>
     </section>
   );
 }
@@ -457,13 +461,13 @@ function Num({
   onChange: (n: number) => void;
 }) {
   return (
-    <div className={cn(
-      "rounded-xl border p-3",
-      accent
-        ? "border-accent-cyan/30 bg-accent-cyan/5"
-        : "border-white/10 bg-white/[0.03]",
-    )}>
-      <div className="label-tiny">{label}</div>
+    <div
+      className={cn(
+        "rounded-2xl p-3",
+        accent ? "bg-accent-blue/10" : "bg-ink-800",
+      )}
+    >
+      <div className="metric-label">{label}</div>
       <div className="mt-1 flex items-baseline gap-1">
         <input
           type="number"
@@ -474,11 +478,11 @@ function Num({
           step={step}
           onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
           className={cn(
-            "w-full border-none bg-transparent p-0 text-2xl font-extrabold outline-none",
-            accent ? "text-accent-cyan" : "text-chalk-50",
+            "w-full border-none bg-transparent p-0 font-display text-[26px] font-black tracking-tightest outline-none",
+            accent ? "text-accent-blue" : "text-white",
           )}
         />
-        <span className="text-[10px] text-chalk-400">{unit}</span>
+        <span className="text-[11px] font-medium text-chalk-400">{unit}</span>
       </div>
     </div>
   );

@@ -81,34 +81,34 @@ export function CalendarStats() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open activity stats"
-        className="flex h-full min-w-[44px] flex-col items-center justify-center gap-0.5 rounded-xl border border-accent-cyan/30 bg-accent-cyan/10 px-2.5 text-accent-cyan transition hover:border-accent-cyan/50 hover:bg-accent-cyan/15"
+        className="flex h-full min-w-[48px] flex-col items-center justify-center gap-0.5 rounded-2xl bg-accent-blue/15 px-3 text-accent-blue transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-accent-blue/25"
       >
         <BarChart3 className="h-4 w-4" />
-        <span className="text-[9px] font-extrabold uppercase tracking-wider">
+        <span className="text-[10px] font-semibold uppercase tracking-wider">
           Stats
         </span>
       </button>
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-ink-950/80 backdrop-blur-sm sm:items-center sm:p-6"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-6"
           role="dialog"
           aria-modal="true"
           aria-label="Activity stats"
           onClick={() => setOpen(false)}
         >
           <div
-            className="w-full overflow-hidden rounded-t-3xl border border-white/10 bg-ink-900 sm:max-w-md sm:rounded-3xl"
+            className="w-full overflow-hidden rounded-t-3xl bg-ink-850 sm:max-w-md sm:rounded-3xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3 border-b border-white/10 p-5">
+            <div className="flex items-start justify-between gap-3 p-5">
               <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent-cyan/15 ring-1 ring-accent-cyan/30">
-                  <BarChart3 className="h-5 w-5 text-accent-cyan" />
+                <div className="grid h-11 w-11 place-items-center rounded-full bg-accent-blue/20">
+                  <BarChart3 className="h-5 w-5 text-accent-blue" />
                 </div>
                 <div>
-                  <div className="label-tiny">Consistency</div>
-                  <h2 className="text-lg font-extrabold text-chalk-50">
+                  <div className="metric-label">Consistency</div>
+                  <h2 className="text-[20px] font-bold tracking-tight text-white">
                     Activity stats
                   </h2>
                 </div>
@@ -117,13 +117,13 @@ export function CalendarStats() {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close"
-                className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-chalk-300 transition hover:bg-white/[0.08] hover:text-chalk-50"
+                className="grid h-9 w-9 place-items-center rounded-full bg-ink-800 text-chalk-300 transition-all duration-200 ease-ios active:scale-[0.92] hover:bg-ink-700 hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="space-y-4 p-5">
+            <div className="space-y-4 p-5 pt-0">
               <div className="flex flex-wrap gap-1.5">
                 {PRESETS.map((p) => (
                   <button
@@ -131,10 +131,10 @@ export function CalendarStats() {
                     type="button"
                     onClick={() => setPreset(p.id)}
                     className={cn(
-                      "rounded-full px-3 py-1.5 text-xs font-bold transition",
+                      "min-h-[36px] rounded-full px-4 text-[13px] font-semibold transition-all duration-200 ease-ios active:scale-[0.96]",
                       preset === p.id
-                        ? "bg-accent-cyan/15 text-accent-cyan ring-1 ring-accent-cyan/30"
-                        : "bg-white/[0.04] text-chalk-300 hover:bg-white/[0.08]",
+                        ? "bg-accent-blue/20 text-accent-blue"
+                        : "bg-ink-800 text-chalk-300 hover:bg-ink-700",
                     )}
                   >
                     {p.label}
@@ -145,7 +145,7 @@ export function CalendarStats() {
               {preset === "custom" && (
                 <div className="grid grid-cols-2 gap-2">
                   <label className="block">
-                    <span className="label-tiny">From</span>
+                    <span className="metric-label">From</span>
                     <input
                       type="date"
                       max={today}
@@ -155,7 +155,7 @@ export function CalendarStats() {
                     />
                   </label>
                   <label className="block">
-                    <span className="label-tiny">To</span>
+                    <span className="metric-label">To</span>
                     <input
                       type="date"
                       max={today}
@@ -167,7 +167,7 @@ export function CalendarStats() {
                 </div>
               )}
 
-              <div className="flex items-center justify-between text-[11px] text-chalk-400">
+              <div className="flex items-center justify-between text-[12px] font-medium text-chalk-400">
                 <span>
                   {validRange
                     ? `${shortDate(fromISODate(range.start))} – ${shortDate(
@@ -179,7 +179,7 @@ export function CalendarStats() {
               </div>
 
               {!validRange ? (
-                <div className="grid h-32 place-items-center text-sm text-chalk-400">
+                <div className="grid h-32 place-items-center text-[13px] font-medium text-chalk-400">
                   Start date must be on or before the end date.
                 </div>
               ) : stats ? (
@@ -190,24 +190,24 @@ export function CalendarStats() {
                       Icon={Dumbbell}
                       days={stats.workoutDays}
                       total={stats.totalDays}
-                      color="#7c5cff"
+                      color="#30D158"
                     />
                     <StatRing
                       label="Steps"
                       Icon={Footprints}
                       days={stats.stepDays}
                       total={stats.totalDays}
-                      color="#22c55e"
+                      color="#0A84FF"
                     />
                     <StatRing
-                      label="Diet"
+                      label="Nutrition"
                       Icon={Salad}
                       days={stats.dietDays}
                       total={stats.totalDays}
-                      color="#00a8e8"
+                      color="#FF9F0A"
                     />
                   </div>
-                  <div className="rounded-xl bg-white/[0.03] px-3 py-2 text-center text-[11px] text-chalk-400">
+                  <div className="rounded-2xl bg-ink-800 px-4 py-3 text-center text-[12px] font-medium text-chalk-300">
                     {stats.totalSteps.toLocaleString()} steps over{" "}
                     {stats.totalDays} days
                     {stats.totalDays > 0 &&
@@ -244,20 +244,20 @@ function StatRing({
 }) {
   const pct = total > 0 ? days / total : 0;
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] p-3 text-center">
+    <div className="rounded-2xl bg-ink-800 p-3 text-center">
       <div className="relative mx-auto h-[72px] w-[72px]">
         <Ring pct={pct} color={color} size={72} stroke={7} />
         <div className="absolute inset-0 grid place-items-center">
-          <span className="text-base font-black text-chalk-50">
+          <span className="text-[16px] font-black text-white">
             {Math.round(pct * 100)}%
           </span>
         </div>
       </div>
       <div className="mt-2 flex items-center justify-center gap-1.5 text-chalk-200">
         <Icon className="h-3.5 w-3.5" style={{ color }} />
-        <span className="text-xs font-bold">{label}</span>
+        <span className="text-[12px] font-semibold">{label}</span>
       </div>
-      <div className="text-[11px] text-chalk-400">
+      <div className="text-[11px] font-medium text-chalk-400">
         {days} / {total} days
       </div>
     </div>

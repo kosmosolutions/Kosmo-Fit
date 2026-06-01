@@ -32,12 +32,8 @@ export function SessionTimer({ color }: { color: string }) {
           setElapsed(0);
           setStatus("running");
         }}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 text-sm font-extrabold transition hover:brightness-110"
-        style={{
-          color: "#0a0c14",
-          background: color,
-          borderColor: color,
-        }}
+        className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold text-black transition-all duration-200 ease-ios active:scale-[0.98] hover:brightness-110"
+        style={{ background: color }}
       >
         <Play className="h-4 w-4 fill-current" />
         Start session
@@ -46,30 +42,24 @@ export function SessionTimer({ color }: { color: string }) {
   }
 
   return (
-    <div
-      className="flex items-center gap-2 rounded-2xl border p-2"
-      style={{
-        background: `${color}14`,
-        borderColor: `${color}55`,
-      }}
-    >
-      <div className="flex flex-1 items-center gap-2 px-2">
+    <div className="flex items-center gap-2 rounded-2xl bg-ink-850 p-2">
+      <div className="flex flex-1 items-center gap-2 px-3">
         <span
           className="inline-block h-2 w-2 rounded-full"
           style={{
             background: status === "running" ? color : `${color}55`,
             boxShadow:
-              status === "running" ? `0 0 8px ${color}` : "none",
+              status === "running" ? `0 0 10px ${color}` : "none",
           }}
           aria-hidden
         />
         <span
-          className="font-mono text-xl font-extrabold tabular-nums"
+          className="font-display text-[22px] font-black tabular-nums tracking-tightest"
           style={{ color }}
         >
           {format(elapsed)}
         </span>
-        <span className="text-[10px] font-bold uppercase tracking-[2px] text-chalk-400">
+        <span className="metric-label">
           {status === "running" ? "Live" : "Paused"}
         </span>
       </div>
@@ -78,7 +68,7 @@ export function SessionTimer({ color }: { color: string }) {
         onClick={() =>
           setStatus(status === "running" ? "paused" : "running")
         }
-        className="flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.06] px-3 py-2 text-xs font-bold text-chalk-50 hover:bg-white/[0.12]"
+        className="flex min-h-[40px] items-center gap-1.5 rounded-full bg-ink-700 px-4 text-[12px] font-semibold text-white transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-ink-600"
       >
         {status === "running" ? (
           <>
@@ -98,7 +88,7 @@ export function SessionTimer({ color }: { color: string }) {
           setStatus("idle");
           setElapsed(0);
         }}
-        className="flex items-center gap-1.5 rounded-xl border border-accent-rose/30 bg-accent-rose/15 px-3 py-2 text-xs font-bold text-accent-rose hover:bg-accent-rose/25"
+        className="flex min-h-[40px] items-center gap-1.5 rounded-full bg-accent-rose/20 px-4 text-[12px] font-semibold text-accent-rose transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-accent-rose/30"
       >
         <Square className="h-3.5 w-3.5 fill-current" />
         Stop

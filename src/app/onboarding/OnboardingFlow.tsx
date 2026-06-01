@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { LogoMark } from "@/components/LogoMark";
@@ -80,7 +80,7 @@ export function OnboardingFlow({
             key={s}
             className={cn(
               "h-1 flex-1 rounded-full transition-colors",
-              i <= step ? "bg-accent-cyan" : "bg-white/10",
+              i <= step ? "bg-accent-blue" : "bg-white/10",
             )}
           />
         ))}
@@ -103,7 +103,7 @@ export function OnboardingFlow({
               you enter stays private to your account.
             </p>
             <label className="block">
-              <span className="label-tiny">Your name</span>
+              <span className="metric-label">Your name</span>
               <input
                 value={form.full_name ?? ""}
                 onChange={(e) =>
@@ -121,7 +121,7 @@ export function OnboardingFlow({
                   className={cn(
                     "btn-secondary capitalize",
                     form.sex === s &&
-                      "border-accent-cyan/60 bg-accent-cyan/10 text-accent-cyan",
+                      "border-accent-blue/60 bg-accent-blue/10 text-accent-blue",
                   )}
                   type="button"
                 >
@@ -155,7 +155,7 @@ export function OnboardingFlow({
               flag plans that are too aggressive.
             </p>
             <div>
-              <div className="label-tiny mb-2">Primary focus</div>
+              <div className="metric-label mb-2">Primary focus</div>
               <div className="grid grid-cols-2 gap-2">
                 {(
                   [
@@ -174,14 +174,14 @@ export function OnboardingFlow({
                       className={cn(
                         "rounded-xl border px-3 py-2.5 text-left transition",
                         sel
-                          ? "border-accent-cyan/50 bg-accent-cyan/10"
+                          ? "border-accent-blue/50 bg-accent-blue/10"
                           : "border-white/10 bg-white/[0.025] hover:bg-white/[0.05]",
                       )}
                     >
                       <div
                         className={cn(
                           "text-sm font-bold",
-                          sel ? "text-accent-cyan" : "text-chalk-100",
+                          sel ? "text-accent-blue" : "text-chalk-100",
                         )}
                       >
                         {g.label}
@@ -194,7 +194,7 @@ export function OnboardingFlow({
             </div>
             <NumberCard label="Goal weight" unit="lbs" value={form.goal_weight} min={80} max={500} onChange={(v) => setForm({ ...form, goal_weight: v })} accent />
             <div>
-              <div className="label-tiny mb-2">Timeframe</div>
+              <div className="metric-label mb-2">Timeframe</div>
               <div className="flex flex-wrap gap-2">
                 {TIMEFRAMES.map((w) => (
                   <button
@@ -204,7 +204,7 @@ export function OnboardingFlow({
                     className={cn(
                       "rounded-lg border px-3 py-1.5 text-sm font-bold transition",
                       form.weeks_to_goal === w
-                        ? "border-accent-cyan bg-accent-cyan text-ink-950"
+                        ? "border-accent-blue bg-accent-blue text-ink-950"
                         : "border-white/10 bg-white/[0.04] text-chalk-300 hover:bg-white/10",
                     )}
                   >
@@ -213,13 +213,13 @@ export function OnboardingFlow({
                 ))}
               </div>
               <div className="mt-3 text-sm text-chalk-300">
-                {form.weeks_to_goal} weeks ·{" "}
-                <span className="font-bold text-accent-cyan">
+                {form.weeks_to_goal} weeks Â·{" "}
+                <span className="font-bold text-accent-blue">
                   {stats.weeklyLoss} lbs/week
                 </span>
                 {stats.aggressive && (
                   <span className="ml-2 text-accent-orange">
-                    ⚠ aggressive — try a longer timeframe
+                    âš  aggressive â€” try a longer timeframe
                   </span>
                 )}
               </div>
@@ -248,7 +248,7 @@ export function OnboardingFlow({
                       className={cn(
                         "flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left transition",
                         sel
-                          ? "border-accent-cyan/50 bg-accent-cyan/10"
+                          ? "border-accent-blue/50 bg-accent-blue/10"
                           : "border-white/10 bg-white/[0.025] hover:bg-white/[0.05]",
                       )}
                     >
@@ -256,7 +256,7 @@ export function OnboardingFlow({
                         <div
                           className={cn(
                             "text-sm font-bold",
-                            sel ? "text-accent-cyan" : "text-chalk-100",
+                            sel ? "text-accent-blue" : "text-chalk-100",
                           )}
                         >
                           {opt.label}
@@ -264,7 +264,7 @@ export function OnboardingFlow({
                         <div className="text-xs text-chalk-400">{opt.desc}</div>
                       </div>
                       <div className="text-xs text-chalk-400">
-                        ×{opt.multiplier}
+                        Ã—{opt.multiplier}
                       </div>
                     </button>
                   );
@@ -273,7 +273,7 @@ export function OnboardingFlow({
             </div>
 
             <div>
-              <div className="label-tiny mb-2">Where will you train?</div>
+              <div className="metric-label mb-2">Where will you train?</div>
               <div className="grid grid-cols-3 gap-2">
                 {(["home", "gym", "both"] as const).map((m) => (
                   <button
@@ -283,7 +283,7 @@ export function OnboardingFlow({
                     className={cn(
                       "btn-secondary capitalize",
                       form.workout_mode === m &&
-                        "border-accent-cyan/60 bg-accent-cyan/10 text-accent-cyan",
+                        "border-accent-blue/60 bg-accent-blue/10 text-accent-blue",
                     )}
                   >
                     {m}
@@ -303,12 +303,12 @@ export function OnboardingFlow({
             />
 
             <div>
-              <div className="label-tiny mb-2">Fitness experience</div>
+              <div className="metric-label mb-2">Fitness experience</div>
               <div className="grid grid-cols-3 gap-2">
                 {(
                   [
                     { v: "beginner", label: "Beginner", sub: "<6 mo lifting" },
-                    { v: "intermediate", label: "Intermediate", sub: "6 mo – 2 yrs" },
+                    { v: "intermediate", label: "Intermediate", sub: "6 mo â€“ 2 yrs" },
                     { v: "advanced", label: "Advanced", sub: "2+ yrs lifting" },
                   ] as const
                 ).map((e) => {
@@ -321,14 +321,14 @@ export function OnboardingFlow({
                       className={cn(
                         "rounded-xl border px-2 py-2.5 text-center transition",
                         sel
-                          ? "border-accent-cyan/50 bg-accent-cyan/10"
+                          ? "border-accent-blue/50 bg-accent-blue/10"
                           : "border-white/10 bg-white/[0.025] hover:bg-white/[0.05]",
                       )}
                     >
                       <div
                         className={cn(
                           "text-sm font-bold",
-                          sel ? "text-accent-cyan" : "text-chalk-100",
+                          sel ? "text-accent-blue" : "text-chalk-100",
                         )}
                       >
                         {e.label}
@@ -352,9 +352,9 @@ export function OnboardingFlow({
               time from your profile.
             </p>
             <div className="card-elev p-5">
-              <div className="flex items-center gap-2 text-accent-cyan">
+              <div className="flex items-center gap-2 text-accent-blue">
                 <Sparkles className="h-4 w-4" />
-                <div className="label-tiny text-accent-cyan">
+                <div className="metric-label text-accent-blue">
                   Daily calorie target
                 </div>
               </div>
@@ -362,17 +362,17 @@ export function OnboardingFlow({
                 {stats.avgWorkoutTarget.toLocaleString()}
               </div>
               <div className="text-xs text-chalk-400">
-                on workout days · {stats.restTarget.toLocaleString()} on rest
+                on workout days Â· {stats.restTarget.toLocaleString()} on rest
               </div>
 
               <div className="mt-4 grid grid-cols-3 gap-3">
                 {[
                   { label: "Protein", v: stats.proteinG, unit: "g", color: "text-accent-violet" },
-                  { label: "Carbs", v: stats.workoutMacros.carbG, unit: "g", color: "text-accent-cyan" },
+                  { label: "Carbs", v: stats.workoutMacros.carbG, unit: "g", color: "text-accent-blue" },
                   { label: "Fat", v: stats.workoutMacros.fatG, unit: "g", color: "text-accent-amber" },
                 ].map((m) => (
                   <div key={m.label}>
-                    <div className="label-tiny">{m.label}</div>
+                    <div className="metric-label">{m.label}</div>
                     <div className={`text-xl font-extrabold ${m.color}`}>
                       {m.v}
                       <span className="ml-0.5 text-[10px] text-chalk-400">
@@ -417,7 +417,7 @@ export function OnboardingFlow({
             className="btn-primary flex-1"
             disabled={pending}
           >
-            {pending ? "Saving…" : "Start tracking"}
+            {pending ? "Savingâ€¦" : "Start tracking"}
           </button>
         )}
       </div>
@@ -449,11 +449,11 @@ function NumberCard({
       className={cn(
         "rounded-2xl border p-4",
         accent
-          ? "border-accent-cyan/30 bg-accent-cyan/5"
+          ? "border-accent-blue/30 bg-accent-blue/5"
           : "border-white/10 bg-white/[0.03]",
       )}
     >
-      <div className="label-tiny">{label}</div>
+      <div className="metric-label">{label}</div>
       <div className="mt-1 flex items-baseline gap-1.5">
         <input
           type="number"
@@ -465,7 +465,7 @@ function NumberCard({
           onChange={(e) => onChange(Number(e.target.value) || 0)}
           className={cn(
             "w-24 border-none bg-transparent p-0 text-3xl font-black outline-none",
-            accent ? "text-accent-cyan" : "text-chalk-50",
+            accent ? "text-accent-blue" : "text-chalk-50",
           )}
         />
         <span className="text-[11px] text-chalk-400">{unit}</span>
@@ -485,7 +485,7 @@ function Stat({
 }) {
   return (
     <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-      <div className="label-tiny">{label}</div>
+      <div className="metric-label">{label}</div>
       <div className={cn("mt-1 text-lg font-extrabold", accent ?? "text-chalk-100")}>
         {v}
       </div>

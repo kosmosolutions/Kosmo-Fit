@@ -27,7 +27,7 @@ export default async function SignupPage({
           <h2 className="display mt-3 text-4xl leading-[0.95] text-chalk-50 xl:text-5xl">
             Your plan,
             <br />
-            <span className="text-accent-cyan">built around you.</span>
+            <span className="text-accent-blue">built around you.</span>
           </h2>
           <p className="mt-4 max-w-sm text-sm text-chalk-300">
             Two-minute setup. Calorie target, macros and training split adapt to
@@ -64,7 +64,7 @@ export default async function SignupPage({
 
         <form action={signupAction} className="mt-8 space-y-4">
           <label className="block">
-            <span className="label-tiny">Full name</span>
+            <span className="metric-label">Full name</span>
             <input
               name="full_name"
               type="text"
@@ -74,7 +74,7 @@ export default async function SignupPage({
             />
           </label>
           <label className="block">
-            <span className="label-tiny">Email</span>
+            <span className="metric-label">Email</span>
             <input
               name="email"
               type="email"
@@ -85,7 +85,7 @@ export default async function SignupPage({
             />
           </label>
           <label className="block">
-            <span className="label-tiny">Password</span>
+            <span className="metric-label">Password</span>
             <input
               name="password"
               type="password"
@@ -96,14 +96,14 @@ export default async function SignupPage({
               placeholder="At least 8 characters"
             />
           </label>
-          <button type="submit" className="btn-primary w-full py-3.5">
+          <button type="submit" className="btn-primary w-full">
             Create account
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-chalk-300">
           Already have one?{" "}
-          <Link href="/login" className="font-bold text-accent-cyan">
+          <Link href="/login" className="font-bold text-accent-blue">
             Log in
           </Link>
         </p>

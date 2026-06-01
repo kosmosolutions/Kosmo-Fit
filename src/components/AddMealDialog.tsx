@@ -321,8 +321,8 @@ export function AddMealDialog({
         }}
         className={cn(
           triggerVariant === "primary"
-            ? "btn-primary w-full py-3 text-sm"
-            : "inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-chalk-200 hover:bg-white/10",
+            ? "btn w-full bg-accent-orange text-black hover:brightness-110"
+            : "inline-flex min-h-[36px] items-center gap-1.5 rounded-full bg-ink-800 px-3 text-[12px] font-semibold text-white transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-ink-700",
           triggerClassName,
         )}
       >
@@ -332,40 +332,39 @@ export function AddMealDialog({
 
       {open && (
         <div
-          className="fixed inset-0 z-40 flex items-stretch justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4"
+          className="fixed inset-0 z-40 flex items-stretch justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
           onClick={() => setOpen(false)}
         >
           <div
-            className="flex h-full w-full flex-col overflow-hidden border-white/10 bg-ink-900 sm:h-auto sm:max-h-[88svh] sm:max-w-md sm:rounded-3xl sm:border"
+            className="flex h-full w-full flex-col overflow-hidden bg-ink-900 sm:h-auto sm:max-h-[88svh] sm:max-w-md sm:rounded-3xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Fixed header: title, meal target, tabs */}
-            <div className="shrink-0 border-b border-white/10 p-5 pb-3">
+            <div className="shrink-0 p-5 pb-3">
             <div className="mb-4 flex items-center justify-between">
-              <div className="text-lg font-extrabold text-chalk-50">
+              <div className="text-[20px] font-bold tracking-tight text-white">
                 Log a meal
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-lg p-1 text-chalk-400 hover:bg-white/10"
+                className="grid h-9 w-9 place-items-center rounded-full bg-ink-800 text-chalk-300 transition-all duration-200 ease-ios active:scale-[0.92] hover:bg-ink-700 hover:text-white"
                 aria-label="Close"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="mb-3 grid grid-cols-4 gap-1">
+            <div className="mb-3 grid grid-cols-4 gap-1.5">
               {MEALS.map((m) => (
                 <button
                   key={m}
                   type="button"
                   onClick={() => setForm({ ...form, meal_type: m })}
                   className={cn(
-                    "rounded-lg border px-2 py-1.5 text-[11px] font-bold capitalize transition",
+                    "min-h-[36px] rounded-full text-[12px] font-semibold capitalize transition-all duration-200 ease-ios active:scale-[0.96]",
                     form.meal_type === m
-                      ? "border-accent-cyan bg-accent-cyan/15 text-accent-cyan"
-                      : "border-white/10 bg-white/[0.03] text-chalk-300",
+                      ? "bg-accent-orange/20 text-accent-orange"
+                      : "bg-ink-800 text-chalk-300 hover:bg-ink-700",
                   )}
                 >
                   {m}
@@ -373,7 +372,7 @@ export function AddMealDialog({
               ))}
             </div>
 
-            <div className="flex gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
+            <div className="flex gap-1 rounded-full bg-ink-800 p-1">
               <TabButton
                 active={tab === "foods"}
                 onClick={() => {
@@ -691,8 +690,8 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-1 items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[11px] font-bold transition",
-        active ? "bg-white/[0.08] text-chalk-50" : "text-chalk-300",
+        "flex min-h-[34px] flex-1 items-center justify-center gap-1 rounded-full px-2 text-[12px] font-semibold transition-all duration-200 ease-ios",
+        active ? "bg-ink-700 text-white" : "text-chalk-300 hover:text-white",
       )}
     >
       {children}

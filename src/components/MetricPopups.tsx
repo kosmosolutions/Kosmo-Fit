@@ -80,18 +80,20 @@ function Shell({
       onClick={onClose}
     >
       <div
-        className="w-full overflow-hidden rounded-t-3xl border border-white/10 bg-ink-900 sm:max-w-md sm:rounded-3xl"
+        className="w-full overflow-hidden rounded-t-3xl bg-ink-850 sm:max-w-md sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-white/10 p-5">
+        <div className="flex items-start justify-between gap-3 p-5">
           <div className="flex items-center gap-3">
-            <div className={cn("grid h-10 w-10 place-items-center rounded-xl", tone.ring)}>
+            <div className={cn("grid h-11 w-11 place-items-center rounded-full", tone.ring)}>
               <Icon className={cn("h-5 w-5", tone.accent)} />
             </div>
             <div>
-              <div className="label-tiny">{title}</div>
+              <div className="metric-label">{title}</div>
               {subtitle && (
-                <h2 className="text-lg font-extrabold text-chalk-50">{subtitle}</h2>
+                <h2 className="text-[20px] font-bold tracking-tight text-white">
+                  {subtitle}
+                </h2>
               )}
             </div>
           </div>
@@ -99,7 +101,7 @@ function Shell({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="grid h-9 w-9 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-chalk-300 transition hover:bg-white/[0.08] hover:text-chalk-50"
+            className="grid h-9 w-9 place-items-center rounded-full bg-ink-800 text-chalk-300 transition-all duration-200 ease-ios active:scale-[0.92] hover:bg-ink-700 hover:text-white"
           >
             <X className="h-4 w-4" />
           </button>
@@ -109,17 +111,17 @@ function Shell({
           {children}
 
           {error && (
-            <div className="rounded-xl border border-accent-rose/30 bg-accent-rose/10 px-3 py-2 text-sm text-accent-rose">
+            <div className="rounded-xl bg-accent-rose/15 px-4 py-3 text-[13px] font-semibold text-accent-rose">
               {error}
             </div>
           )}
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-1">
             <button
               type="button"
               onClick={onClose}
               disabled={pending}
-              className="flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-chalk-200 transition hover:bg-white/[0.08] disabled:opacity-50"
+              className="btn-secondary flex-1 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -128,7 +130,7 @@ function Shell({
               onClick={onSave}
               disabled={pending || !canSave}
               className={cn(
-                "flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-extrabold text-ink-950 transition disabled:opacity-50",
+                "btn flex-1 text-black disabled:opacity-50",
                 tone.chip,
               )}
             >
@@ -156,17 +158,17 @@ function UnitToggle<T extends string>({
   onChange,
 }: UnitToggleProps<T>) {
   return (
-    <div className="inline-flex rounded-lg bg-white/[0.06] p-0.5">
+    <div className="inline-flex rounded-full bg-ink-800 p-1">
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
           className={cn(
-            "rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider transition",
+            "min-h-[32px] rounded-full px-3 text-[12px] font-semibold uppercase tracking-wider transition-all duration-200 ease-ios",
             value === o.value
-              ? "bg-white/[0.14] text-chalk-50"
-              : "text-chalk-400 hover:text-chalk-200",
+              ? "bg-ink-700 text-white"
+              : "text-chalk-400 hover:text-white",
           )}
         >
           {o.label}
@@ -196,7 +198,7 @@ function NumberField({
   decimals = 0,
 }: NumberFieldProps) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4">
+    <div className="rounded-2xl bg-ink-800 p-5">
       <div className="flex items-end gap-3">
         <input
           type="number"
@@ -212,20 +214,20 @@ function NumberField({
             )
           }
           className={cn(
-            "w-full min-w-0 bg-transparent text-4xl font-black tabular-nums outline-none placeholder:text-chalk-600",
+            "w-full min-w-0 bg-transparent font-display text-[44px] font-black leading-none tracking-tightest tabular-nums outline-none placeholder:text-chalk-500",
             color,
           )}
           placeholder="0"
         />
-        <div className="pb-2 text-sm font-bold text-chalk-400">{unit}</div>
+        <div className="pb-1 text-[15px] font-semibold text-chalk-400">{unit}</div>
       </div>
-      <div className="mt-3 flex gap-1.5">
+      <div className="mt-4 flex gap-2">
         {steps.map((s) => (
           <button
             key={s}
             type="button"
             onClick={() => onChange(Math.max(0, value + s))}
-            className="flex-1 rounded-lg border border-white/10 bg-white/[0.04] px-2 py-1.5 text-xs font-bold text-chalk-200 transition hover:bg-white/[0.08]"
+            className="min-h-[40px] flex-1 rounded-full bg-ink-700 px-3 text-[13px] font-semibold text-white transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-ink-600"
           >
             {s > 0 ? `+${s}` : s}
           </button>
@@ -295,9 +297,9 @@ export function WeightLogPopup({
       subtitle="Today's body weight"
       Icon={Scale}
       tone={{
-        ring: "bg-accent-cyan/15 ring-1 ring-accent-cyan/30",
-        chip: "bg-accent-cyan hover:bg-accent-cyan/90",
-        accent: "text-accent-cyan",
+        ring: "bg-accent-blue/20",
+        chip: "bg-accent-blue text-white hover:brightness-110",
+        accent: "text-accent-blue",
       }}
       pending={pending}
       error={error}
@@ -319,7 +321,7 @@ export function WeightLogPopup({
         onChange={setValue}
         unit={unit}
         steps={[-1, 0.5, 1]}
-        color="text-accent-cyan"
+        color="text-accent-blue"
         decimals={1}
       />
     </Shell>
@@ -382,9 +384,9 @@ export function WaterLogPopup({
       subtitle="Today's hydration"
       Icon={Droplets}
       tone={{
-        ring: "bg-sky-400/15 ring-1 ring-sky-400/30",
-        chip: "bg-sky-400 hover:bg-sky-400/90",
-        accent: "text-sky-300",
+        ring: "bg-accent-cyan/20",
+        chip: "bg-accent-cyan text-black hover:brightness-110",
+        accent: "text-accent-cyan",
       }}
       pending={pending}
       error={error}
@@ -406,7 +408,7 @@ export function WaterLogPopup({
         onChange={setValue}
         unit={unit}
         steps={steps}
-        color="text-sky-300"
+        color="text-accent-cyan"
       />
     </Shell>
   );
@@ -457,9 +459,9 @@ export function StepsLogPopup({
       subtitle="Today's step count"
       Icon={Footprints}
       tone={{
-        ring: "bg-accent-cyan/15 ring-1 ring-accent-cyan/30",
-        chip: "bg-accent-cyan hover:bg-accent-cyan/90",
-        accent: "text-accent-cyan",
+        ring: "bg-accent-blue/20",
+        chip: "bg-accent-blue text-white hover:brightness-110",
+        accent: "text-accent-blue",
       }}
       pending={pending}
       error={error}
@@ -471,7 +473,7 @@ export function StepsLogPopup({
         onChange={setValue}
         unit="steps"
         steps={[500, 1000, 5000]}
-        color="text-accent-cyan"
+        color="text-accent-blue"
       />
     </Shell>
   );
@@ -522,8 +524,8 @@ export function SleepLogPopup({
       subtitle="Last night's sleep"
       Icon={Moon}
       tone={{
-        ring: "bg-accent-violet/15 ring-1 ring-accent-violet/30",
-        chip: "bg-accent-violet hover:bg-accent-violet/90",
+        ring: "bg-accent-violet/20",
+        chip: "bg-accent-violet text-white hover:brightness-110",
         accent: "text-accent-violet",
       }}
       pending={pending}
@@ -588,8 +590,8 @@ export function NotesLogPopup({
       subtitle="How was today?"
       Icon={StickyNote}
       tone={{
-        ring: "bg-accent-amber/15 ring-1 ring-accent-amber/30",
-        chip: "bg-accent-amber hover:bg-accent-amber/90",
+        ring: "bg-accent-amber/20",
+        chip: "bg-accent-amber hover:brightness-110",
         accent: "text-accent-amber",
       }}
       pending={pending}

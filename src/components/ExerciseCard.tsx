@@ -116,35 +116,33 @@ export function ExerciseCard({
 
   return (
     <>
-      <div className="flex items-start gap-3 border-b border-white/[0.05] py-3 last:border-b-0">
+      <div className="flex items-start gap-3 border-b border-white/[0.05] py-3.5 last:border-b-0">
         <div
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-lg border font-mono text-[11px] font-extrabold"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full font-mono text-[12px] font-bold"
           style={{
             color,
-            borderColor: `${color}44`,
-            background: `${color}1c`,
+            background: `${color}26`,
           }}
         >
           {index + 1}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <div className="text-sm font-bold text-chalk-50">
+            <div className="text-[15px] font-semibold text-white">
               {exercise.name}
             </div>
             <div
-              className="rounded-md border px-2 py-0.5 font-mono text-[10px] whitespace-nowrap"
+              className="rounded-full px-2.5 py-0.5 font-mono text-[11px] font-semibold whitespace-nowrap"
               style={{
                 color,
-                borderColor: `${color}33`,
-                background: `${color}1c`,
+                background: `${color}26`,
               }}
             >
               {exercise.sets}
             </div>
           </div>
           {exercise.note ? (
-            <div className="mt-1 text-[11px] text-chalk-400">
+            <div className="mt-1 text-[12px] font-medium text-chalk-400">
               💡 {exercise.note}
             </div>
           ) : null}
@@ -152,7 +150,7 @@ export function ExerciseCard({
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="group relative mt-2 block aspect-video w-full max-w-[200px] overflow-hidden rounded-lg border border-white/10 bg-ink-900 transition hover:border-white/30"
+            className="group relative mt-2.5 block aspect-video w-full max-w-[220px] overflow-hidden rounded-xl bg-ink-800 transition-all duration-200 ease-ios active:scale-[0.98]"
             aria-label={`Watch demo: ${exercise.name}`}
           >
             {hasImages ? (
@@ -179,7 +177,7 @@ export function ExerciseCard({
               />
             )}
             <div className="absolute inset-0 flex items-center justify-center bg-black/30 transition group-hover:bg-black/15">
-              <div className="flex items-center gap-1.5 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-bold text-chalk-50 backdrop-blur">
+              <div className="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 text-[12px] font-semibold text-black backdrop-blur">
                 <Play className="h-3 w-3 fill-current" />
                 Watch
               </div>
@@ -195,27 +193,27 @@ export function ExerciseCard({
             onClick={() => setOpen(false)}
           >
           <div
-            className="flex max-h-[90svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-ink-900 sm:rounded-2xl"
+            className="flex max-h-[90svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-ink-850 sm:rounded-3xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
+            <div className="flex items-start justify-between gap-3 px-5 py-4">
               <div className="min-w-0">
-                <div className="truncate text-sm font-bold text-chalk-50">
+                <div className="truncate text-[17px] font-bold text-white">
                   {exercise.name}
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-chalk-400">
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-chalk-400">
                   <span
-                    className="rounded px-1.5 py-0.5"
-                    style={{ color, background: `${color}1c` }}
+                    className="rounded-full px-2 py-0.5"
+                    style={{ color, background: `${color}26` }}
                   >
                     {exercise.sets}
                   </span>
                   {detail?.level && (
                     <span
-                      className="rounded px-1.5 py-0.5"
+                      className="rounded-full px-2 py-0.5"
                       style={{
                         color: LEVEL_COLOR[detail.level],
-                        background: `${LEVEL_COLOR[detail.level]}20`,
+                        background: `${LEVEL_COLOR[detail.level]}26`,
                       }}
                     >
                       {detail.level}
@@ -228,7 +226,7 @@ export function ExerciseCard({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-lg p-1 text-chalk-400 hover:bg-white/10"
+                className="grid h-9 w-9 place-items-center rounded-full bg-ink-800 text-chalk-300 transition-all duration-200 ease-ios active:scale-[0.92] hover:bg-ink-700 hover:text-white"
                 aria-label="Close"
               >
                 <X className="h-4 w-4" />
@@ -259,10 +257,10 @@ export function ExerciseCard({
               )}
             </div>
 
-            <div className="overflow-y-auto px-4 py-3">
+            <div className="overflow-y-auto px-5 py-4">
               {exercise.note && (
-                <div className="mb-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] text-chalk-300">
-                  <span className="font-bold text-chalk-100">Coach note: </span>
+                <div className="mb-4 rounded-2xl bg-ink-800 px-4 py-3 text-[13px] font-medium text-chalk-300">
+                  <span className="font-semibold text-white">Coach note: </span>
                   {exercise.note}
                 </div>
               )}
@@ -270,11 +268,11 @@ export function ExerciseCard({
               {detail &&
                 (detail.primaryMuscles.length > 0 ||
                   detail.secondaryMuscles.length > 0) && (
-                  <div className="mb-3 flex flex-wrap gap-1.5">
+                  <div className="mb-4 flex flex-wrap gap-1.5">
                     {detail.primaryMuscles.map((m) => (
                       <span
                         key={`p-${m}`}
-                        className="rounded-full bg-accent-blue/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-cyan"
+                        className="rounded-full bg-accent-blue/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent-blue"
                       >
                         {m}
                       </span>
@@ -282,7 +280,7 @@ export function ExerciseCard({
                     {detail.secondaryMuscles.map((m) => (
                       <span
                         key={`s-${m}`}
-                        className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-chalk-400"
+                        className="rounded-full bg-ink-800 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-chalk-400"
                       >
                         {m}
                       </span>
@@ -291,10 +289,10 @@ export function ExerciseCard({
                 )}
 
               {detail && detail.instructions.length > 0 ? (
-                <ol className="space-y-2 text-sm text-chalk-200">
+                <ol className="space-y-3 text-[14px] font-medium text-chalk-200">
                   {detail.instructions.map((step, i) => (
                     <li key={i} className="flex gap-2.5">
-                      <span className="mt-0.5 inline-grid h-5 w-5 shrink-0 place-items-center rounded-full bg-accent-blue/15 text-[10px] font-bold text-accent-cyan">
+                      <span className="mt-0.5 inline-grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-blue/20 text-[11px] font-bold text-accent-blue">
                         {i + 1}
                       </span>
                       <span>{step}</span>
@@ -302,32 +300,34 @@ export function ExerciseCard({
                   ))}
                 </ol>
               ) : detailState === "loading" ? (
-                <div className="text-xs text-chalk-500">Loading details…</div>
+                <div className="text-[12px] font-medium text-chalk-400">
+                  Loading details…
+                </div>
               ) : (
-                <div className="text-xs text-chalk-500">
+                <div className="text-[12px] font-medium text-chalk-400">
                   No step-by-step guide for this move yet — use the tutorials
                   below.
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-between border-t border-white/10 px-4 py-3">
+            <div className="flex items-center justify-between gap-3 px-5 pb-5 pt-2">
               <a
                 href={watchUrl}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="inline-flex items-center gap-1 text-xs font-bold text-chalk-400 hover:text-chalk-100"
+                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full bg-ink-800 px-3 text-[12px] font-semibold text-chalk-200 transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-ink-700 hover:text-white"
               >
                 <ExternalLink className="h-3 w-3" />{" "}
-                {exercise.youtubeId ? "Open on YouTube" : "Search on YouTube"}
+                {exercise.youtubeId ? "YouTube" : "Search"}
               </a>
               <a
                 href={searchUrl}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="inline-flex items-center gap-1 text-xs font-bold text-chalk-400 hover:text-chalk-100"
+                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full bg-ink-800 px-3 text-[12px] font-semibold text-chalk-200 transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-ink-700 hover:text-white"
               >
-                More tutorials <ExternalLink className="h-3 w-3" />
+                More <ExternalLink className="h-3 w-3" />
               </a>
             </div>
           </div>

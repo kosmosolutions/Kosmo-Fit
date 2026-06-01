@@ -6,16 +6,23 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
+        // SF Pro first, fall through to Inter (Google) for non-Apple.
         sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "SF Pro Text",
+          "SF Pro Display",
           "var(--font-sans)",
           "Inter",
           "ui-sans-serif",
           "system-ui",
-          "-apple-system",
           "Segoe UI",
           "sans-serif",
         ],
         display: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "SF Pro Display",
           "var(--font-display)",
           "Inter Tight",
           "Inter",
@@ -26,51 +33,65 @@ const config: Config = {
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       letterSpacing: {
-        tightest: "-0.04em",
+        tightest: "-0.045em",
+        tighter2: "-0.03em",
       },
       colors: {
-        // Everfit-inspired — deep navy ink, cool chalk, electric blue/cyan
+        // Apple Fitness — OLED black canvas, layered grays for elevation.
         ink: {
-          950: "#080b10",
-          900: "#0f1419",
-          850: "#131923",
-          800: "#1a1f2e",
-          700: "#232a3d",
-          600: "#2f3850",
-          500: "#404a66",
+          950: "#000000", // pure OLED canvas
+          900: "#0a0a0c",
+          850: "#1c1c1e", // elevated bento surface
+          800: "#2c2c2e", // card / nested surface
+          700: "#3a3a3c",
+          600: "#48484a",
+          500: "#636366",
         },
         chalk: {
-          50: "#f5f7fb",
-          100: "#e6eaf2",
-          200: "#c7cee0",
-          300: "#9aa3bf",
-          400: "#6c7795",
-          500: "#4d5773",
+          50: "#ffffff",
+          100: "#f2f2f7",
+          200: "#d1d1d6",
+          300: "#aeaeb2",
+          400: "#8e8e93", // Apple secondary label
+          500: "#636366",
         },
         accent: {
-          // Primary brand accent — electric blue
-          blue: "#0066ff",
-          // Secondary — bright cyan
-          cyan: "#00a8e8",
-          // Kept aliases for tonal usage (semantic colors retuned cool)
-          lime: "#0066ff", // back-compat alias → resolves to primary blue
-          violet: "#7c5cff",
-          green: "#22c55e",
-          rose: "#f43f5e",
-          amber: "#f59e0b",
-          sky: "#38bdf8",
-          orange: "#fb923c",
+          // Apple Fitness ring + nutrition palette
+          rose: "#FF2D55", // Movement / Cardio
+          green: "#30D158", // Exercise / Strength
+          lime: "#A7FF00", // Alt strength accent
+          blue: "#0A84FF", // Stand / Hydration (primary brand)
+          cyan: "#64D2FF", // Secondary highlight
+          orange: "#FF9F0A", // Diet / Nutrition
+          amber: "#FFD60A",
+          violet: "#BF5AF2",
+          sky: "#5AC8FA",
         },
       },
+      borderRadius: {
+        // Apple hardware corners
+        xl: "12px",
+        "2xl": "16px",
+        "3xl": "22px",
+      },
       boxShadow: {
-        glow: "0 0 0 1px rgba(0,102,255,0.22), 0 8px 30px -10px rgba(0,102,255,0.45)",
-        card: "0 1px 0 rgba(255,255,255,0.03) inset, 0 0 0 1px rgba(255,255,255,0.05)",
+        // Subtle inner edge + ambient drop for bento depth on OLED.
+        glow: "0 0 0 1px rgba(10,132,255,0.30), 0 12px 36px -12px rgba(10,132,255,0.45)",
+        card: "0 1px 0 rgba(255,255,255,0.04) inset, 0 0 0 1px rgba(255,255,255,0.06)",
+        bento: "0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 24px -12px rgba(0,0,0,0.6)",
       },
       backgroundImage: {
         "grid-soft":
-          "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0)",
+          "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0)",
         "brand-gradient":
-          "linear-gradient(135deg, #0066ff 0%, #00a8e8 100%)",
+          "linear-gradient(135deg, #FF2D55 0%, #FF375F 60%, #FF6482 100%)",
+        "ring-move": "linear-gradient(180deg, #FF375F 0%, #FF2D55 100%)",
+        "ring-exercise": "linear-gradient(180deg, #A7FF00 0%, #30D158 100%)",
+        "ring-stand": "linear-gradient(180deg, #5AC8FA 0%, #0A84FF 100%)",
+        "ring-diet": "linear-gradient(180deg, #FFD60A 0%, #FF9F0A 100%)",
+      },
+      transitionTimingFunction: {
+        "ios": "cubic-bezier(0.32, 0.72, 0, 1)",
       },
     },
   },

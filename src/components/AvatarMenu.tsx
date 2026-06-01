@@ -51,10 +51,10 @@ export function AvatarMenu({ fullName, email }: AvatarMenuProps) {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-full border border-accent-blue/30",
-          "bg-accent-blue/15",
-          "text-[12px] font-extrabold tracking-wide text-accent-blue",
-          "transition hover:bg-accent-blue/25",
+          "flex h-10 w-10 items-center justify-center rounded-full",
+          "bg-accent-blue/20",
+          "text-[13px] font-bold text-accent-blue",
+          "transition-all duration-200 ease-ios active:scale-[0.92] hover:bg-accent-blue/30",
           open && "ring-2 ring-accent-blue/40",
         )}
       >
@@ -64,26 +64,30 @@ export function AvatarMenu({ fullName, email }: AvatarMenuProps) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-40 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl border border-white/10 bg-ink-900 shadow-card"
+          className="absolute right-0 z-40 mt-2 w-64 origin-top-right overflow-hidden rounded-2xl bg-ink-850 shadow-bento"
         >
-          <div className="border-b border-white/[0.06] px-4 py-3">
-            <div className="truncate text-sm font-bold text-chalk-50">
+          <div className="px-4 py-3">
+            <div className="truncate text-[14px] font-semibold text-white">
               {fullName?.trim() || "Account"}
             </div>
-            <div className="truncate text-xs text-chalk-400">{email}</div>
+            <div className="truncate text-[12px] font-medium text-chalk-400">
+              {email}
+            </div>
           </div>
+          <div className="h-px w-full bg-white/[0.06]" />
           <Link
             href="/profile"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-chalk-200 transition hover:bg-white/[0.04] hover:text-chalk-50"
+            className="flex min-h-[44px] items-center gap-2.5 px-4 text-[14px] font-semibold text-chalk-200 transition hover:bg-white/[0.04] hover:text-white"
           >
             <User className="h-4 w-4 text-chalk-400" />
             Profile & settings
           </Link>
+          <div className="h-px w-full bg-white/[0.06]" />
           <form action="/auth/logout" method="post">
             <button
               type="submit"
-              className="flex w-full items-center gap-2.5 border-t border-white/[0.06] px-4 py-2.5 text-left text-sm font-semibold text-chalk-200 transition hover:bg-accent-rose/10 hover:text-accent-rose"
+              className="flex min-h-[44px] w-full items-center gap-2.5 px-4 text-left text-[14px] font-semibold text-chalk-200 transition hover:bg-accent-rose/15 hover:text-accent-rose"
             >
               <LogOut className="h-4 w-4 text-chalk-400" />
               Sign out

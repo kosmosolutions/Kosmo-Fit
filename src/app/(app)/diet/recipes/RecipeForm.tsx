@@ -41,9 +41,9 @@ export function RecipeForm() {
 
   return (
     <div className="space-y-4">
-      <div className="card p-4 space-y-3">
+      <div className="card p-5 space-y-3">
         <label className="block">
-          <span className="label-tiny">Name</span>
+          <span className="metric-label">Name</span>
           <input
             autoFocus
             value={form.name}
@@ -53,7 +53,7 @@ export function RecipeForm() {
           />
         </label>
         <div>
-          <div className="label-tiny mb-1">Best for</div>
+          <div className="metric-label mb-1.5">Best for</div>
           <div className="flex flex-wrap gap-1.5">
             {MEALS.map((m) => (
               <button
@@ -61,10 +61,10 @@ export function RecipeForm() {
                 type="button"
                 onClick={() => setForm({ ...form, meal_type: m })}
                 className={cn(
-                  "rounded-lg border px-3 py-1.5 text-xs font-bold capitalize",
+                  "min-h-[36px] rounded-full px-4 text-[12px] font-semibold capitalize transition-all duration-200 ease-ios active:scale-[0.96]",
                   form.meal_type === m
-                    ? "border-accent-cyan bg-accent-cyan/15 text-accent-cyan"
-                    : "border-white/10 bg-white/[0.03] text-chalk-300",
+                    ? "bg-accent-orange/20 text-accent-orange"
+                    : "bg-ink-800 text-chalk-300 hover:bg-ink-700",
                 )}
               >
                 {m}
@@ -74,8 +74,8 @@ export function RecipeForm() {
         </div>
       </div>
 
-      <div className="card p-4">
-        <div className="label-tiny mb-2">Per serving</div>
+      <div className="card p-5">
+        <div className="metric-label mb-2">Per serving</div>
         <div className="grid grid-cols-2 gap-2">
           <Num label="Calories" v={form.calories_per_serving} unit="cal"
             onChange={(v) => setForm({ ...form, calories_per_serving: v })} />
@@ -92,8 +92,8 @@ export function RecipeForm() {
         </div>
       </div>
 
-      <div className="card p-4">
-        <div className="label-tiny mb-2">Ingredients</div>
+      <div className="card p-5">
+        <div className="metric-label mb-2">Ingredients</div>
         <div className="space-y-2">
           {ingredients.map((ing, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -122,7 +122,7 @@ export function RecipeForm() {
                 onClick={() =>
                   setIngredients(ingredients.filter((_, idx) => idx !== i))
                 }
-                className="rounded-lg p-2 text-chalk-400 hover:bg-white/10"
+                className="grid h-9 w-9 place-items-center rounded-full bg-ink-800 text-chalk-400 transition-all duration-200 ease-ios active:scale-[0.92] hover:bg-accent-rose/15 hover:text-accent-rose"
                 aria-label="Remove ingredient"
               >
                 <X className="h-4 w-4" />
@@ -141,8 +141,8 @@ export function RecipeForm() {
         </div>
       </div>
 
-      <div className="card p-4">
-        <div className="label-tiny mb-2">Instructions</div>
+      <div className="card p-5">
+        <div className="metric-label mb-2">Instructions</div>
         <textarea
           rows={4}
           value={form.instructions}
@@ -152,7 +152,7 @@ export function RecipeForm() {
         />
       </div>
 
-      <label className="flex cursor-pointer items-center justify-between rounded-2xl border border-white/[0.07] bg-white/[0.025] p-4">
+      <label className="card flex cursor-pointer items-center justify-between p-4">
         <span className="flex items-center gap-2">
           <Star
             className={cn(
@@ -162,7 +162,7 @@ export function RecipeForm() {
                 : "text-chalk-400",
             )}
           />
-          <span className="text-sm font-bold text-chalk-50">Mark as favorite</span>
+          <span className="text-[15px] font-semibold text-white">Mark as favorite</span>
         </span>
         <input
           type="checkbox"
@@ -170,7 +170,7 @@ export function RecipeForm() {
           onChange={(e) =>
             setForm({ ...form, is_favorite: e.target.checked })
           }
-          className="h-4 w-4 accent-cyan-400"
+          className="h-5 w-5 accent-orange-400"
         />
       </label>
 
@@ -178,7 +178,7 @@ export function RecipeForm() {
         type="button"
         disabled={pending || !form.name.trim()}
         onClick={submit}
-        className="btn-primary w-full py-3"
+        className="btn w-full bg-accent-orange text-black hover:brightness-110 disabled:opacity-50"
       >
         {pending ? "Saving…" : "Save recipe"}
       </button>
@@ -200,8 +200,8 @@ function Num({
   step?: number;
 }) {
   return (
-    <label className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-2">
-      <span className="label-tiny">{label}</span>
+    <label className="rounded-2xl bg-ink-800 p-3">
+      <span className="metric-label">{label}</span>
       <span className="mt-1 flex items-baseline gap-1">
         <input
           type="number"
@@ -209,9 +209,9 @@ function Num({
           value={v}
           step={step}
           onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-          className="w-full border-none bg-transparent p-0 text-lg font-extrabold text-chalk-50 outline-none"
+          className="w-full border-none bg-transparent p-0 font-display text-[22px] font-black tracking-tightest text-white outline-none"
         />
-        <span className="text-[10px] text-chalk-400">{unit}</span>
+        <span className="text-[11px] font-medium text-chalk-400">{unit}</span>
       </span>
     </label>
   );
