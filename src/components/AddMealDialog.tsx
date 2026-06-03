@@ -227,10 +227,10 @@ export function AddMealDialog({
         meal_type: form.meal_type,
         name: form.name.trim(),
         servings: form.servings,
-        calories: form.calories,
-        protein_g: form.protein_g,
-        carbs_g: form.carbs_g,
-        fat_g: form.fat_g,
+        calories: Math.round(form.calories),
+        protein_g: Math.round(form.protein_g),
+        carbs_g: Math.round(form.carbs_g),
+        fat_g: Math.round(form.fat_g),
       });
       setOpen(false);
       setForm({
@@ -245,21 +245,20 @@ export function AddMealDialog({
   }
 
   // Save the quick-entry form as a reusable recipe without leaving the dialog.
-  // The form's numbers are totals for `servings` units, so divide to store
-  // per-serving macros on the recipe row.
+  // The form's calories/macros are the totals for this item, so it becomes a
+  // 1-serving recipe carrying those totals.
   function saveQuickAsRecipe() {
     if (!form.name.trim() || quickSaved) return;
-    const s = Math.max(0.01, form.servings || 1);
     startQuickSave(async () => {
       await saveRecipe(
         {
           name: form.name.trim(),
           meal_type: form.meal_type,
-          servings: form.servings || 1,
-          calories_per_serving: Math.round(form.calories / s),
-          protein_g: Math.round(form.protein_g / s),
-          carbs_g: Math.round(form.carbs_g / s),
-          fat_g: Math.round(form.fat_g / s),
+          servings: 1,
+          calories_per_serving: Math.round(form.calories),
+          protein_g: Math.round(form.protein_g),
+          carbs_g: Math.round(form.carbs_g),
+          fat_g: Math.round(form.fat_g),
           ingredients: [],
           instructions: null,
           is_favorite: false,

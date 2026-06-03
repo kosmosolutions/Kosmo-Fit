@@ -33,17 +33,26 @@ export async function saveRecipe(
   opts?: { redirectAfter?: boolean },
 ) {
   const { supabase, userId } = await authed();
+  // Macro columns are integers; servings is numeric. Round the macros so a
+  // decimal entered in the form can't blow up the insert/update.
+  const row = {
+    ...input,
+    calories_per_serving: Math.round(input.calories_per_serving),
+    protein_g: Math.round(input.protein_g),
+    carbs_g: Math.round(input.carbs_g),
+    fat_g: Math.round(input.fat_g),
+  };
   if (id) {
     const { error } = await supabase
       .from("recipes")
-      .update(input)
+      .update(row)
       .eq("id", id)
       .eq("user_id", userId);
     if (error) throw new Error(error.message);
   } else {
     const { error } = await supabase
       .from("recipes")
-      .insert({ user_id: userId, ...input });
+      .insert({ user_id: userId, ...row });
     if (error) throw new Error(error.message);
   }
   revalidatePath("/diet");
