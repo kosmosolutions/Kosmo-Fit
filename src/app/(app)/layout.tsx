@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { BottomNav } from "@/components/BottomNav";
 import { TopBar } from "@/components/TopBar";
 import { SideNav } from "@/components/SideNav";
+import { TimezoneSync } from "@/components/TimezoneSync";
 import { calcStats } from "@/lib/calc";
 
 export default async function AppLayout({
@@ -28,6 +29,7 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-svh overflow-x-hidden md:flex">
+      <TimezoneSync />
       <SideNav
         weight={profile.current_weight}
         goalWeight={profile.goal_weight}
