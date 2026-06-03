@@ -40,6 +40,7 @@ export interface DailyEntry {
   steps: number;
   cardio_minutes: number;
   cardio_calories: number;
+  cardio_type: string | null;
   workout_completed: boolean;
   workout_day_index: number | null;
   workout_mode: WorkoutMode | null;

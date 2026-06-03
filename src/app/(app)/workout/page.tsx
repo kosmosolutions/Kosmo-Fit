@@ -3,10 +3,15 @@ import { createClient } from "@/lib/supabase/server";
 import { calcStats, dailyCalorieTarget, dayIndexForDate } from "@/lib/calc";
 import { WorkoutClient } from "@/components/WorkoutClient";
 import { getUserPlanRows, getUserPlans } from "@/lib/actions/workout-plan";
-import { todayISO } from "@/lib/dates";
+import { fromISODate } from "@/lib/dates";
+import { localTodayISO } from "@/lib/serverDate";
 import type { WorkoutMode } from "@/lib/types";
 
-export default async function WorkoutPage() {
+export default async function WorkoutPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -24,9 +29,13 @@ export default async function WorkoutPage() {
     profile.workout_mode === "gym" ? "gym" : "home";
   const stats = calcStats(profile, initialMode);
 
-  const today = new Date();
+  const { date: dateParam } = await searchParams;
+  const localToday = await localTodayISO();
+  const selectedDate = dateParam ?? localToday;
+  const isToday = selectedDate === localToday;
+  const today = fromISODate(selectedDate);
   const dayIdx = dayIndexForDate(today);
-  const todayDate = todayISO();
+  const todayDate = selectedDate;
 
   // Fetch both modes up-front so the user can switch home<->gym without
   // a network round-trip. Both lists are typically <50 rows total.
@@ -36,7 +45,9 @@ export default async function WorkoutPage() {
     getUserPlans(),
     supabase
       .from("daily_entries")
-      .select("workout_completed, cardio_minutes, cardio_calories")
+      .select(
+        "workout_completed, workout_day_index, cardio_minutes, cardio_calories, cardio_type",
+      )
       .eq("user_id", user.id)
       .eq("entry_date", todayDate)
       .maybeSingle(),
@@ -92,9 +103,12 @@ export default async function WorkoutPage() {
       activePlanId={activePlanId}
       activePlanName={activePlan?.name ?? null}
       todayDate={todayDate}
+      isToday={isToday}
       todayCompleted={daily?.workout_completed ?? false}
+      completedDayIndex={daily?.workout_day_index ?? null}
       todayCardioMinutes={daily?.cardio_minutes ?? 0}
       todayCardioCalories={daily?.cardio_calories ?? 0}
+      todayCardioType={daily?.cardio_type ?? null}
       bodyWeightLbs={Number(profile.current_weight) || 0}
     />
   );

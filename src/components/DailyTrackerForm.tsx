@@ -27,12 +27,14 @@ import type { WaterUnit, WeightUnit } from "@/lib/units";
 
 interface Props {
   entryDate: string;
+  isToday?: boolean;
   bodyWeightLbs: number;
   initial: {
     weight: number | null;
     steps: number;
     cardio_minutes: number;
     cardio_calories: number;
+    cardio_type: string | null;
     workout_completed: boolean;
     water_oz: number;
     sleep_hours: number | null;
@@ -43,7 +45,12 @@ interface Props {
 
 type Popup = "weight" | "steps" | "cardio" | "water" | "sleep" | "notes";
 
-export function DailyTrackerForm({ entryDate, bodyWeightLbs, initial }: Props) {
+export function DailyTrackerForm({
+  entryDate,
+  isToday = true,
+  bodyWeightLbs,
+  initial,
+}: Props) {
   const [open, setOpen] = useState<Popup | null>(null);
   const [pending, start] = useTransition();
   const [mood, setMood] = useState(initial.mood);
@@ -74,7 +81,12 @@ export function DailyTrackerForm({ entryDate, bodyWeightLbs, initial }: Props) {
         <div>
           <div className="metric-label">Daily tracker</div>
           <div className="mt-0.5 text-[20px] font-bold tracking-tight text-white">
-            Log today
+            {isToday
+              ? "Log today"
+              : `Log ${new Date(`${entryDate}T00:00:00`).toLocaleDateString(
+                  undefined,
+                  { weekday: "long", month: "short", day: "numeric" },
+                )}`}
           </div>
         </div>
         {pending && (
@@ -216,6 +228,7 @@ export function DailyTrackerForm({ entryDate, bodyWeightLbs, initial }: Props) {
         bodyWeightLbs={bodyWeightLbs}
         initialMinutes={initial.cardio_minutes}
         initialCalories={initial.cardio_calories}
+        initialType={initial.cardio_type}
       />
       <WaterLogPopup
         open={open === "water"}

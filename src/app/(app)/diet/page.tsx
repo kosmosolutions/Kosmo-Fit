@@ -2,11 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { calcStats, dailyCalorieTarget, dayIndexForDate } from "@/lib/calc";
-import { fromISODate, todayISO } from "@/lib/dates";
+import { fromISODate } from "@/lib/dates";
+import { localTodayISO } from "@/lib/serverDate";
 import { AddMealDialog } from "@/components/AddMealDialog";
 import { FoodEntryRow } from "@/components/FoodEntryRow";
+import { MacroBreakdown } from "@/components/MacroBreakdown";
 import type { FoodEntry, MealType, Recipe } from "@/lib/types";
-import { BookOpen, Sunrise, Coffee, Soup, Moon, Flame } from "lucide-react";
+import { BookOpen, Sunrise, Coffee, Soup, Moon } from "lucide-react";
 
 const MEAL_ICONS: Record<MealType, React.ComponentType<{ className?: string }>> = {
   breakfast: Sunrise,
@@ -17,19 +19,14 @@ const MEAL_ICONS: Record<MealType, React.ComponentType<{ className?: string }>> 
 
 const MEAL_ORDER: MealType[] = ["breakfast", "snack", "lunch", "dinner"];
 
-const DIET = "#FF9F0A";
-const PROTEIN = "#FF375F";
-const CARBS = "#FF9F0A";
-const FAT = "#FFD60A";
-const OVER = "#FF2D55";
-
 export default async function DietPage({
   searchParams,
 }: {
   searchParams: Promise<{ date?: string }>;
 }) {
   const { date: dateParam } = await searchParams;
-  const today = dateParam ?? todayISO();
+  const localToday = await localTodayISO();
+  const today = dateParam ?? localToday;
 
   const supabase = await createClient();
   const {
@@ -73,17 +70,6 @@ export default async function DietPage({
     entries: entries.filter((e) => e.meal_type === meal),
   }));
 
-  const totals = entries.reduce(
-    (acc, e) => {
-      acc.cal += e.calories;
-      acc.p += e.protein_g;
-      acc.c += e.carbs_g;
-      acc.f += e.fat_g;
-      return acc;
-    },
-    { cal: 0, p: 0, c: 0, f: 0 },
-  );
-
   const dayIdx = dayIndexForDate(fromISODate(today));
   const mode = profile.workout_mode === "gym" ? ("gym" as const) : ("home" as const);
   const stats = calcStats(profile, mode);
@@ -94,8 +80,6 @@ export default async function DietPage({
     daily?.cardio_calories ?? 0,
   );
 
-  const over = totals.cal > target;
-  const calPct = Math.min(100, Math.round((totals.cal / Math.max(1, target)) * 100));
   const nextMeal = grouped.find((g) => g.entries.length === 0)?.meal ?? "breakfast";
 
   return (
@@ -104,7 +88,7 @@ export default async function DietPage({
         <div>
           <div className="metric-label">Nutrition</div>
           <h1 className="display text-[28px] leading-tight text-white">
-            {today === todayISO() ? "Today's meals" : "Logged meals"}
+            {today === localToday ? "Today's meals" : "Logged meals"}
           </h1>
         </div>
         <Link
@@ -119,67 +103,13 @@ export default async function DietPage({
         </Link>
       </div>
 
-      {/* Calorie scoreboard bento */}
-      <section className="card p-5">
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-1.5">
-              <Flame className="h-3.5 w-3.5" style={{ color: DIET }} />
-              <span className="metric-label" style={{ color: DIET }}>
-                Calories
-              </span>
-            </div>
-            <div className="metric-value mt-1" style={{ color: DIET }}>
-              {totals.cal.toLocaleString()}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-[12px] font-medium text-chalk-400">
-              of {target.toLocaleString()} cal
-            </div>
-            <div
-              className="text-[15px] font-bold"
-              style={{ color: over ? OVER : DIET }}
-            >
-              {over
-                ? `${(totals.cal - target).toLocaleString()} over`
-                : `${(target - totals.cal).toLocaleString()} left`}{" "}
-              · {calPct}%
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
-          <div
-            className="h-full rounded-full transition-all duration-500 ease-ios"
-            style={{
-              width: `${calPct}%`,
-              background: over
-                ? `linear-gradient(90deg, ${DIET} 0%, ${OVER} 100%)`
-                : `linear-gradient(90deg, ${FAT} 0%, ${DIET} 100%)`,
-            }}
-          />
-        </div>
-
-        <div className="mt-5 border-t border-white/[0.06] pt-4">
-          <div className="metric-label mb-3">Macros</div>
-          <div className="space-y-3">
-            <MacroBar label="Protein" v={totals.p} goal={stats.proteinG} color={PROTEIN} />
-            <MacroBar
-              label="Carbs"
-              v={totals.c}
-              goal={stats.workoutMacros.carbG}
-              color={CARBS}
-            />
-            <MacroBar
-              label="Fat"
-              v={totals.f}
-              goal={stats.workoutMacros.fatG}
-              color={FAT}
-            />
-          </div>
-        </div>
-      </section>
+      <MacroBreakdown
+        entries={entries}
+        target={target}
+        proteinGoal={stats.proteinG}
+        carbGoal={stats.workoutMacros.carbG}
+        fatGoal={stats.workoutMacros.fatG}
+      />
 
       <AddMealDialog
         entryDate={today}
@@ -236,40 +166,6 @@ export default async function DietPage({
           );
         })}
       </ol>
-    </div>
-  );
-}
-
-function MacroBar({
-  label,
-  v,
-  goal,
-  color,
-}: {
-  label: string;
-  v: number;
-  goal: number;
-  color: string;
-}) {
-  return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-[12px] font-semibold" style={{ color }}>
-          {label}
-        </span>
-        <span className="text-[12px] font-medium text-chalk-400">
-          {v} / {goal}g
-        </span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
-        <div
-          className="h-full rounded-full transition-all duration-500 ease-ios"
-          style={{
-            width: `${Math.min(100, (v / Math.max(1, goal)) * 100)}%`,
-            background: color,
-          }}
-        />
-      </div>
     </div>
   );
 }
