@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { addFoodEntry } from "@/lib/actions/entries";
-import { saveCatalogRecipe } from "@/lib/actions/recipes";
+import { saveCatalogRecipe, saveRecipe } from "@/lib/actions/recipes";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { RecipeHero } from "@/components/RecipeHero";
 import {
@@ -74,6 +74,8 @@ export function AddMealDialog({
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("foods");
   const [pending, start] = useTransition();
+  const [quickSaved, setQuickSaved] = useState(false);
+  const [quickSaving, startQuickSave] = useTransition();
   useBodyScrollLock(open);
 
   // The single scrollable body. Entering a detail view reuses this container,
@@ -114,6 +116,7 @@ export function AddMealDialog({
       setPickedFood(null);
       setScanning(false);
       setScanLookupError(null);
+      setQuickSaved(false);
     }
   }, [open]);
 
@@ -238,6 +241,33 @@ export function AddMealDialog({
         carbs_g: 0,
         fat_g: 0,
       });
+    });
+  }
+
+  // Save the quick-entry form as a reusable recipe without leaving the dialog.
+  // The form's numbers are totals for `servings` units, so divide to store
+  // per-serving macros on the recipe row.
+  function saveQuickAsRecipe() {
+    if (!form.name.trim() || quickSaved) return;
+    const s = Math.max(0.01, form.servings || 1);
+    startQuickSave(async () => {
+      await saveRecipe(
+        {
+          name: form.name.trim(),
+          meal_type: form.meal_type,
+          servings: form.servings || 1,
+          calories_per_serving: Math.round(form.calories / s),
+          protein_g: Math.round(form.protein_g / s),
+          carbs_g: Math.round(form.carbs_g / s),
+          fat_g: Math.round(form.fat_g / s),
+          ingredients: [],
+          instructions: null,
+          is_favorite: false,
+        },
+        undefined,
+        { redirectAfter: false },
+      );
+      setQuickSaved(true);
     });
   }
 
@@ -579,7 +609,7 @@ export function AddMealDialog({
                   <NumberInput
                     label="Servings"
                     unit="×"
-                    step={0.25}
+                    step={0.1}
                     value={form.servings}
                     onChange={(v) => setForm({ ...form, servings: v || 1 })}
                   />
@@ -604,14 +634,37 @@ export function AddMealDialog({
                     onChange={(v) => setForm({ ...form, fat_g: v })}
                   />
                 </div>
-                <button
-                  type="button"
-                  disabled={pending || !form.name.trim()}
-                  onClick={submitNew}
-                  className="btn-primary w-full py-3"
-                >
-                  {pending ? "Logging…" : "Log meal"}
-                </button>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    disabled={pending || !form.name.trim()}
+                    onClick={submitNew}
+                    className="btn-primary w-full py-3"
+                  >
+                    {pending ? "Logging…" : "Log meal"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={quickSaving || quickSaved || !form.name.trim()}
+                    onClick={saveQuickAsRecipe}
+                    className={cn(
+                      "flex w-full items-center justify-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm font-bold transition disabled:opacity-60",
+                      quickSaved
+                        ? "border-accent-green/40 bg-accent-green/10 text-accent-green"
+                        : "border-white/10 bg-white/[0.04] text-chalk-200 hover:bg-white/[0.08]",
+                    )}
+                  >
+                    {quickSaved ? (
+                      "Saved to your recipes ✓"
+                    ) : quickSaving ? (
+                      "Saving…"
+                    ) : (
+                      <>
+                        <BookmarkPlus className="h-4 w-4" /> Save as recipe
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -849,11 +902,11 @@ function CatalogDetail({
         </div>
         <input
           type="number"
-          step={0.25}
-          min={0.25}
+          step={0.1}
+          min={0.1}
           value={servings}
           onChange={(e) =>
-            setServings(Math.max(0.25, parseFloat(e.target.value) || 1))
+            setServings(Math.max(0.1, parseFloat(e.target.value) || 1))
           }
           className="w-20 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5 text-right text-sm font-bold text-chalk-50 outline-none"
         />
@@ -1127,11 +1180,11 @@ function FoodDetail({
         </div>
         <input
           type="number"
-          step={0.25}
-          min={0.25}
+          step={0.1}
+          min={0.1}
           value={quantity}
           onChange={(e) =>
-            setQuantity(Math.max(0.25, parseFloat(e.target.value) || 1))
+            setQuantity(Math.max(0.1, parseFloat(e.target.value) || 1))
           }
           className="w-20 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5 text-right text-sm font-bold text-chalk-50 outline-none"
         />
@@ -1197,7 +1250,8 @@ function RecipePick({
       <div className="flex items-center gap-2">
         <input
           type="number"
-          step={0.25}
+          step={0.1}
+          min={0.1}
           value={s}
           onChange={(e) => setS(parseFloat(e.target.value) || 1)}
           className="w-14 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-sm text-chalk-50 outline-none"

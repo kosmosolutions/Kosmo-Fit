@@ -27,7 +27,11 @@ export interface RecipeInput {
   is_favorite: boolean;
 }
 
-export async function saveRecipe(input: RecipeInput, id?: string) {
+export async function saveRecipe(
+  input: RecipeInput,
+  id?: string,
+  opts?: { redirectAfter?: boolean },
+) {
   const { supabase, userId } = await authed();
   if (id) {
     const { error } = await supabase
@@ -44,7 +48,9 @@ export async function saveRecipe(input: RecipeInput, id?: string) {
   }
   revalidatePath("/diet");
   revalidatePath("/diet/recipes");
-  redirect("/diet/recipes");
+  // The standalone recipe form wants to navigate back to the library; the
+  // in-dialog quick-add save passes redirectAfter:false to stay put.
+  if (opts?.redirectAfter !== false) redirect("/diet/recipes");
 }
 
 export async function deleteRecipe(id: string) {
