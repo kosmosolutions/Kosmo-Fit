@@ -20,6 +20,7 @@ export interface DailyPatch {
   steps?: number;
   cardio_minutes?: number;
   cardio_calories?: number;
+  cardio_type?: string | null;
   workout_completed?: boolean;
   workout_day_index?: number | null;
   workout_mode?: WorkoutMode | null;
@@ -59,6 +60,29 @@ export async function addFoodEntry(input: {
     user_id: userId,
     ...input,
   });
+  if (error) throw new Error(error.message);
+  revalidatePath("/diet");
+  revalidatePath("/overview");
+}
+
+export async function updateFoodEntry(
+  id: string,
+  patch: {
+    meal_type?: MealType;
+    name?: string;
+    servings?: number;
+    calories?: number;
+    protein_g?: number;
+    carbs_g?: number;
+    fat_g?: number;
+  },
+) {
+  const { supabase, userId } = await authed();
+  const { error } = await supabase
+    .from("food_entries")
+    .update(patch)
+    .eq("id", id)
+    .eq("user_id", userId);
   if (error) throw new Error(error.message);
   revalidatePath("/diet");
   revalidatePath("/overview");

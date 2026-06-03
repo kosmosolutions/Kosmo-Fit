@@ -33,6 +33,7 @@ interface Props {
     steps: number;
     cardio_minutes: number;
     cardio_calories: number;
+    cardio_type: string | null;
     workout_completed: boolean;
     water_oz: number;
     sleep_hours: number | null;
@@ -216,6 +217,7 @@ export function DailyTrackerForm({ entryDate, bodyWeightLbs, initial }: Props) {
         bodyWeightLbs={bodyWeightLbs}
         initialMinutes={initial.cardio_minutes}
         initialCalories={initial.cardio_calories}
+        initialType={initial.cardio_type}
       />
       <WaterLogPopup
         open={open === "water"}
