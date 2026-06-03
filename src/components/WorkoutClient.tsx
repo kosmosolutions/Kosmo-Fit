@@ -192,9 +192,12 @@ interface Props {
   activePlanId: string | null;
   activePlanName: string | null;
   todayDate: string;
+  isToday: boolean;
   todayCompleted: boolean;
+  completedDayIndex: number | null;
   todayCardioMinutes: number;
   todayCardioCalories: number;
+  todayCardioType: string | null;
   bodyWeightLbs: number;
 }
 
@@ -228,9 +231,12 @@ export function WorkoutClient({
   activePlanId,
   activePlanName,
   todayDate,
+  isToday,
   todayCompleted,
+  completedDayIndex,
   todayCardioMinutes,
   todayCardioCalories,
+  todayCardioType,
   bodyWeightLbs,
 }: Props) {
   const [cardioOpen, setCardioOpen] = useState(false);
@@ -356,6 +362,24 @@ export function WorkoutClient({
 
   return (
     <div className="space-y-4">
+      {!isToday && (
+        <div className="flex items-center justify-between gap-2 rounded-2xl bg-accent-blue/10 px-4 py-2.5">
+          <div className="text-[13px] font-semibold text-accent-blue">
+            Logging for{" "}
+            {new Date(`${todayDate}T00:00:00`).toLocaleDateString(undefined, {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+            })}
+          </div>
+          <Link
+            href="/workout"
+            className="inline-flex items-center gap-1 rounded-full bg-accent-blue/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-accent-blue transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-accent-blue/30"
+          >
+            Today
+          </Link>
+        </div>
+      )}
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -542,7 +566,7 @@ export function WorkoutClient({
           <SessionTimer color={d.color} />
           <MarkCompleteToggle
             entryDate={todayDate}
-            completed={todayCompleted}
+            completed={todayCompleted && completedDayIndex === wDay}
             dayIndex={wDay}
             mode={mode}
             color={d.color}
@@ -763,6 +787,7 @@ export function WorkoutClient({
         bodyWeightLbs={bodyWeightLbs}
         initialMinutes={todayCardioMinutes}
         initialCalories={todayCardioCalories}
+        initialType={todayCardioType}
       />
     </div>
   );
