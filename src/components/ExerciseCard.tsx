@@ -240,20 +240,39 @@ export function ExerciseCard({
                   alt={exercise.name}
                   className="h-full w-full"
                 />
-              ) : (
+              ) : exercise.youtubeId ? (
                 <iframe
                   className="h-full w-full"
-                  src={
-                    exercise.youtubeId
-                      ? `https://www.youtube.com/embed/${exercise.youtubeId}?modestbranding=1&rel=0&autoplay=1`
-                      : `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(
-                          exercise.searchQuery,
-                        )}`
-                  }
+                  src={`https://www.youtube.com/embed/${exercise.youtubeId}?modestbranding=1&rel=0&autoplay=1`}
                   title={exercise.name}
                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
+              ) : (
+                // No specific video: YouTube's search-list embed is no longer
+                // supported (renders "video unavailable"), so link out to a
+                // YouTube search instead of embedding a broken player.
+                <a
+                  href={searchUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="group relative grid h-full w-full place-items-center"
+                  style={{
+                    background: `linear-gradient(135deg, ${color}33, ${color}11)`,
+                  }}
+                >
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <div className="grid h-14 w-14 place-items-center rounded-full bg-white/90 text-black transition group-hover:scale-105">
+                      <Play className="h-6 w-6 fill-current" />
+                    </div>
+                    <div className="text-[13px] font-semibold text-white">
+                      Watch on YouTube
+                    </div>
+                    <div className="max-w-[80%] truncate text-[11px] font-medium text-chalk-300">
+                      {exercise.searchQuery}
+                    </div>
+                  </div>
+                </a>
               )}
             </div>
 
