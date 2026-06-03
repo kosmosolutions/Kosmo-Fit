@@ -269,6 +269,7 @@ export default async function OverviewPage({
 
       <DailyTrackerForm
         entryDate={selected}
+        isToday={isToday}
         bodyWeightLbs={Number(profile.current_weight) || 0}
         initial={{
           weight: daily?.weight ?? null,
