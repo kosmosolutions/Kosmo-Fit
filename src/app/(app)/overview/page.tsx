@@ -9,7 +9,8 @@ import { getWeightHistory } from "@/lib/actions/weight";
 import { DailyTrackerForm } from "@/components/DailyTrackerForm";
 import { GapMeter } from "@/components/GapMeter";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
-import { fromISODate, toISODate, todayISO } from "@/lib/dates";
+import { fromISODate, toISODate } from "@/lib/dates";
+import { localTodayISO } from "@/lib/serverDate";
 import { getDays } from "@/data/workouts";
 import { ArrowRight, ChevronLeft, ChevronRight, Footprints, Flame } from "lucide-react";
 
@@ -28,7 +29,8 @@ export default async function OverviewPage({
   searchParams: Promise<{ date?: string }>;
 }) {
   const { date: dateParam } = await searchParams;
-  const selected = dateParam ?? todayISO();
+  const todayLocal = await localTodayISO();
+  const selected = dateParam ?? todayLocal;
 
   const supabase = await createClient();
   const {
@@ -76,7 +78,7 @@ export default async function OverviewPage({
   const nextDate = new Date(selectedDate);
   nextDate.setDate(nextDate.getDate() + 1);
   const nextDateISO = toISODate(nextDate);
-  const isToday = selected === todayISO();
+  const isToday = selected === todayLocal;
   const mode = profile.workout_mode === "gym" ? ("gym" as const) : ("home" as const);
   const stats = calcStats(profile, mode);
   const days = getDays(mode);
@@ -211,7 +213,7 @@ export default async function OverviewPage({
 
         <div className="mt-5 grid grid-cols-2 gap-3">
           <Link
-            href="/diet"
+            href={isToday ? "/diet" : `/diet?date=${selected}`}
             className="group flex min-h-[88px] flex-col justify-between rounded-2xl bg-ink-800 p-4 transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-700"
             aria-label="Log a meal"
           >
@@ -228,7 +230,7 @@ export default async function OverviewPage({
             </span>
           </Link>
           <Link
-            href="/workout"
+            href={isToday ? "/workout" : `/workout?date=${selected}`}
             className="group flex min-h-[88px] flex-col justify-between rounded-2xl bg-ink-800 p-4 transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-700"
             aria-label="Log workout"
           >
@@ -273,6 +275,7 @@ export default async function OverviewPage({
           steps: daily?.steps ?? 0,
           cardio_minutes: daily?.cardio_minutes ?? 0,
           cardio_calories: daily?.cardio_calories ?? 0,
+          cardio_type: daily?.cardio_type ?? null,
           workout_completed: !!daily?.workout_completed,
           water_oz: daily?.water_oz ?? 0,
           sleep_hours: daily?.sleep_hours ?? null,
