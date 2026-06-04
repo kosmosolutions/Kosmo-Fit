@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 // Common cooking fractions. `0` = whole number only.
@@ -63,6 +64,16 @@ function Wheel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Select a specific row: update + smooth-scroll it to center. Used by
+  // tap-on-row and the ▲/▼ steppers (precise on desktop where a trackpad
+  // flick overshoots the snap).
+  function goto(i: number) {
+    const clamped = Math.max(0, Math.min(count - 1, i));
+    if (clamped !== index) onIndex(clamped);
+    if (ref.current)
+      ref.current.scrollTo({ top: clamped * ITEM, behavior: "smooth" });
+  }
+
   function onScroll() {
     if (!ref.current) return;
     const i = Math.max(0, Math.min(count - 1, Math.round(ref.current.scrollTop / ITEM)));
@@ -88,9 +99,11 @@ function Wheel({
       >
         <div style={{ height: PAD }} />
         {Array.from({ length: count }, (_, i) => (
-          <div
+          <button
             key={i}
-            className="flex snap-center items-center justify-center"
+            type="button"
+            onClick={() => goto(i)}
+            className="flex w-full snap-center items-center justify-center"
             style={{ height: ITEM }}
           >
             <span
@@ -102,10 +115,28 @@ function Wheel({
             >
               {render(i)}
             </span>
-          </div>
+          </button>
         ))}
         <div style={{ height: PAD }} />
       </div>
+
+      {/* Steppers — precise ±1 (desktop) */}
+      <button
+        type="button"
+        onClick={() => goto(index - 1)}
+        aria-label="Previous"
+        className="absolute inset-x-0 top-0 flex h-8 items-center justify-center bg-gradient-to-b from-ink-800 to-transparent text-chalk-400 transition hover:text-white"
+      >
+        <ChevronUp className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => goto(index + 1)}
+        aria-label="Next"
+        className="absolute inset-x-0 bottom-0 flex h-8 items-center justify-center bg-gradient-to-t from-ink-800 to-transparent text-chalk-400 transition hover:text-white"
+      >
+        <ChevronDown className="h-4 w-4" />
+      </button>
     </div>
   );
 }

@@ -59,12 +59,13 @@ export function WeightTrendChart({
   const yFor = (w: number) =>
     PAD.top + (1 - (w - yMin) / ySpan) * innerH;
 
-  const pathD = series
-    .map((d, i) => `${i === 0 ? "M" : "L"} ${xFor(i)} ${yFor(d.weight)}`)
-    .join(" ");
-  const areaD = series.length
-    ? `${pathD} L ${xFor(series.length - 1)} ${PAD.top + innerH} L ${xFor(0)} ${PAD.top + innerH} Z`
-    : "";
+  const pts = series.map((d, i) => ({ x: xFor(i), y: yFor(d.weight) }));
+  const pathD = smoothPath(pts);
+  const baseY = PAD.top + innerH;
+  const areaD =
+    pts.length > 0
+      ? `${pathD} L ${pts[pts.length - 1].x} ${baseY} L ${pts[0].x} ${baseY} Z`
+      : "";
 
   const goalY = Number.isFinite(goalWeight) ? yFor(goalWeight) : null;
 
@@ -105,17 +106,29 @@ export function WeightTrendChart({
       <div className="relative mt-3">
         <svg
           viewBox={`0 0 ${W} ${H}`}
-          preserveAspectRatio="none"
-          className="block w-full"
-          style={{ height: H }}
+          className="block h-auto w-full"
           role="img"
           aria-label="Weight history line chart"
         >
           <defs>
             <linearGradient id="weight-area" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#0A84FF" stopOpacity="0.35" />
+              <stop offset="0%" stopColor="#0A84FF" stopOpacity="0.40" />
+              <stop offset="55%" stopColor="#0A84FF" stopOpacity="0.12" />
               <stop offset="100%" stopColor="#0A84FF" stopOpacity="0" />
             </linearGradient>
+            <linearGradient id="weight-line" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0%" stopColor="#0A84FF" />
+              <stop offset="100%" stopColor="#64D2FF" />
+            </linearGradient>
+            <filter id="weight-glow" x="-20%" y="-40%" width="140%" height="200%">
+              <feDropShadow
+                dx="0"
+                dy="2"
+                stdDeviation="4"
+                floodColor="#0A84FF"
+                floodOpacity="0.45"
+              />
+            </filter>
           </defs>
 
           {/* Y-axis gridlines + tick labels */}
@@ -175,20 +188,23 @@ export function WeightTrendChart({
               <path
                 d={pathD}
                 fill="none"
-                stroke="#0A84FF"
-                strokeWidth="2.5"
+                stroke="url(#weight-line)"
+                strokeWidth="3"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                filter="url(#weight-glow)"
               />
-              {/* Markers for each actually-logged day */}
+              {/* Subtle markers for actually-logged days */}
               {series.map((d, i) =>
-                d.logged ? (
+                d.logged && i !== series.length - 1 ? (
                   <circle
                     key={`log-${d.date}`}
                     cx={xFor(i)}
                     cy={yFor(d.weight)}
-                    r="2.5"
-                    fill="#0A84FF"
+                    r="2"
+                    fill="#0B1220"
+                    stroke="#64D2FF"
+                    strokeWidth="1.5"
                   />
                 ) : null,
               )}
@@ -198,15 +214,17 @@ export function WeightTrendChart({
                   <circle
                     cx={xFor(series.length - 1)}
                     cy={yFor(latest.weight)}
-                    r="6"
+                    r="7"
                     fill="#0A84FF"
-                    fillOpacity="0.2"
+                    fillOpacity="0.18"
                   />
                   <circle
                     cx={xFor(series.length - 1)}
                     cy={yFor(latest.weight)}
-                    r="3.5"
+                    r="4"
                     fill="#0A84FF"
+                    stroke="#ffffff"
+                    strokeWidth="1.5"
                   />
                 </>
               )}
@@ -282,6 +300,29 @@ function buildDailySeries(
     d.setDate(d.getDate() + 1);
   }
   return out;
+}
+
+/**
+ * Catmull-Rom → cubic-bezier smoothing for a soft, Apple-Health-style
+ * curve. Low tension keeps it faithful to the data without big overshoots.
+ */
+function smoothPath(pts: Array<{ x: number; y: number }>): string {
+  if (pts.length === 0) return "";
+  if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+  const t = 0.16;
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] ?? p2;
+    const c1x = p1.x + (p2.x - p0.x) * t;
+    const c1y = p1.y + (p2.y - p0.y) * t;
+    const c2x = p2.x - (p3.x - p1.x) * t;
+    const c2y = p2.y - (p3.y - p1.y) * t;
+    d += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+  }
+  return d;
 }
 
 /**
