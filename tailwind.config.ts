@@ -62,7 +62,7 @@ const config: Config = {
           lime: "#A7FF00", // Alt strength accent
           blue: "#0A84FF", // Stand / Hydration (primary brand)
           cyan: "#64D2FF", // Secondary highlight
-          orange: "#FF9F0A", // Diet / Nutrition
+          orange: "#D9A441", // Diet / Nutrition — muted posh amber
           amber: "#FFD60A",
           violet: "#BF5AF2",
           sky: "#5AC8FA",

@@ -10,11 +10,21 @@ import { MacroBreakdown } from "@/components/MacroBreakdown";
 import type { FoodEntry, MealType, Recipe } from "@/lib/types";
 import { BookOpen, Sunrise, Coffee, Soup, Moon } from "lucide-react";
 
-const MEAL_ICONS: Record<MealType, React.ComponentType<{ className?: string }>> = {
+const MEAL_ICONS: Record<
+  MealType,
+  React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+> = {
   breakfast: Sunrise,
   snack: Coffee,
   lunch: Soup,
   dinner: Moon,
+};
+
+const MEAL_COLORS: Record<MealType, string> = {
+  breakfast: "#D9A441", // amber sunrise
+  snack: "#0A84FF", // blue
+  lunch: "#30D158", // green
+  dinner: "#BF5AF2", // violet dusk
 };
 
 const MEAL_ORDER: MealType[] = ["breakfast", "snack", "lunch", "dinner"];
@@ -119,53 +129,52 @@ export default async function DietPage({
         triggerLabel="Log food"
       />
 
-      <ol className="relative space-y-3">
-        <span
-          aria-hidden
-          className="absolute bottom-6 left-[19px] top-6 w-px bg-white/[0.06]"
-        />
+      <div className="space-y-3">
         {grouped.map(({ meal, entries }) => {
           const Icon = MEAL_ICONS[meal];
+          const mealColor = MEAL_COLORS[meal];
           const mealCal = entries.reduce((s, e) => s + e.calories, 0);
           return (
-            <li key={meal} className="relative flex gap-3">
-              <div className="relative z-10 mt-1 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink-850">
-                <Icon className="h-4 w-4 text-chalk-300" />
-              </div>
-              <div className="card min-w-0 flex-1 p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="text-[15px] font-bold capitalize text-white">
+            <section key={meal} className="card p-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full"
+                    style={{ background: `${mealColor}1f` }}
+                  >
+                    <Icon
+                      className="h-[18px] w-[18px]"
+                      style={{ color: mealColor }}
+                    />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[15px] font-bold capitalize leading-tight text-white">
                       {meal}
                     </div>
-                    {mealCal > 0 ? (
-                      <div className="rounded-full bg-ink-800 px-2.5 py-0.5 text-[11px] font-semibold text-chalk-300">
-                        {mealCal} cal
-                      </div>
-                    ) : null}
+                    <div className="text-[11px] font-medium text-chalk-400">
+                      {mealCal > 0
+                        ? `${mealCal.toLocaleString()} cal · ${entries.length} item${entries.length > 1 ? "s" : ""}`
+                        : "Not logged"}
+                    </div>
                   </div>
-                  <AddMealDialog
-                    entryDate={today}
-                    recipes={rcps}
-                    defaultMeal={meal}
-                  />
                 </div>
-                {entries.length === 0 ? (
-                  <div className="mt-3 text-[12px] font-medium text-chalk-400">
-                    Nothing logged yet.
-                  </div>
-                ) : (
-                  <div className="mt-2">
-                    {entries.map((e) => (
-                      <FoodEntryRow key={e.id} entry={e} />
-                    ))}
-                  </div>
-                )}
+                <AddMealDialog
+                  entryDate={today}
+                  recipes={rcps}
+                  defaultMeal={meal}
+                />
               </div>
-            </li>
+              {entries.length > 0 && (
+                <div className="mt-3 border-t border-white/[0.06] pt-1">
+                  {entries.map((e) => (
+                    <FoodEntryRow key={e.id} entry={e} />
+                  ))}
+                </div>
+              )}
+            </section>
           );
         })}
-      </ol>
+      </div>
     </div>
   );
 }

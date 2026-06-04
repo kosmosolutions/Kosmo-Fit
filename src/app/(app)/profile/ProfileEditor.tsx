@@ -97,8 +97,13 @@ export function ProfileEditor({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-accent-blue/20 text-[15px] font-bold text-white">
+        <div className="flex min-w-0 items-center gap-3.5">
+          <div
+            className="grid h-14 w-14 shrink-0 place-items-center rounded-full text-[18px] font-black text-white shadow-bento ring-1 ring-white/10"
+            style={{
+              background: "linear-gradient(135deg, #0A84FF 0%, #64D2FF 100%)",
+            }}
+          >
             {initials}
           </div>
           <div className="min-w-0">

@@ -5,9 +5,9 @@ import { Flame, X } from "lucide-react";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import type { FoodEntry } from "@/lib/types";
 
-const DIET = "#FF9F0A";
+const DIET = "#D9A441";
 const PROTEIN = "#FF375F";
-const CARBS = "#FF9F0A";
+const CARBS = "#D9A441";
 const FAT = "#FFD60A";
 const OVER = "#FF2D55";
 

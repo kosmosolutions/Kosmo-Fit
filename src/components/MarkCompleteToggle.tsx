@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { Check, CircleDashed, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { upsertDailyEntry } from "@/lib/actions/entries";
 import { cn } from "@/lib/cn";
 import type { WorkoutMode } from "@/lib/types";
@@ -50,21 +50,19 @@ export function MarkCompleteToggle({
       disabled={pending}
       aria-pressed={completed}
       className={cn(
-        "flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold transition-all duration-200 ease-ios active:scale-[0.98] disabled:opacity-60",
+        "flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full border px-5 text-[15px] font-semibold transition-all duration-200 ease-ios active:scale-[0.98] disabled:opacity-60",
         completed
-          ? "bg-accent-green/20 text-accent-green hover:bg-accent-green/25"
-          : "text-black hover:brightness-110",
+          ? "border-accent-green/30 bg-accent-green/20 text-accent-green hover:bg-accent-green/25"
+          : "hover:brightness-110",
       )}
-      style={completed ? undefined : { background: color }}
+      style={
+        completed
+          ? undefined
+          : { background: `${color}1f`, color, borderColor: `${color}59` }
+      }
     >
-      {pending ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : completed ? (
-        <Check className="h-4 w-4" />
-      ) : (
-        <CircleDashed className="h-4 w-4" />
-      )}
-      {completed ? "Completed · tap to undo" : "Mark workout complete"}
+      {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+      {completed ? "Completed · tap to undo" : "Finish workout"}
     </button>
   );
 }

@@ -102,7 +102,7 @@ export function DailyTrackerForm({
           label="Weight"
           value={formatWeight(initial.weight, weightUnit)}
           unit={initial.weight == null ? "" : weightUnit}
-          accent="#0A84FF"
+          accent="#30D158"
           onClick={() => setOpen("weight")}
         />
         <MetricCard
@@ -267,26 +267,32 @@ function MetricCard({
   accent: string;
   onClick: () => void;
 }) {
+  const hasValue = value !== "" && value !== "—";
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-[88px] flex-col gap-1.5 rounded-2xl bg-ink-800 p-4 text-left transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-700"
+      className="flex min-h-[96px] flex-col justify-between rounded-2xl bg-ink-800 p-3.5 text-left transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-700"
     >
-      <span className="flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5" style={{ color: accent }} />
-        <span className="metric-label">{label}</span>
+      <span
+        className="grid h-8 w-8 place-items-center rounded-full"
+        style={{ background: `${accent}1f` }}
+      >
+        <Icon className="h-4 w-4" style={{ color: accent }} />
       </span>
-      <span className="flex items-baseline gap-1">
-        <span
-          className="font-display text-[22px] font-black leading-none tracking-tightest"
-          style={{ color: accent }}
-        >
-          {value}
+      <span>
+        <span className="metric-label block">{label}</span>
+        <span className="mt-0.5 flex items-baseline gap-1">
+          <span
+            className="font-display text-[22px] font-black leading-none tracking-tightest"
+            style={{ color: hasValue ? accent : "#8e8e93" }}
+          >
+            {value}
+          </span>
+          {unit && (
+            <span className="text-[11px] font-semibold text-chalk-400">{unit}</span>
+          )}
         </span>
-        {unit && (
-          <span className="text-[11px] font-semibold text-chalk-400">{unit}</span>
-        )}
       </span>
     </button>
   );
