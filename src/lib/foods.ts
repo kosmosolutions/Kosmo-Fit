@@ -63,6 +63,24 @@ function usdaNutrient(food: UsdaFood, id: number): number {
   return typeof n?.value === "number" && Number.isFinite(n.value) ? n.value : 0;
 }
 
+// Per-100g macros → "1 oz" + "1 g" units, so any weight can be dialed in.
+function gramAndOunce(per100: {
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}): FoodUnit[] {
+  const at = (label: string, grams: number): FoodUnit => ({
+    label,
+    grams,
+    kcal: (per100.kcal / 100) * grams,
+    protein: (per100.protein / 100) * grams,
+    carbs: (per100.carbs / 100) * grams,
+    fat: (per100.fat / 100) * grams,
+  });
+  return [at("1 oz", 28.3495), at("1 g", 1)];
+}
+
 function normalizeUsda(food: UsdaFood): FoodItem | null {
   if (!food.description || !food.fdcId) return null;
   // USDA returns all nutrients per 100 g regardless of dataType.
@@ -78,6 +96,7 @@ function normalizeUsda(food: UsdaFood): FoodItem | null {
 
   const units: FoodUnit[] = [
     { label: "100 g", grams: 100, ...per100 },
+    ...gramAndOunce(per100),
   ];
 
   // Branded foods publish a serving size in grams + a household description.
@@ -181,6 +200,7 @@ function normalizeOff(p: OffProduct): FoodItem | null {
   }
   if (per100.kcal || per100.protein || per100.carbs || per100.fat) {
     units.push({ label: "100 g", grams: 100, ...per100 });
+    units.push(...gramAndOunce(per100));
   }
   if (units.length === 0) return null;
 

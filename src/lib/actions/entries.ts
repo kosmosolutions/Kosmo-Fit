@@ -88,6 +88,44 @@ export async function updateFoodEntry(
   revalidatePath("/overview");
 }
 
+export interface RecentFood {
+  name: string;
+  servings: number;
+  calories: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+}
+
+// Most-recent distinct foods the user has logged, newest first. Powers the
+// quick-add list under the Foods search so re-logging a staple is one tap.
+export async function getRecentFoods(limit = 8): Promise<RecentFood[]> {
+  const { supabase, userId } = await authed();
+  const { data } = await supabase
+    .from("food_entries")
+    .select("name, servings, calories, protein_g, carbs_g, fat_g, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(60);
+  const seen = new Set<string>();
+  const out: RecentFood[] = [];
+  for (const r of data ?? []) {
+    const key = r.name.trim().toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({
+      name: r.name,
+      servings: Number(r.servings) || 1,
+      calories: r.calories,
+      protein_g: r.protein_g,
+      carbs_g: r.carbs_g,
+      fat_g: r.fat_g,
+    });
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
 export async function deleteFoodEntry(id: string) {
   const { supabase } = await authed();
   const { error } = await supabase.from("food_entries").delete().eq("id", id);
