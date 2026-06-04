@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/cn";
 
 // Common cooking fractions. `0` = whole number only.
@@ -14,28 +14,100 @@ const FRACTIONS = [
   { label: "¾", val: 0.75 },
 ];
 
-const WHOLES = Array.from({ length: 21 }, (_, i) => i); // 0..20
-
-function splitValue(v: number): { whole: number; fracVal: number } {
-  const whole = Math.floor(v + 1e-9);
-  const frac = v - whole;
-  let best = FRACTIONS[0];
-  let bestDist = Infinity;
-  for (const f of FRACTIONS) {
-    const d = Math.abs(f.val - frac);
-    if (d < bestDist) {
-      bestDist = d;
-      best = f;
-    }
-  }
-  return { whole, fracVal: best.val };
-}
+const WHOLES = Array.from({ length: 101 }, (_, i) => i); // 0..100
+const ITEM = 44; // row height (px)
+const VISIBLE = 5; // odd → one centered row
+const PAD = ((VISIBLE - 1) / 2) * ITEM;
 
 const eq = (a: number, b: number) => Math.abs(a - b) < 1e-6;
 
-/** Tidy display: drop trailing zeros (1.5, 0.33). */
 function pretty(v: number): string {
   return String(Math.round(v * 1000) / 1000);
+}
+
+function splitValue(v: number): { whole: number; fracIdx: number } {
+  const whole = Math.floor(v + 1e-9);
+  const frac = v - whole;
+  let bestIdx = 0;
+  let bestDist = Infinity;
+  FRACTIONS.forEach((f, i) => {
+    const d = Math.abs(f.val - frac);
+    if (d < bestDist) {
+      bestDist = d;
+      bestIdx = i;
+    }
+  });
+  return { whole, fracIdx: bestIdx };
+}
+
+/** iOS-style scroll wheel. Scroll-snaps; the centered row is the selection. */
+function Wheel({
+  count,
+  index,
+  onIndex,
+  render,
+  color,
+}: {
+  count: number;
+  index: number;
+  onIndex: (i: number) => void;
+  render: (i: number) => string;
+  color: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const settle = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Position the wheel on the current value once on mount.
+  useEffect(() => {
+    if (ref.current) ref.current.scrollTop = index * ITEM;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function onScroll() {
+    if (!ref.current) return;
+    const i = Math.max(0, Math.min(count - 1, Math.round(ref.current.scrollTop / ITEM)));
+    if (i !== index) onIndex(i);
+    // Snap precisely to the row after scrolling stops.
+    if (settle.current) clearTimeout(settle.current);
+    settle.current = setTimeout(() => {
+      if (ref.current) ref.current.scrollTo({ top: i * ITEM, behavior: "smooth" });
+    }, 90);
+  }
+
+  return (
+    <div className="relative flex-1" style={{ height: VISIBLE * ITEM }}>
+      {/* center selection band */}
+      <div
+        className="pointer-events-none absolute inset-x-1 top-1/2 -translate-y-1/2 rounded-xl bg-white/[0.06]"
+        style={{ height: ITEM }}
+      />
+      <div
+        ref={ref}
+        onScroll={onScroll}
+        className="no-scrollbar h-full snap-y snap-mandatory overflow-y-auto"
+      >
+        <div style={{ height: PAD }} />
+        {Array.from({ length: count }, (_, i) => (
+          <div
+            key={i}
+            className="flex snap-center items-center justify-center"
+            style={{ height: ITEM }}
+          >
+            <span
+              className={cn(
+                "text-[19px] font-bold tabular-nums transition-colors",
+                i === index ? "" : "text-chalk-500",
+              )}
+              style={i === index ? { color } : undefined}
+            >
+              {render(i)}
+            </span>
+          </div>
+        ))}
+        <div style={{ height: PAD }} />
+      </div>
+    </div>
+  );
 }
 
 export function ServingPicker({
@@ -51,99 +123,33 @@ export function ServingPicker({
   color?: string;
   unitHint?: string;
 }) {
-  // Default to the fraction wheel when the value is a clean fraction, else decimal.
-  const { whole, fracVal } = splitValue(value);
-  const isCleanFraction = eq(whole + fracVal, value);
-  const [mode, setMode] = useState<"dec" | "frac">(
-    isCleanFraction ? "frac" : "dec",
-  );
+  const { whole, fracIdx } = splitValue(value);
 
   return (
     <div className="rounded-2xl bg-ink-800 p-3.5">
-      <div className="mb-2.5 flex items-center justify-between">
-        <div>
-          <span className="label-tiny">{label}</span>
-          {unitHint && (
-            <span className="ml-1.5 text-[11px] font-medium text-chalk-400">
-              × {unitHint}
-            </span>
-          )}
-        </div>
-        <div className="flex rounded-full bg-ink-900 p-0.5">
-          {(["dec", "frac"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={cn(
-                "rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider transition",
-                mode === m ? "bg-ink-700 text-white" : "text-chalk-400",
-              )}
-            >
-              {m === "dec" ? "Dec" : "Frac"}
-            </button>
-          ))}
-        </div>
+      <div className="mb-1 flex items-center justify-between">
+        <span className="label-tiny">{label}</span>
+        <span className="text-[12px] font-semibold text-white">
+          {pretty(value)}
+          {unitHint ? ` × ${unitHint}` : ""}
+        </span>
       </div>
-
-      {mode === "dec" ? (
-        <input
-          type="number"
-          inputMode="decimal"
-          step={0.1}
-          min={0}
-          value={value}
-          onChange={(e) => onChange(Math.max(0, parseFloat(e.target.value) || 0))}
-          className="w-full bg-transparent font-display text-[28px] font-black leading-none tracking-tightest text-white outline-none"
+      <div className="flex gap-2">
+        <Wheel
+          count={WHOLES.length}
+          index={whole}
+          onIndex={(w) => onChange(w + FRACTIONS[fracIdx].val)}
+          render={(i) => String(WHOLES[i])}
+          color={color}
         />
-      ) : (
-        <div className="space-y-2">
-          {/* Whole-number wheel — horizontal scroll */}
-          <div className="no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1">
-            {WHOLES.map((w) => {
-              const sel = w === whole;
-              return (
-                <button
-                  key={w}
-                  type="button"
-                  onClick={() => onChange(w + fracVal)}
-                  className={cn(
-                    "min-w-[42px] shrink-0 rounded-lg py-2 text-[15px] font-bold transition",
-                    sel ? "text-black" : "bg-ink-900 text-chalk-300 hover:bg-ink-700",
-                  )}
-                  style={sel ? { background: color } : undefined}
-                >
-                  {w}
-                </button>
-              );
-            })}
-          </div>
-          {/* Fraction row */}
-          <div className="flex gap-1.5">
-            {FRACTIONS.map((f) => {
-              const sel = eq(f.val, fracVal);
-              return (
-                <button
-                  key={f.label}
-                  type="button"
-                  onClick={() => onChange(whole + f.val)}
-                  className={cn(
-                    "flex-1 rounded-lg py-2 text-[15px] font-bold transition",
-                    sel ? "text-black" : "bg-ink-900 text-chalk-300 hover:bg-ink-700",
-                  )}
-                  style={sel ? { background: color } : undefined}
-                >
-                  {f.label}
-                </button>
-              );
-            })}
-          </div>
-          <div className="text-center text-[12px] font-medium text-chalk-400">
-            = {pretty(value)}
-            {unitHint ? ` × ${unitHint}` : " servings"}
-          </div>
-        </div>
-      )}
+        <Wheel
+          count={FRACTIONS.length}
+          index={fracIdx}
+          onIndex={(i) => onChange(whole + FRACTIONS[i].val)}
+          render={(i) => FRACTIONS[i].label}
+          color={color}
+        />
+      </div>
     </div>
   );
 }

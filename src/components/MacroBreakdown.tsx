@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Flame, X } from "lucide-react";
+import { Ring } from "@/components/Ring";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import type { FoodEntry } from "@/lib/types";
 
@@ -109,30 +110,30 @@ export function MacroBreakdown({
 
         <div className="mt-5 border-t border-white/[0.06] pt-4">
           <div className="metric-label mb-3">Macros</div>
-          <div className="space-y-3">
-            <MacroBar
+          <div className="grid grid-cols-3 gap-3">
+            <MacroRingButton
               label="Protein"
-              v={totals.p}
+              g={totals.p}
               goal={proteinGoal}
               color={PROTEIN}
               onClick={() => setDrill("protein")}
             />
-            <MacroBar
+            <MacroRingButton
               label="Carbs"
-              v={totals.c}
+              g={totals.c}
               goal={carbGoal}
               color={CARBS}
               onClick={() => setDrill("carbs")}
             />
-            <MacroBar
+            <MacroRingButton
               label="Fat"
-              v={totals.f}
+              g={totals.f}
               goal={fatGoal}
               color={FAT}
               onClick={() => setDrill("fat")}
             />
           </div>
-          <div className="mt-2 text-center text-[11px] font-medium text-chalk-500">
+          <div className="mt-3 text-center text-[11px] font-medium text-chalk-500">
             Tap calories or any macro to see the foods behind it
           </div>
         </div>
@@ -149,15 +150,15 @@ export function MacroBreakdown({
   );
 }
 
-function MacroBar({
+function MacroRingButton({
   label,
-  v,
+  g,
   goal,
   color,
   onClick,
 }: {
   label: string;
-  v: number;
+  g: number;
   goal: number;
   color: string;
   onClick: () => void;
@@ -166,26 +167,22 @@ function MacroBar({
     <button
       type="button"
       onClick={onClick}
-      className="block w-full text-left transition-all duration-200 ease-ios active:scale-[0.99]"
+      className="flex flex-col items-center text-center transition-all duration-200 ease-ios active:scale-[0.97]"
       aria-label={`Break down ${label} by food`}
     >
-      <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-[12px] font-semibold" style={{ color }}>
-          {label}
-        </span>
-        <span className="text-[12px] font-medium text-chalk-400">
-          {v} / {goal}g
-        </span>
+      <div className="relative">
+        <Ring pct={g / Math.max(1, goal)} color={color} size={76} stroke={8} />
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="text-[15px] font-black leading-none" style={{ color }}>
+            {g}
+            <span className="ml-0.5 text-[10px] font-semibold text-chalk-400">
+              g
+            </span>
+          </div>
+        </div>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
-        <div
-          className="h-full rounded-full transition-all duration-500 ease-ios"
-          style={{
-            width: `${Math.min(100, (v / Math.max(1, goal)) * 100)}%`,
-            background: color,
-          }}
-        />
-      </div>
+      <div className="mt-2 text-[12px] font-semibold text-white">{label}</div>
+      <div className="text-[10px] font-medium text-chalk-400">/ {goal}g</div>
     </button>
   );
 }
