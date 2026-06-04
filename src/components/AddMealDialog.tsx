@@ -16,10 +16,11 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { addFoodEntry } from "@/lib/actions/entries";
+import { addFoodEntry, type RecentFood } from "@/lib/actions/entries";
 import { saveCatalogRecipe, saveRecipe } from "@/lib/actions/recipes";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { RecipeHero } from "@/components/RecipeHero";
+import { ServingPicker } from "@/components/ServingPicker";
 import {
   lookupBarcode,
   searchFoods,
@@ -59,6 +60,7 @@ type Tab = "foods" | "recipes" | "new" | "saved";
 export function AddMealDialog({
   entryDate,
   recipes,
+  recentFoods,
   defaultMeal,
   triggerClassName,
   triggerLabel,
@@ -66,6 +68,7 @@ export function AddMealDialog({
 }: {
   entryDate: string;
   recipes: Recipe[];
+  recentFoods?: RecentFood[];
   defaultMeal?: MealType;
   triggerClassName?: string;
   triggerLabel?: string;
@@ -323,6 +326,22 @@ export function AddMealDialog({
     });
   }
 
+  function logRecent(rf: RecentFood) {
+    start(async () => {
+      await addFoodEntry({
+        entry_date: entryDate,
+        meal_type: form.meal_type,
+        name: rf.name,
+        servings: rf.servings,
+        calories: rf.calories,
+        protein_g: rf.protein_g,
+        carbs_g: rf.carbs_g,
+        fat_g: rf.fat_g,
+      });
+      setOpen(false);
+    });
+  }
+
   async function handleBarcodeDetected(barcode: string) {
     setScanning(false);
     setScanLookupError(null);
@@ -368,7 +387,7 @@ export function AddMealDialog({
             className="flex h-full w-full flex-col overflow-hidden bg-ink-900 sm:h-auto sm:max-h-[88svh] sm:max-w-md sm:rounded-3xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="shrink-0 p-5 pb-3">
+            <div className="shrink-0 px-5 pb-3 pt-[calc(env(safe-area-inset-top)+1.25rem)] sm:pt-5">
             <div className="mb-4 flex items-center justify-between">
               <div className="text-[20px] font-bold tracking-tight text-white">
                 Log a meal
@@ -499,16 +518,48 @@ export function AddMealDialog({
                       {foodError}
                     </div>
                   ) : foodQuery.trim().length < 2 ? (
-                    <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
-                      <Search className="mx-auto h-5 w-5 text-chalk-400" />
-                      <div className="mt-2 text-sm text-chalk-300">
-                        Search whole foods + ingredients, or scan a packaged
-                        barcode.
+                    recentFoods && recentFoods.length > 0 ? (
+                      <div className="space-y-2">
+                        <div className="label-tiny px-0.5">Recent</div>
+                        {recentFoods.map((rf, i) => (
+                          <button
+                            key={`${rf.name}-${i}`}
+                            type="button"
+                            disabled={pending}
+                            onClick={() => logRecent(rf)}
+                            className="flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-left transition hover:border-accent-cyan/40 hover:bg-white/[0.06] disabled:opacity-50"
+                          >
+                            <div className="min-w-0">
+                              <div className="truncate text-[13px] font-bold text-chalk-50">
+                                {rf.name}
+                              </div>
+                              <div className="mt-0.5 text-[11px] text-chalk-400">
+                                {rf.calories} cal · P{rf.protein_g} C{rf.carbs_g} F
+                                {rf.fat_g}
+                                {rf.servings !== 1 ? ` · × ${rf.servings}` : ""}
+                              </div>
+                            </div>
+                            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-cyan/15 text-accent-cyan">
+                              <Plus className="h-4 w-4" />
+                            </span>
+                          </button>
+                        ))}
+                        <div className="px-0.5 pt-1 text-[11px] text-chalk-500">
+                          Or search foods + scan barcodes above.
+                        </div>
                       </div>
-                      <div className="mt-0.5 text-[11px] text-chalk-500">
-                        USDA FoodData Central · OpenFoodFacts barcodes
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+                        <Search className="mx-auto h-5 w-5 text-chalk-400" />
+                        <div className="mt-2 text-sm text-chalk-300">
+                          Search whole foods + ingredients, or scan a packaged
+                          barcode.
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-chalk-500">
+                          USDA FoodData Central · OpenFoodFacts barcodes
+                        </div>
                       </div>
-                    </div>
+                    )
                   ) : foodLoading ? (
                     <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-6 text-xs text-chalk-400">
                       <Loader2 className="h-4 w-4 animate-spin" /> Searching…
@@ -892,22 +943,15 @@ function CatalogDetail({
 
       {/* Actions kept above the recipe text so logging/saving is reachable
           without scrolling past long ingredient + instruction lists. */}
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
-        <div>
-          <div className="label-tiny">Servings</div>
-          <div className="text-[11px] text-chalk-400">
-            Recipe makes {recipe.servings} · log {servings} ×
-          </div>
+      <div className="space-y-1">
+        <div className="px-0.5 text-[11px] font-medium text-chalk-400">
+          Recipe makes {recipe.servings}
         </div>
-        <input
-          type="number"
-          step={0.1}
-          min={0.1}
+        <ServingPicker
+          label="Servings to log"
           value={servings}
-          onChange={(e) =>
-            setServings(Math.max(0.1, parseFloat(e.target.value) || 1))
-          }
-          className="w-20 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5 text-right text-sm font-bold text-chalk-50 outline-none"
+          onChange={(v) => setServings(v)}
+          color="#D9A441"
         />
       </div>
 
@@ -1170,28 +1214,17 @@ function FoodDetail({
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
-        <div>
-          <div className="label-tiny">Quantity</div>
-          <div className="text-[11px] text-chalk-400">
-            × {unit.label}
-          </div>
-        </div>
-        <input
-          type="number"
-          step={0.1}
-          min={0.1}
-          value={quantity}
-          onChange={(e) =>
-            setQuantity(Math.max(0.1, parseFloat(e.target.value) || 1))
-          }
-          className="w-20 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1.5 text-right text-sm font-bold text-chalk-50 outline-none"
-        />
-      </div>
+      <ServingPicker
+        label="Quantity"
+        value={quantity}
+        onChange={(v) => setQuantity(v)}
+        unitHint={unit.label}
+        color="#64D2FF"
+      />
 
       <button
         type="button"
-        disabled={disabled}
+        disabled={disabled || quantity <= 0}
         onClick={() => onLog(unit, quantity)}
         className="btn-primary w-full py-3"
       >

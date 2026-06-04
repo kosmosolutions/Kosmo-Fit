@@ -140,7 +140,7 @@ export function IngredientPicker({
         className="flex h-full w-full flex-col overflow-hidden bg-ink-900 sm:h-auto sm:max-h-[88svh] sm:max-w-md sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 p-5 pb-3">
+        <div className="flex shrink-0 items-center justify-between gap-3 px-5 pb-3 pt-[calc(env(safe-area-inset-top)+1.25rem)] sm:pt-5">
           <div className="text-[18px] font-bold tracking-tight text-white">
             Add ingredient
           </div>

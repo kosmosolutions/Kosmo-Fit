@@ -7,6 +7,7 @@ import { localTodayISO } from "@/lib/serverDate";
 import { AddMealDialog } from "@/components/AddMealDialog";
 import { FoodEntryRow } from "@/components/FoodEntryRow";
 import { MacroBreakdown } from "@/components/MacroBreakdown";
+import { getRecentFoods } from "@/lib/actions/entries";
 import type { FoodEntry, MealType, Recipe } from "@/lib/types";
 import { BookOpen, Sunrise, Coffee, Soup, Moon } from "lucide-react";
 
@@ -51,26 +52,28 @@ export default async function DietPage({
     .single();
   if (!profile) redirect("/onboarding");
 
-  const [{ data: food }, { data: recipes }, { data: daily }] = await Promise.all([
-    supabase
-      .from("food_entries")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("entry_date", today)
-      .order("created_at"),
-    supabase
-      .from("recipes")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("is_favorite", { ascending: false })
-      .order("name"),
-    supabase
-      .from("daily_entries")
-      .select("workout_completed, cardio_calories")
-      .eq("user_id", user.id)
-      .eq("entry_date", today)
-      .maybeSingle(),
-  ]);
+  const [{ data: food }, { data: recipes }, { data: daily }, recentFoods] =
+    await Promise.all([
+      supabase
+        .from("food_entries")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("entry_date", today)
+        .order("created_at"),
+      supabase
+        .from("recipes")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("is_favorite", { ascending: false })
+        .order("name"),
+      supabase
+        .from("daily_entries")
+        .select("workout_completed, cardio_calories")
+        .eq("user_id", user.id)
+        .eq("entry_date", today)
+        .maybeSingle(),
+      getRecentFoods(8),
+    ]);
 
   const entries = (food ?? []) as FoodEntry[];
   const rcps = (recipes ?? []) as Recipe[];
@@ -124,6 +127,7 @@ export default async function DietPage({
       <AddMealDialog
         entryDate={today}
         recipes={rcps}
+        recentFoods={recentFoods}
         defaultMeal={nextMeal}
         triggerVariant="primary"
         triggerLabel="Log food"
@@ -161,6 +165,7 @@ export default async function DietPage({
                 <AddMealDialog
                   entryDate={today}
                   recipes={rcps}
+                  recentFoods={recentFoods}
                   defaultMeal={meal}
                 />
               </div>
