@@ -149,48 +149,14 @@ export function OnboardingFlow({
             <p className="text-sm text-chalk-300">
               We use these to calculate your BMR, TDEE and macro targets.
             </p>
-            <div className="flex items-center justify-between">
-              <div className="metric-label">Height</div>
-              <UnitTabs
-                value={hUnit}
-                options={[
-                  { value: "ftin", label: "ft / in" },
-                  { value: "cm", label: "cm" },
-                ]}
-                onChange={(u) => setHUnit(u)}
-              />
-            </div>
-            {hUnit === "ftin" ? (
-              <div className="grid grid-cols-3 gap-3">
-                <NumberCard label="Age" unit="yrs" value={form.age} min={13} max={100} onChange={(v) => setForm({ ...form, age: v })} />
-                <NumberCard label="Height (ft)" unit="ft" value={form.height_ft} min={4} max={7} onChange={(v) => setForm({ ...form, height_ft: v })} />
-                <NumberCard label="Height (in)" unit="in" value={form.height_in} min={0} max={11} onChange={(v) => setForm({ ...form, height_in: v })} />
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                <NumberCard label="Age" unit="yrs" value={form.age} min={13} max={100} onChange={(v) => setForm({ ...form, age: v })} />
-                <NumberCard
-                  label="Height"
-                  unit="cm"
-                  value={ftInToCm(form.height_ft, form.height_in)}
-                  min={120}
-                  max={220}
-                  onChange={(cm) => {
-                    const { ft, inch } = cmToFtIn(cm);
-                    setForm({ ...form, height_ft: ft, height_in: inch });
-                  }}
-                />
-              </div>
-            )}
-            <div className="flex items-center justify-between">
-              <div className="metric-label">Weight</div>
-              <UnitTabs
-                value={wUnit}
-                options={[
-                  { value: "lb", label: "lb" },
-                  { value: "kg", label: "kg" },
-                ]}
-                onChange={(u) => setWUnit(u)}
+            <div className="grid grid-cols-2 gap-3">
+              <NumberCard label="Age" unit="yrs" value={form.age} min={13} max={100} onChange={(v) => setForm({ ...form, age: v })} />
+              <HeightTile
+                hUnit={hUnit}
+                onUnit={setHUnit}
+                ft={form.height_ft}
+                inch={form.height_in}
+                onChange={(ft, inch) => setForm({ ...form, height_ft: ft, height_in: inch })}
               />
             </div>
             <NumberCard
@@ -202,6 +168,16 @@ export function OnboardingFlow({
               step={0.5}
               onChange={(v) =>
                 setForm({ ...form, current_weight: wUnit === "kg" ? +kgToLb(v).toFixed(1) : v })
+              }
+              headerRight={
+                <UnitTabs
+                  value={wUnit}
+                  options={[
+                    { value: "lb", label: "lb" },
+                    { value: "kg", label: "kg" },
+                  ]}
+                  onChange={(u) => setWUnit(u)}
+                />
               }
             />
           </div>
@@ -252,17 +228,6 @@ export function OnboardingFlow({
                 })}
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="metric-label">Goal weight</div>
-              <UnitTabs
-                value={wUnit}
-                options={[
-                  { value: "lb", label: "lb" },
-                  { value: "kg", label: "kg" },
-                ]}
-                onChange={(u) => setWUnit(u)}
-              />
-            </div>
             <NumberCard
               label="Goal weight"
               unit={wUnit}
@@ -273,6 +238,16 @@ export function OnboardingFlow({
               accent
               onChange={(v) =>
                 setForm({ ...form, goal_weight: wUnit === "kg" ? +kgToLb(v).toFixed(1) : v })
+              }
+              headerRight={
+                <UnitTabs
+                  value={wUnit}
+                  options={[
+                    { value: "lb", label: "lb" },
+                    { value: "kg", label: "kg" },
+                  ]}
+                  onChange={(u) => setWUnit(u)}
+                />
               }
             />
             <div>
@@ -537,6 +512,78 @@ function UnitTabs<T extends string>({
   );
 }
 
+function HeightTile({
+  hUnit,
+  onUnit,
+  ft,
+  inch,
+  onChange,
+}: {
+  hUnit: HeightUnit;
+  onUnit: (u: HeightUnit) => void;
+  ft: number;
+  inch: number;
+  onChange: (ft: number, inch: number) => void;
+}) {
+  const cls =
+    "w-full border-none bg-transparent p-0 text-3xl font-black text-chalk-50 outline-none";
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+      <div className="flex items-center justify-between gap-2">
+        <div className="metric-label">Height</div>
+        <UnitTabs
+          value={hUnit}
+          options={[
+            { value: "ftin", label: "ft / in" },
+            { value: "cm", label: "cm" },
+          ]}
+          onChange={onUnit}
+        />
+      </div>
+      {hUnit === "ftin" ? (
+        <div className="mt-1 flex items-baseline gap-1">
+          <input
+            type="number"
+            inputMode="numeric"
+            value={ft}
+            min={4}
+            max={7}
+            onChange={(e) => onChange(Number(e.target.value) || 0, inch)}
+            className={cn(cls, "w-10")}
+          />
+          <span className="text-[11px] text-chalk-400">ft</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={inch}
+            min={0}
+            max={11}
+            onChange={(e) => onChange(ft, Number(e.target.value) || 0)}
+            className={cn(cls, "ml-2 w-10")}
+          />
+          <span className="text-[11px] text-chalk-400">in</span>
+        </div>
+      ) : (
+        <div className="mt-1 flex items-baseline gap-1.5">
+          <input
+            type="number"
+            inputMode="numeric"
+            value={ftInToCm(ft, inch)}
+            min={120}
+            max={220}
+            onChange={(e) => {
+              const { ft: nf, inch: ni } = cmToFtIn(Number(e.target.value) || 0);
+              onChange(nf, ni);
+            }}
+            className={cn(cls, "w-20")}
+          />
+          <span className="text-[11px] text-chalk-400">cm</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NumberCard({
   label,
   unit,
@@ -546,6 +593,7 @@ function NumberCard({
   step = 1,
   accent,
   onChange,
+  headerRight,
 }: {
   label: string;
   unit: string;
@@ -555,6 +603,7 @@ function NumberCard({
   step?: number;
   accent?: boolean;
   onChange: (n: number) => void;
+  headerRight?: React.ReactNode;
 }) {
   return (
     <div
@@ -565,7 +614,10 @@ function NumberCard({
           : "border-white/10 bg-white/[0.03]",
       )}
     >
-      <div className="metric-label">{label}</div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="metric-label">{label}</div>
+        {headerRight}
+      </div>
       <div className="mt-1 flex items-baseline gap-1.5">
         <input
           type="number"
