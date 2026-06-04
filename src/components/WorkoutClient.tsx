@@ -16,7 +16,6 @@ import {
   Flame,
   Pencil,
   LayoutDashboard,
-  Utensils,
 } from "lucide-react";
 import { ExerciseCard } from "./ExerciseCard";
 import { WellnessSection } from "./WellnessSection";
@@ -463,7 +462,7 @@ export function WorkoutClient({
 
       {view === "training" && <>
       {/* Day picker */}
-      <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1">
+      <div className="flex gap-1.5">
         {days.map((dd, i) => (
           <button
             key={i}
@@ -473,18 +472,20 @@ export function WorkoutClient({
               setExpanded(false);
             }}
             className={cn(
-              "shrink-0 rounded-2xl px-3.5 py-2.5 text-center transition-all duration-200 ease-ios active:scale-[0.96]",
+              "flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-2.5 transition-all duration-200 ease-ios active:scale-[0.96]",
               wDay === i ? "text-black" : "bg-ink-800 text-chalk-300 hover:bg-ink-700",
             )}
-            style={
-              wDay === i
-                ? { background: dd.color }
-                : undefined
-            }
+            style={wDay === i ? { background: dd.color } : undefined}
           >
-            <div className="text-base leading-none">{dd.icon}</div>
-            <div className="mt-1 text-[11px] font-bold">{dd.day}</div>
-            <div className="text-[10px] opacity-80">{dd.weekday}</div>
+            <span
+              className="text-[10px] font-bold uppercase tracking-[0.06em]"
+              style={{ opacity: wDay === i ? 0.7 : 1 }}
+            >
+              {dd.weekday}
+            </span>
+            <span className="whitespace-nowrap text-[12px] font-bold leading-tight">
+              {dd.day}
+            </span>
           </button>
         ))}
       </div>
@@ -497,19 +498,16 @@ export function WorkoutClient({
         aria-expanded={expanded}
       >
         <div className="rounded-2xl bg-ink-850 p-5 shadow-bento">
-          <div className="flex items-end justify-between gap-3">
+          <div
+            className="text-center text-[19px] font-bold tracking-tight"
+            style={{ color: d.color }}
+          >
+            {d.focus}
+          </div>
+          <div className="mt-4 flex items-end justify-between gap-3">
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <Utensils className="h-3.5 w-3.5" style={{ color: d.color }} />
-                <span
-                  className="metric-label"
-                  style={{ color: d.color }}
-                >
-                  Eat today · {d.focus}
-                </span>
-              </div>
               <div
-                className="metric-value mt-1"
+                className="metric-value"
                 style={{ color: d.color }}
               >
                 {todayDayTarget.toLocaleString()}

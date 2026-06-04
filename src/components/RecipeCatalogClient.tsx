@@ -209,114 +209,81 @@ export function RecipeCatalogClient() {
 
   return (
     <div className="space-y-6">
-      {/* Hero + category tile browser — mirrors the workout catalog layout */}
-      <section className="relative overflow-hidden rounded-3xl border border-white/[0.07] bg-gradient-to-br from-ink-800 via-ink-900 to-ink-950 p-5 sm:p-8">
-        <div
-          className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-50 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(0,168,232,0.45), rgba(0,102,255,0.0))",
-          }}
-        />
-        <div className="relative flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="label-eyebrow">Recipe library</div>
-            <h1 className="display mt-2 text-3xl text-chalk-50 sm:text-4xl">
-              Find your next meal.
-            </h1>
-            <p className="mt-2 max-w-md text-sm text-chalk-300">
-              {all
-                ? `${all.length} recipes · sortable by cuisine, diet style and macro lean.`
-                : loadError
-                  ? `Failed to load catalog: ${loadError}`
-                  : "Loading catalog…"}
-            </p>
-          </div>
-          <Link
-            href="/diet/recipes"
-            className="btn-secondary shrink-0"
-            aria-label="Back to saved recipes"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back</span>
-          </Link>
-        </div>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2">
+        <Link
+          href="/diet/recipes"
+          className="inline-flex min-h-[40px] items-center gap-1 rounded-full bg-ink-800 px-3 text-[13px] font-semibold text-chalk-200 transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-ink-700 hover:text-white"
+          aria-label="Back to saved recipes"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Link>
+      </div>
+      <div>
+        <div className="metric-label">Recipe library</div>
+        <h1 className="display text-[28px] leading-tight text-white">
+          Find your next meal
+        </h1>
+        <p className="mt-1 text-[13px] font-medium text-chalk-400">
+          {all
+            ? `${all.length} recipes · cuisine, diet style & macro lean`
+            : loadError
+              ? `Failed to load catalog: ${loadError}`
+              : "Loading catalog…"}
+        </p>
+      </div>
 
-        {/* Category tile browser */}
-        <div className="relative mt-6 grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
-          <button
-            type="button"
-            onClick={() => setCategory(null)}
-            className={cn(
-              "group/tile relative flex flex-col items-center gap-1.5 overflow-hidden rounded-2xl border p-3 text-center transition-all",
-              category === null
-                ? "border-accent-blue/50 bg-accent-blue/10 shadow-glow"
-                : "border-white/[0.08] bg-white/[0.025] hover:border-white/20 hover:bg-white/[0.05]",
-            )}
-          >
-            <LayoutGrid
+      {/* Category tile browser */}
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-9">
+        <button
+          type="button"
+          onClick={() => setCategory(null)}
+          className={cn(
+            "flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-center transition-all duration-200 ease-ios active:scale-[0.96]",
+            category === null
+              ? "bg-[#D9A441] text-black"
+              : "bg-ink-800 text-chalk-200 hover:bg-ink-700",
+          )}
+        >
+          <LayoutGrid className="h-[18px] w-[18px]" />
+          <span className="text-[11px] font-bold uppercase tracking-wider">All</span>
+          {all && (
+            <span
+              className="text-[10px] font-medium"
+              style={{ opacity: category === null ? 0.7 : 0.6 }}
+            >
+              {all.length}
+            </span>
+          )}
+        </button>
+        {CATEGORIES.map((c) => {
+          const sel = category === c.key;
+          const count = categoryCounts[c.key] ?? 0;
+          return (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() => setCategory(sel ? null : c.key)}
               className={cn(
-                "h-5 w-5 transition",
-                category === null ? "text-accent-cyan" : "text-chalk-400",
-              )}
-            />
-            <div
-              className={cn(
-                "text-[11px] font-bold uppercase tracking-wider",
-                category === null ? "text-accent-cyan" : "text-chalk-200",
+                "flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-center transition-all duration-200 ease-ios active:scale-[0.96]",
+                sel ? "bg-[#D9A441] text-black" : "bg-ink-800 text-chalk-200 hover:bg-ink-700",
               )}
             >
-              All
-            </div>
-            {all && (
-              <div className="text-[10px] text-chalk-500">{all.length}</div>
-            )}
-          </button>
-          {CATEGORIES.map((c) => {
-            const sel = category === c.key;
-            const count = categoryCounts[c.key] ?? 0;
-            return (
-              <button
-                key={c.key}
-                type="button"
-                onClick={() => setCategory(sel ? null : c.key)}
-                className={cn(
-                  "group/tile relative flex flex-col items-center gap-1.5 overflow-hidden rounded-2xl border p-3 text-center transition-all",
-                  sel
-                    ? "border-accent-blue/50 shadow-glow"
-                    : "border-white/[0.08] hover:border-white/20",
-                )}
+              <span className="text-lg leading-none">{c.emoji}</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider leading-tight">
+                {c.label}
+              </span>
+              <span
+                className="text-[10px] font-medium"
+                style={{ opacity: sel ? 0.7 : 0.6 }}
               >
-                <div
-                  className={cn(
-                    "pointer-events-none absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity",
-                    c.gradient,
-                    !sel && "opacity-25 group-hover/tile:opacity-50",
-                  )}
-                />
-                <div
-                  className={cn(
-                    "absolute inset-0 transition",
-                    sel ? "bg-accent-blue/10" : "bg-white/[0.02]",
-                  )}
-                />
-                <span className="relative text-xl leading-none">{c.emoji}</span>
-                <div
-                  className={cn(
-                    "relative text-[11px] font-bold uppercase tracking-wider",
-                    sel ? "text-accent-cyan" : "text-chalk-100",
-                  )}
-                >
-                  {c.label}
-                </div>
-                <div className="relative text-[10px] text-chalk-400">
-                  {count}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Search + filter toggle */}
       <div className="sticky top-[64px] z-10 -mx-4 border-b border-white/[0.05] bg-ink-950/85 px-4 py-3 backdrop-blur md:top-[68px]">
@@ -557,7 +524,7 @@ function RecipeGridCard({
     <button
       type="button"
       onClick={onClick}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] text-left transition-all hover:-translate-y-0.5 hover:border-accent-blue/40 hover:shadow-glow"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-ink-850 text-left shadow-bento transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-800"
     >
       {/* Visual header — Pexels photo when matched, else gradient + emoji */}
       <RecipeHero
@@ -683,7 +650,7 @@ function RecipeDetail({
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-ink-900 sm:rounded-2xl"
+        className="flex max-h-[90svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-ink-850 sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Visual hero strip — Pexels photo when matched, else gradient + emoji */}

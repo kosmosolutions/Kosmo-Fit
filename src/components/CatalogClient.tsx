@@ -36,59 +36,36 @@ interface CatalogExercise {
 type MuscleGroup = {
   key: string;
   label: string;
-  emoji: string;
-  gradient: string;
+  color: string;
   matches: string[]; // primaryMuscle values it includes
 };
 
 const MUSCLE_GROUPS: MuscleGroup[] = [
-  {
-    key: "chest",
-    label: "Chest",
-    emoji: "💪",
-    gradient: "from-rose-500/40 to-rose-500/0",
-    matches: ["chest"],
-  },
+  { key: "chest", label: "Chest", color: "#FF2D55", matches: ["chest"] },
   {
     key: "back",
     label: "Back",
-    emoji: "🪨",
-    gradient: "from-indigo-500/40 to-indigo-500/0",
+    color: "#0A84FF",
     matches: ["lats", "middle back", "lower back", "traps"],
   },
-  {
-    key: "shoulders",
-    label: "Shoulders",
-    emoji: "🏔️",
-    gradient: "from-amber-500/40 to-amber-500/0",
-    matches: ["shoulders"],
-  },
+  { key: "shoulders", label: "Shoulders", color: "#FFD60A", matches: ["shoulders"] },
   {
     key: "arms",
     label: "Arms",
-    emoji: "💥",
-    gradient: "from-fuchsia-500/40 to-fuchsia-500/0",
+    color: "#BF5AF2",
     matches: ["biceps", "triceps", "forearms"],
   },
-  {
-    key: "core",
-    label: "Core",
-    emoji: "🔥",
-    gradient: "from-orange-500/40 to-orange-500/0",
-    matches: ["abdominals"],
-  },
+  { key: "core", label: "Core", color: "#FF9F0A", matches: ["abdominals"] },
   {
     key: "legs",
     label: "Legs",
-    emoji: "🦵",
-    gradient: "from-emerald-500/40 to-emerald-500/0",
+    color: "#30D158",
     matches: ["quadriceps", "hamstrings", "glutes", "calves", "adductors", "abductors"],
   },
   {
     key: "full",
     label: "Full body",
-    emoji: "⚡",
-    gradient: "from-accent-blue/50 to-accent-cyan/0",
+    color: "#64D2FF",
     matches: [], // selected via category fallback
   },
 ];
@@ -111,9 +88,9 @@ const EQUIPMENT_FACETS = [
 const LEVEL_FACETS: Level[] = ["beginner", "intermediate", "expert"];
 
 const LEVEL_COLOR: Record<Level, string> = {
-  beginner: "#22c55e",
-  intermediate: "#f59e0b",
-  expert: "#f43f5e",
+  beginner: "#30D158",
+  intermediate: "#FF9F0A",
+  expert: "#FF2D55",
 };
 
 const PAGE_SIZE = 36;
@@ -239,114 +216,85 @@ export function CatalogClient() {
 
   return (
     <div className="space-y-6">
-      {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl border border-white/[0.07] bg-gradient-to-br from-ink-800 via-ink-900 to-ink-950 p-5 sm:p-8">
-        <div
-          className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full opacity-50 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(0,102,255,0.45), rgba(0,168,232,0.0))",
-          }}
-        />
-        <div className="relative flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="label-eyebrow">Exercise library</div>
-            <h1 className="display mt-2 text-3xl text-chalk-50 sm:text-4xl">
-              Find your next move.
-            </h1>
-            <p className="mt-2 max-w-md text-sm text-chalk-300">
-              {all
-                ? `${all.length} exercises · animated form previews · YouTube tutorials per move.`
-                : loadError
-                  ? `Failed to load catalog: ${loadError}`
-                  : "Loading catalog…"}
-            </p>
-          </div>
-          <Link
-            href="/workout"
-            className="btn-secondary shrink-0"
-            aria-label="Back to workout plan"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back</span>
-          </Link>
-        </div>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2">
+        <Link
+          href="/workout"
+          className="inline-flex min-h-[40px] items-center gap-1 rounded-full bg-ink-800 px-3 text-[13px] font-semibold text-chalk-200 transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-ink-700 hover:text-white"
+          aria-label="Back to workout plan"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Link>
+      </div>
+      <div>
+        <div className="metric-label">Exercise library</div>
+        <h1 className="display text-[28px] leading-tight text-white">
+          Find your next move
+        </h1>
+        <p className="mt-1 text-[13px] font-medium text-chalk-400">
+          {all
+            ? `${all.length} exercises · animated previews · YouTube tutorials`
+            : loadError
+              ? `Failed to load catalog: ${loadError}`
+              : "Loading catalog…"}
+        </p>
+      </div>
 
-        {/* Muscle group tile browser */}
-        <div className="relative mt-6 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-7">
-          <button
-            type="button"
-            onClick={() => setGroup(null)}
-            className={cn(
-              "group/tile relative flex flex-col items-center gap-1.5 overflow-hidden rounded-2xl border p-3 text-center transition-all",
-              group === null
-                ? "border-accent-blue/50 bg-accent-blue/10 shadow-glow"
-                : "border-white/[0.08] bg-white/[0.025] hover:border-white/20 hover:bg-white/[0.05]",
-            )}
-          >
-            <LayoutGrid
-              className={cn(
-                "h-5 w-5 transition",
-                group === null ? "text-accent-cyan" : "text-chalk-400",
-              )}
-            />
-            <div
-              className={cn(
-                "text-[11px] font-bold uppercase tracking-wider",
-                group === null ? "text-accent-cyan" : "text-chalk-200",
-              )}
+      {/* Muscle group tile browser */}
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-4 lg:grid-cols-8">
+        <button
+          type="button"
+          onClick={() => setGroup(null)}
+          className={cn(
+            "flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-center transition-all duration-200 ease-ios active:scale-[0.96]",
+            group === null
+              ? "text-black"
+              : "bg-ink-800 text-chalk-200 hover:bg-ink-700",
+          )}
+          style={group === null ? { background: "#0A84FF" } : undefined}
+        >
+          <LayoutGrid className="h-[18px] w-[18px]" />
+          <span className="text-[11px] font-bold uppercase tracking-wider">All</span>
+          {all && (
+            <span
+              className="text-[10px] font-medium"
+              style={{ opacity: group === null ? 0.7 : 0.6 }}
             >
-              All
-            </div>
-            {all && (
-              <div className="text-[10px] text-chalk-500">{all.length}</div>
-            )}
-          </button>
-          {MUSCLE_GROUPS.map((g) => {
-            const sel = group === g.key;
-            return (
-              <button
-                key={g.key}
-                type="button"
-                onClick={() => setGroup(sel ? null : g.key)}
-                className={cn(
-                  "group/tile relative flex flex-col items-center gap-1.5 overflow-hidden rounded-2xl border p-3 text-center transition-all",
-                  sel
-                    ? "border-accent-blue/50 shadow-glow"
-                    : "border-white/[0.08] hover:border-white/20",
-                )}
+              {all.length}
+            </span>
+          )}
+        </button>
+        {MUSCLE_GROUPS.map((g) => {
+          const sel = group === g.key;
+          return (
+            <button
+              key={g.key}
+              type="button"
+              onClick={() => setGroup(sel ? null : g.key)}
+              className={cn(
+                "flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-center transition-all duration-200 ease-ios active:scale-[0.96]",
+                sel ? "text-black" : "bg-ink-800 text-chalk-200 hover:bg-ink-700",
+              )}
+              style={sel ? { background: g.color } : undefined}
+            >
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ background: sel ? "rgba(0,0,0,0.5)" : g.color }}
+              />
+              <span className="text-[11px] font-bold uppercase tracking-wider leading-tight">
+                {g.label}
+              </span>
+              <span
+                className="text-[10px] font-medium"
+                style={{ opacity: sel ? 0.7 : 0.6 }}
               >
-                {/* Color flare */}
-                <div
-                  className={cn(
-                    "pointer-events-none absolute inset-0 bg-gradient-to-br opacity-60 transition-opacity",
-                    g.gradient,
-                    !sel && "opacity-25 group-hover/tile:opacity-50",
-                  )}
-                />
-                <div
-                  className={cn(
-                    "absolute inset-0 transition",
-                    sel ? "bg-accent-blue/10" : "bg-white/[0.02]",
-                  )}
-                />
-                <span className="relative text-xl leading-none">{g.emoji}</span>
-                <div
-                  className={cn(
-                    "relative text-[11px] font-bold uppercase tracking-wider",
-                    sel ? "text-accent-cyan" : "text-chalk-100",
-                  )}
-                >
-                  {g.label}
-                </div>
-                <div className="relative text-[10px] text-chalk-400">
-                  {groupCounts[g.key] ?? ""}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+                {groupCounts[g.key] ?? ""}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Search + filter toggle */}
       <div className="sticky top-[64px] z-10 -mx-4 border-b border-white/[0.05] bg-ink-950/90 px-4 py-3 backdrop-blur-xl md:top-[68px]">
@@ -541,7 +489,7 @@ function ExerciseGridCard({
     <button
       type="button"
       onClick={onClick}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] text-left transition-all hover:-translate-y-0.5 hover:border-accent-blue/40 hover:shadow-glow"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-white/[0.06] bg-ink-850 text-left shadow-bento transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-800"
     >
       <div className="relative aspect-square w-full bg-ink-900">
         {imageUrls.length > 0 ? (
@@ -607,10 +555,10 @@ function ExerciseDetail({
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-ink-900 sm:rounded-2xl"
+        className="flex max-h-[90svh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-ink-850 sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
+        <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-5 py-4">
           <div className="min-w-0">
             <div className="truncate text-sm font-bold text-chalk-50">
               {exercise.name}

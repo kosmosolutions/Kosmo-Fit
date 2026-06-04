@@ -12,15 +12,22 @@ import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { fromISODate, toISODate } from "@/lib/dates";
 import { localTodayISO } from "@/lib/serverDate";
 import { getDays } from "@/data/workouts";
-import { ArrowRight, ChevronLeft, ChevronRight, Footprints, Flame } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Footprints,
+  Flame,
+  Dumbbell,
+} from "lucide-react";
 
 // Apple Fitness palette
 const MOVE = "#FF2D55";   // calories burned / movement
 const EXERCISE = "#30D158"; // strength / workout
 const STAND = "#0A84FF";  // hydration / activity
-const DIET = "#FF9F0A";   // nutrition / total cals
+const DIET = "#D9A441";   // nutrition / total cals — muted posh amber
 const PROTEIN = "#FF375F";
-const CARBS = "#FF9F0A";
+const CARBS = "#D9A441";
 const FAT = "#FFD60A";
 
 export default async function OverviewPage({
@@ -188,10 +195,10 @@ export default async function OverviewPage({
             ) : null}
           </div>
           <div className="relative shrink-0">
-            <Ring pct={pctEaten} color={DIET} size={108} stroke={11} />
+            <Ring pct={pctEaten} color={DIET} size={120} stroke={12} />
             <div className="absolute inset-0 grid place-items-center">
               <div className="text-center">
-                <div className="text-[22px] font-black leading-none text-white">
+                <div className="text-[25px] font-black leading-none text-white">
                   {Math.round(pctEaten * 100)}%
                 </div>
                 <div className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-chalk-400">
@@ -214,10 +221,23 @@ export default async function OverviewPage({
         <div className="mt-5 grid grid-cols-2 gap-3">
           <Link
             href={isToday ? "/diet" : `/diet?date=${selected}`}
-            className="group flex min-h-[88px] flex-col justify-between rounded-2xl bg-ink-800 p-4 transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-700"
+            className="group relative flex min-h-[112px] flex-col justify-between overflow-hidden rounded-2xl bg-ink-800 p-4 transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-700"
             aria-label="Log a meal"
           >
-            <div>
+            <div
+              className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full blur-3xl"
+              style={{ background: `${DIET}24` }}
+            />
+            <div className="relative flex items-center justify-between">
+              <span
+                className="grid h-9 w-9 place-items-center rounded-full"
+                style={{ background: `${DIET}1f` }}
+              >
+                <Flame className="h-[18px] w-[18px]" style={{ color: DIET }} />
+              </span>
+              <ArrowRight className="h-4 w-4 text-chalk-500 transition-transform duration-200 ease-ios group-hover:translate-x-0.5" />
+            </div>
+            <div className="relative">
               <div className="text-[15px] font-bold text-white">Log meal</div>
               <div className="mt-0.5 text-[12px] font-medium text-chalk-400">
                 {eaten >= target
@@ -225,16 +245,29 @@ export default async function OverviewPage({
                   : `${(target - eaten).toLocaleString()} cal left`}
               </div>
             </div>
-            <span className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-accent-orange">
-              Open nutrition <ArrowRight className="h-3 w-3" />
-            </span>
           </Link>
           <Link
             href={isToday ? "/workout" : `/workout?date=${selected}`}
-            className="group flex min-h-[88px] flex-col justify-between rounded-2xl bg-ink-800 p-4 transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-700"
+            className="group relative flex min-h-[112px] flex-col justify-between overflow-hidden rounded-2xl bg-ink-800 p-4 transition-all duration-200 ease-ios active:scale-[0.98] hover:bg-ink-700"
             aria-label="Log workout"
           >
-            <div>
+            <div
+              className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full blur-3xl"
+              style={{ background: `${EXERCISE}24` }}
+            />
+            <div className="relative flex items-center justify-between">
+              <span
+                className="grid h-9 w-9 place-items-center rounded-full"
+                style={{ background: `${EXERCISE}1f` }}
+              >
+                <Dumbbell
+                  className="h-[18px] w-[18px]"
+                  style={{ color: EXERCISE }}
+                />
+              </span>
+              <ArrowRight className="h-4 w-4 text-chalk-500 transition-transform duration-200 ease-ios group-hover:translate-x-0.5" />
+            </div>
+            <div className="relative">
               <div className="text-[15px] font-bold text-white">
                 Log workout
               </div>
@@ -246,9 +279,6 @@ export default async function OverviewPage({
                     : `Earn +${burn} cal`}
               </div>
             </div>
-            <span className="mt-3 inline-flex items-center gap-1 text-[12px] font-semibold text-accent-green">
-              Open fitness <ArrowRight className="h-3 w-3" />
-            </span>
           </Link>
         </div>
       </section>
@@ -380,7 +410,7 @@ function MacroRing({
   return (
     <div className="flex flex-col items-center text-center">
       <div className="relative">
-        <Ring pct={g / Math.max(1, goal)} color={color} size={72} stroke={7} />
+        <Ring pct={g / Math.max(1, goal)} color={color} size={76} stroke={8} />
         <div className="absolute inset-0 grid place-items-center">
           <div>
             <div

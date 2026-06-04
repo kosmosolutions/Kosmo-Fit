@@ -32,10 +32,9 @@ export function SessionTimer({ color }: { color: string }) {
           setElapsed(0);
           setStatus("running");
         }}
-        className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-full px-5 text-[15px] font-semibold text-black transition-all duration-200 ease-ios active:scale-[0.98] hover:brightness-110"
+        className="flex min-h-[52px] w-full items-center justify-center rounded-full px-5 text-[15px] font-semibold text-black transition-all duration-200 ease-ios active:scale-[0.98] hover:brightness-110"
         style={{ background: color }}
       >
-        <Play className="h-4 w-4 fill-current" />
         Start session
       </button>
     );
