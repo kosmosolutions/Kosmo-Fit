@@ -232,55 +232,15 @@ export function ProfileEditor({
       </Section>
 
       <Section title="Body">
-        {/* Height — ft/in or cm */}
-        <div className="flex items-center justify-between">
-          <div className="metric-label">Height</div>
-          <UnitTabs
-            value={hUnit}
-            options={[
-              { value: "ftin", label: "ft / in" },
-              { value: "cm", label: "cm" },
-            ]}
-            onChange={(u) => setHUnit(u)}
-          />
-        </div>
-        {hUnit === "ftin" ? (
-          <div className="grid grid-cols-3 gap-2">
-            <Num label="Age" unit="yrs" v={f.age} min={13} max={100}
-              onChange={(v) => setF({ ...f, age: v })} />
-            <Num label="Height" unit="ft" v={f.height_ft} min={4} max={7}
-              onChange={(v) => setF({ ...f, height_ft: v })} />
-            <Num label="Height" unit="in" v={f.height_in} min={0} max={11}
-              onChange={(v) => setF({ ...f, height_in: v })} />
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2">
-            <Num label="Age" unit="yrs" v={f.age} min={13} max={100}
-              onChange={(v) => setF({ ...f, age: v })} />
-            <Num
-              label="Height"
-              unit="cm"
-              v={ftInToCm(f.height_ft, f.height_in)}
-              min={120}
-              max={220}
-              onChange={(cm) => {
-                const { ft, inch } = cmToFtIn(cm);
-                setF({ ...f, height_ft: ft, height_in: inch });
-              }}
-            />
-          </div>
-        )}
-
-        {/* Weight — lb or kg */}
-        <div className="flex items-center justify-between pt-1">
-          <div className="metric-label">Weight</div>
-          <UnitTabs
-            value={wUnit}
-            options={[
-              { value: "lb", label: "lb" },
-              { value: "kg", label: "kg" },
-            ]}
-            onChange={(u) => setWUnit(u)}
+        <div className="grid grid-cols-2 gap-2">
+          <Num label="Age" unit="yrs" v={f.age} min={13} max={100}
+            onChange={(v) => setF({ ...f, age: v })} />
+          <HeightTile
+            hUnit={hUnit}
+            onUnit={(u) => setHUnit(u)}
+            ft={f.height_ft}
+            inch={f.height_in}
+            onChange={(ft, inch) => setF({ ...f, height_ft: ft, height_in: inch })}
           />
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -294,6 +254,16 @@ export function ProfileEditor({
             onChange={(v) =>
               setF({ ...f, current_weight: wUnit === "kg" ? +kgToLb(v).toFixed(1) : v })
             }
+            headerRight={
+              <UnitTabs
+                value={wUnit}
+                options={[
+                  { value: "lb", label: "lb" },
+                  { value: "kg", label: "kg" },
+                ]}
+                onChange={(u) => setWUnit(u)}
+              />
+            }
           />
           <Num
             label="Goal weight"
@@ -305,6 +275,16 @@ export function ProfileEditor({
             accent
             onChange={(v) =>
               setF({ ...f, goal_weight: wUnit === "kg" ? +kgToLb(v).toFixed(1) : v })
+            }
+            headerRight={
+              <UnitTabs
+                value={wUnit}
+                options={[
+                  { value: "lb", label: "lb" },
+                  { value: "kg", label: "kg" },
+                ]}
+                onChange={(u) => setWUnit(u)}
+              />
             }
           />
         </div>
@@ -512,14 +492,14 @@ function UnitTabs<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="inline-flex rounded-full bg-ink-800 p-1">
+    <div className="inline-flex rounded-full bg-ink-900 p-0.5">
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
           className={cn(
-            "min-h-[30px] rounded-full px-3 text-[12px] font-semibold uppercase tracking-wider transition-all duration-200 ease-ios",
+            "min-h-[28px] rounded-full px-2.5 text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 ease-ios",
             value === o.value
               ? "bg-ink-700 text-white"
               : "text-chalk-400 hover:text-white",
@@ -547,6 +527,78 @@ function Section({
   );
 }
 
+function HeightTile({
+  hUnit,
+  onUnit,
+  ft,
+  inch,
+  onChange,
+}: {
+  hUnit: HeightUnit;
+  onUnit: (u: HeightUnit) => void;
+  ft: number;
+  inch: number;
+  onChange: (ft: number, inch: number) => void;
+}) {
+  const inputCls =
+    "border-none bg-transparent p-0 font-display text-[26px] font-black tracking-tightest text-white outline-none";
+  return (
+    <div className="rounded-2xl bg-ink-800 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="metric-label">Height</div>
+        <UnitTabs
+          value={hUnit}
+          options={[
+            { value: "ftin", label: "ft / in" },
+            { value: "cm", label: "cm" },
+          ]}
+          onChange={onUnit}
+        />
+      </div>
+      {hUnit === "ftin" ? (
+        <div className="mt-1 flex items-baseline gap-1">
+          <input
+            type="number"
+            inputMode="numeric"
+            value={ft}
+            min={4}
+            max={7}
+            onChange={(e) => onChange(parseInt(e.target.value) || 0, inch)}
+            className={cn(inputCls, "w-9")}
+          />
+          <span className="text-[11px] font-medium text-chalk-400">ft</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={inch}
+            min={0}
+            max={11}
+            onChange={(e) => onChange(ft, parseInt(e.target.value) || 0)}
+            className={cn(inputCls, "ml-2 w-9")}
+          />
+          <span className="text-[11px] font-medium text-chalk-400">in</span>
+        </div>
+      ) : (
+        <div className="mt-1 flex items-baseline gap-1">
+          <input
+            type="number"
+            inputMode="numeric"
+            value={ftInToCm(ft, inch)}
+            min={120}
+            max={220}
+            onChange={(e) => {
+              const { ft: nf, inch: ni } = cmToFtIn(parseInt(e.target.value) || 0);
+              onChange(nf, ni);
+            }}
+            className={cn(inputCls, "w-20")}
+          />
+          <span className="text-[11px] font-medium text-chalk-400">cm</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Num({
   label,
   unit,
@@ -556,6 +608,7 @@ function Num({
   step = 1,
   accent,
   onChange,
+  headerRight,
 }: {
   label: string;
   unit: string;
@@ -565,6 +618,7 @@ function Num({
   step?: number;
   accent?: boolean;
   onChange: (n: number) => void;
+  headerRight?: React.ReactNode;
 }) {
   return (
     <div
@@ -573,7 +627,10 @@ function Num({
         accent ? "bg-accent-blue/10" : "bg-ink-800",
       )}
     >
-      <div className="metric-label">{label}</div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="metric-label">{label}</div>
+        {headerRight}
+      </div>
       <div className="mt-1 flex items-baseline gap-1">
         <input
           type="number"
