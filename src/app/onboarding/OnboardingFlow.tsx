@@ -6,6 +6,15 @@ import { LIFESTYLE, calcStats } from "@/lib/calc";
 import { saveProfile } from "@/lib/actions/profile";
 import type { Profile } from "@/lib/types";
 import { ChevronRight, ChevronLeft, Sparkles } from "lucide-react";
+import { useUnitPref } from "@/lib/useUnitPref";
+import {
+  lbToKg,
+  kgToLb,
+  ftInToCm,
+  cmToFtIn,
+  type WeightUnit,
+  type HeightUnit,
+} from "@/lib/units";
 import { cn } from "@/lib/cn";
 
 const STEPS = ["You", "Body", "Goals", "Lifestyle", "Review"] as const;
@@ -20,6 +29,8 @@ export function OnboardingFlow({
 }) {
   const [step, setStep] = useState(0);
   const [pending, start] = useTransition();
+  const [wUnit, setWUnit] = useUnitPref<WeightUnit>("weight", "lb");
+  const [hUnit, setHUnit] = useUnitPref<HeightUnit>("height", "ftin");
   const [form, setForm] = useState({
     full_name: existing?.full_name ?? fullName,
     sex: (existing?.sex ?? "male") as "male" | "female" | "other",
@@ -138,12 +149,61 @@ export function OnboardingFlow({
             <p className="text-sm text-chalk-300">
               We use these to calculate your BMR, TDEE and macro targets.
             </p>
-            <div className="grid grid-cols-3 gap-3">
-              <NumberCard label="Age" unit="yrs" value={form.age} min={13} max={100} onChange={(v) => setForm({ ...form, age: v })} />
-              <NumberCard label="Height (ft)" unit="ft" value={form.height_ft} min={4} max={7} onChange={(v) => setForm({ ...form, height_ft: v })} />
-              <NumberCard label="Height (in)" unit="in" value={form.height_in} min={0} max={11} onChange={(v) => setForm({ ...form, height_in: v })} />
+            <div className="flex items-center justify-between">
+              <div className="metric-label">Height</div>
+              <UnitTabs
+                value={hUnit}
+                options={[
+                  { value: "ftin", label: "ft / in" },
+                  { value: "cm", label: "cm" },
+                ]}
+                onChange={(u) => setHUnit(u)}
+              />
             </div>
-            <NumberCard label="Current weight" unit="lbs" value={form.current_weight} min={80} max={500} onChange={(v) => setForm({ ...form, current_weight: v })} />
+            {hUnit === "ftin" ? (
+              <div className="grid grid-cols-3 gap-3">
+                <NumberCard label="Age" unit="yrs" value={form.age} min={13} max={100} onChange={(v) => setForm({ ...form, age: v })} />
+                <NumberCard label="Height (ft)" unit="ft" value={form.height_ft} min={4} max={7} onChange={(v) => setForm({ ...form, height_ft: v })} />
+                <NumberCard label="Height (in)" unit="in" value={form.height_in} min={0} max={11} onChange={(v) => setForm({ ...form, height_in: v })} />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <NumberCard label="Age" unit="yrs" value={form.age} min={13} max={100} onChange={(v) => setForm({ ...form, age: v })} />
+                <NumberCard
+                  label="Height"
+                  unit="cm"
+                  value={ftInToCm(form.height_ft, form.height_in)}
+                  min={120}
+                  max={220}
+                  onChange={(cm) => {
+                    const { ft, inch } = cmToFtIn(cm);
+                    setForm({ ...form, height_ft: ft, height_in: inch });
+                  }}
+                />
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <div className="metric-label">Weight</div>
+              <UnitTabs
+                value={wUnit}
+                options={[
+                  { value: "lb", label: "lb" },
+                  { value: "kg", label: "kg" },
+                ]}
+                onChange={(u) => setWUnit(u)}
+              />
+            </div>
+            <NumberCard
+              label="Current weight"
+              unit={wUnit}
+              value={wUnit === "kg" ? +lbToKg(form.current_weight).toFixed(1) : form.current_weight}
+              min={wUnit === "kg" ? 36 : 80}
+              max={wUnit === "kg" ? 227 : 500}
+              step={0.5}
+              onChange={(v) =>
+                setForm({ ...form, current_weight: wUnit === "kg" ? +kgToLb(v).toFixed(1) : v })
+              }
+            />
           </div>
         )}
 
@@ -192,7 +252,29 @@ export function OnboardingFlow({
                 })}
               </div>
             </div>
-            <NumberCard label="Goal weight" unit="lbs" value={form.goal_weight} min={80} max={500} onChange={(v) => setForm({ ...form, goal_weight: v })} accent />
+            <div className="flex items-center justify-between">
+              <div className="metric-label">Goal weight</div>
+              <UnitTabs
+                value={wUnit}
+                options={[
+                  { value: "lb", label: "lb" },
+                  { value: "kg", label: "kg" },
+                ]}
+                onChange={(u) => setWUnit(u)}
+              />
+            </div>
+            <NumberCard
+              label="Goal weight"
+              unit={wUnit}
+              value={wUnit === "kg" ? +lbToKg(form.goal_weight).toFixed(1) : form.goal_weight}
+              min={wUnit === "kg" ? 36 : 80}
+              max={wUnit === "kg" ? 227 : 500}
+              step={0.5}
+              accent
+              onChange={(v) =>
+                setForm({ ...form, goal_weight: wUnit === "kg" ? +kgToLb(v).toFixed(1) : v })
+              }
+            />
             <div>
               <div className="metric-label mb-2">Timeframe</div>
               <div className="flex flex-wrap gap-2">
@@ -421,6 +503,36 @@ export function OnboardingFlow({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+function UnitTabs<T extends string>({
+  value,
+  options,
+  onChange,
+}: {
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="inline-flex rounded-full border border-white/10 bg-white/[0.04] p-1">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          className={cn(
+            "min-h-[30px] rounded-full px-3 text-[12px] font-semibold uppercase tracking-wider transition",
+            value === o.value
+              ? "bg-white/15 text-white"
+              : "text-chalk-400 hover:text-white",
+          )}
+        >
+          {o.label}
+        </button>
+      ))}
     </div>
   );
 }
