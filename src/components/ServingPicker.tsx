@@ -15,8 +15,8 @@ const FRACTIONS = [
 ];
 
 const WHOLES = Array.from({ length: 101 }, (_, i) => i); // 0..100
-const ITEM = 44; // row height (px)
-const VISIBLE = 5; // odd → one centered row
+const ITEM = 40; // row height (px)
+const VISIBLE = 3; // odd → one centered row (compact so Log stays in view)
 const PAD = ((VISIBLE - 1) / 2) * ITEM;
 
 const eq = (a: number, b: number) => Math.abs(a - b) < 1e-6;

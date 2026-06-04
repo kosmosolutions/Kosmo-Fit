@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Loader2, Pencil, Trash2, X } from "lucide-react";
 import { deleteFoodEntry, updateFoodEntry } from "@/lib/actions/entries";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
+import { ServingPicker } from "@/components/ServingPicker";
 import { cn } from "@/lib/cn";
 import type { FoodEntry, MealType } from "@/lib/types";
 
@@ -166,21 +167,18 @@ function EditFoodModal({
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <Num
-              label="Calories"
-              unit="cal"
-              value={form.calories}
-              onChange={(v) => setForm({ ...form, calories: v })}
-            />
-            <Num
-              label="Servings"
-              unit="×"
-              step={0.1}
-              value={form.servings}
-              onChange={(v) => setForm({ ...form, servings: v })}
-            />
-          </div>
+          <ServingPicker
+            label="Servings"
+            value={form.servings}
+            onChange={(v) => setForm({ ...form, servings: v })}
+            color="#D9A441"
+          />
+          <Num
+            label="Calories"
+            unit="cal"
+            value={form.calories}
+            onChange={(v) => setForm({ ...form, calories: v })}
+          />
           <div className="grid grid-cols-3 gap-2">
             <Num
               label="Protein"
