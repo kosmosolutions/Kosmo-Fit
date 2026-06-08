@@ -7,6 +7,7 @@ import {
   IngredientPicker,
   type PickedIngredient,
 } from "@/components/IngredientPicker";
+import { ImageUploadButton } from "@/components/ImageUploadButton";
 import type { MealType } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -33,6 +34,7 @@ const blankIngredient = (): Ingredient => ({
 export function RecipeForm() {
   const [pending, start] = useTransition();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     meal_type: "any" as MealType | "any",
@@ -93,6 +95,7 @@ export function RecipeForm() {
     start(async () => {
       await saveRecipe({
         ...form,
+        image_url: imageUrl,
         ingredients: ingredients
           .map((i) => ({ name: i.name.trim(), amount: i.amount.trim() }))
           .filter((i) => i.name),
@@ -115,6 +118,16 @@ export function RecipeForm() {
             placeholder="e.g. Greek yogurt bowl"
           />
         </label>
+        <div>
+          <span className="metric-label mb-2 block">Photo</span>
+          <ImageUploadButton
+            folder="recipes"
+            identifier={form.name || "new"}
+            onImageUrl={setImageUrl}
+            existingUrl={imageUrl}
+            onRemove={() => setImageUrl(null)}
+          />
+        </div>
         <div>
           <div className="metric-label mb-1.5">Best for</div>
           <div className="flex flex-wrap gap-1.5">

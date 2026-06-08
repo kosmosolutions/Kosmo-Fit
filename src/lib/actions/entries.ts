@@ -28,6 +28,7 @@ export interface DailyPatch {
   water_oz?: number;
   sleep_hours?: number | null;
   notes?: string | null;
+  photo_url?: string | null;
 }
 
 export async function upsertDailyEntry(patch: DailyPatch) {
