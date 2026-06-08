@@ -14,6 +14,7 @@ import {
 import { upsertDailyEntry } from "@/lib/actions/entries";
 import { cn } from "@/lib/cn";
 import { CardioLogPopup } from "./CardioLogPopup";
+import { ImageUploadButton } from "./ImageUploadButton";
 import {
   WeightLogPopup,
   WaterLogPopup,
@@ -40,6 +41,7 @@ interface Props {
     sleep_hours: number | null;
     mood: "great" | "good" | "meh" | "bad" | null;
     notes: string | null;
+    photo_url: string | null;
   };
 }
 
@@ -55,6 +57,7 @@ export function DailyTrackerForm({
   const [pending, start] = useTransition();
   const [mood, setMood] = useState(initial.mood);
   const [done, setDone] = useState(initial.workout_completed);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(initial.photo_url);
 
   const [weightUnit] = useUnitPref<WeightUnit>("weight", "lb");
   const [waterUnit] = useUnitPref<WaterUnit>("water", "oz");
@@ -207,6 +210,27 @@ export function DailyTrackerForm({
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="mt-4">
+        <div className="metric-label mb-2">Progress photo</div>
+        <ImageUploadButton
+          folder="daily"
+          identifier={entryDate}
+          onImageUrl={(url) => {
+            setPhotoUrl(url);
+            start(async () => {
+              await upsertDailyEntry({ entry_date: entryDate, photo_url: url });
+            });
+          }}
+          existingUrl={photoUrl}
+          onRemove={() => {
+            setPhotoUrl(null);
+            start(async () => {
+              await upsertDailyEntry({ entry_date: entryDate, photo_url: null });
+            });
+          }}
+        />
       </div>
 
       <WeightLogPopup

@@ -25,6 +25,7 @@ export interface RecipeInput {
   ingredients: Array<{ name: string; amount?: string }>;
   instructions: string | null;
   is_favorite: boolean;
+  image_url?: string | null;
 }
 
 export async function saveRecipe(

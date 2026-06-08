@@ -312,6 +312,7 @@ export default async function OverviewPage({
           sleep_hours: daily?.sleep_hours ?? null,
           mood: daily?.mood ?? null,
           notes: daily?.notes ?? null,
+          photo_url: daily?.photo_url ?? null,
         }}
       />
 
