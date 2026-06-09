@@ -6,7 +6,37 @@ Context for future Claude Code sessions on this repo. Keep brief. Update when sc
 
 _Empty — backlog cleared. Add the next batch here when scope is set._
 
+## Ecosystem architecture (Supabase consolidation)
+
+The free Supabase tier caps the account at **2 projects total** (per-account, not
+per-org — extra orgs don't help). To leave room for more apps, the Kosmo apps are
+consolidated under two projects that mirror an IT **Experience vs Platform** split:
+
+- **Kosmo Experience** (this project, ref `mazlpgilmaengwpeycjx` — renamed in the
+  dashboard from "Kosmo Fitness"; rename is cosmetic, URL/keys/ref unchanged):
+  container for customer-facing apps, each in its **own schema**:
+  - `health` → **Kosmo Fit** (this repo). Tables moved out of `public`.
+  - `trading` → **Kosmo Trading Intelligence** (merged in from its own project/session).
+- **Kosmo Platform** (separate project, fills the freed slot): platform/enablement.
+  - `control` → **Kosmo Platform** / Control Center (Claudesidian).
+
+Per-app isolation is by **schema** (one Postgres DB per project — "separate
+databases within a project" = separate schemas). Trade-off accepted: apps in one
+project share **Auth, API keys, and free-tier compute/limits**; RLS still gates rows.
+
+Client wiring: `src/lib/supabase/{server,client}.ts` set `db: { schema: "health" }`,
+so every `.from()` resolves to `health.*` with no per-call changes. The `health`
+schema is exposed to PostgREST via `ALTER ROLE authenticator SET pgrst.db_schemas`
+(also add it under Dashboard → Settings → API → Exposed schemas to persist).
+
 ## Shipped (recent)
+
+- **Move Kosmo Fit tables to `health` schema** — as part of the Supabase
+  consolidation above, the 6 app tables (`profiles`, `daily_entries`,
+  `food_entries`, `recipes`, `workout_plans`, `user_workout_exercises`) + the
+  `touch_updated_at()` fn moved from `public` → `health` (RLS/grants/triggers/FKs
+  follow the tables). Clients default to the `health` schema. Storage (`card-images`,
+  `images` buckets) and `auth.users` are unaffected. Brief deploy-window cutover.
 
 - **Create-your-own programs + plan photos** — "Create your own program" replaces "Save current as a plan" in `PlanPicker`. New `PlanBuilder` lets users name a program, toggle any of the 7 weekdays as training days, and pick a focus per day (`FOCUS_PRESETS` in `src/data/focus-presets.ts`: Push/Pull/Legs/Upper/Lower/Full + per-muscle + Cardio); on create it auto-fills a balanced exercise set per day for BOTH home & gym from `/exercise-catalog.json` (`pickExercisesForFocus`, home filtered to no-gym equipment) and persists a "built" plan. New migration `built_workout_plans`: `workout_plans.is_built` + `workout_plans.days` jsonb (its own day layout — `{weekday,focus,icon,color,duration}`), `base_template_id` made nullable, `user_workout_exercises.day_index` check widened 0–5 → 0–6. `createBuiltPlan` action seeds plan-scoped rows; `resolveContext` returns `isBuilt`/`builtDays`; built days skip the template-fork path. Workout page resolves a built plan's own day layout + defaults the picker to today's matching weekday; calorie banner prices built/template days via `estimateSessionBurn` (never the legacy BURNS table). `TemplateHero` gained a `query` prop → Pexels photo over the gradient (SVG motif fallback) via new `/api/workout-image` edge proxy (mirrors `/api/recipe-image`, `PEXELS_API_KEY`); applied to stock templates AND custom/built plan cards. Shared plan types live in `src/lib/workout-plan-types.ts` (the `"use server"` action file can only export async fns). **Card images are self-hosted in Supabase Storage** (public bucket `card-images`): `scripts/sync-card-images.mjs` (`pnpm sync:images`, needs `PEXELS_API_KEY` + `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`) downloads each Pexels photo once and uploads it (8 templates → `templates/<id>.jpg`, 12 focus presets → `focus/<key>.jpg`), writing the public URLs to `src/data/card-images.json`. `TemplateHero` takes an `image` prop (resolved via `cardImageUrl`/`templateImage`/`focusImage` in `src/lib/cardImages.ts`) → renders on first paint with no API call; built-plan cards use their dominant focus's image (`dominantFocusKey`). The `/api/workout-image` runtime proxy is now only a fallback for unsynced keys. `--recipes` flag re-hosts recipe photos into `card-images/recipes/<slug>.jpg` (rewrites `recipe-catalog.json` `image`) so recipes leave the Pexels CDN too. Must run the sync once for images to appear (manifest ships empty → motif fallback until then).
 - **Workout plan templates** (#29) — 8-program catalog (Custom 6-Day, 3/4/5/6-day splits, HIIT, Compound 5×5, Calisthenics) with auto-opening picker for new users + "Change plan" button. `profiles.active_template_id` drives default exercises; switching wipes customizations. Canva hero imagery deferred — cards use bold gradient + icon for now.

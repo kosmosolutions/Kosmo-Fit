@@ -14,7 +14,8 @@ Personal fitness OS — SaaS-style workout, nutrition, self-care tracker. Daily 
 - Server actions: `src/lib/actions/*`
 - Components: `src/components/*`
 - App routes: `src/app/(app)/*`
-- DB tables: `profiles`, `daily_entries` (1 per user/date), `food_entries` (many per user/date), `recipes`, `workout_plans`
+- DB tables (in the **`health`** schema, not `public`): `profiles`, `daily_entries` (1 per user/date), `food_entries` (many per user/date), `recipes`, `workout_plans`, `user_workout_exercises`
+- **Supabase consolidation**: this project is renamed **"Kosmo Experience"** (ref `mazlpgilmaengwpeycjx`, unchanged) — a shared container for customer-facing apps by schema: `health` (Kosmo Fit), `trading` (Trading Intelligence, merging in). Platform/Control Center lives in a separate **"Kosmo Platform"** project under a `control` schema. See CLAUDE.md "Ecosystem architecture". Clients set `db: { schema: "health" }`; `health` exposed to PostgREST via authenticator role `pgrst.db_schemas`.
 - Food search: USDA FoodData Central via `/api/foods/search` edge proxy; barcode via OpenFoodFacts `/api/foods/barcode/[code]` edge proxy (UA header + same-origin to dodge Safari ITP)
 - Barcode scanner: `@zxing/browser`, lazy via `next/dynamic` from `AddMealDialog` (keeps ~100 kB out of `/diet` first-load)
 - Card images self-hosted in Supabase Storage public bucket `card-images` (synced via `pnpm sync:images`); runtime `/api/workout-image` + `/api/recipe-image` Pexels proxies = fallback only
@@ -32,6 +33,7 @@ Personal fitness OS — SaaS-style workout, nutrition, self-care tracker. Daily 
 
 ## Known Gotchas
 - **Supabase migrations**: `apply_migration` MCP stamps its OWN timestamp version. After applying, run `list_migrations` and rename committed file to `supabase/migrations/<recorded_version>_<name>.sql` EXACTLY — mismatch → `MIGRATIONS_FAILED` on prod (fixed twice: #30, #39)
+- **Non-`public` schema**: app tables are in `health`. A new table for Kosmo Fit must be created in `health` (or moved there) AND `health` must stay in PostgREST's exposed schemas; clients only see `health` (set in `src/lib/supabase/{server,client}.ts`). Storage/auth are schema-independent.
 - Sandbox git proxy blocks `git push --delete` (403); no MCP delete-branch tool — stale branches pile up. Real fix: repo setting "Automatically delete head branches"
 - `apply_migration` goes directly to remote — prefer local dev workflow first
 - USDA `/api/foods/search` falls back to `DEMO_KEY` (30 req/hr per IP) if `USDA_API_KEY` unset on Vercel
