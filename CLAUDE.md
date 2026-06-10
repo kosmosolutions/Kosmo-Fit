@@ -29,6 +29,24 @@ so every `.from()` resolves to `health.*` with no per-call changes. The `health`
 schema is exposed to PostgREST via `ALTER ROLE authenticator SET pgrst.db_schemas`
 (also add it under Dashboard → Settings → API → Exposed schemas to persist).
 
+**Adding a new app / schema to a shared project (do this, not `public`):**
+1. Create its own schema; put all its tables there, **schema-qualified** in migrations
+   (`create table <s>.foo …`). Never land app tables in `public`.
+2. `grant usage on schema <s> to anon, authenticated, service_role;` (RLS + table grants as usual).
+3. Expose it to PostgREST: `alter role authenticator set pgrst.db_schemas = '<list>'; notify pgrst, 'reload config';`
+   — the setting **REPLACES** the list, so include **every** existing schema
+   (`public, graphql_public, health, …`). Also add it under Dashboard → Settings → API → Exposed schemas.
+4. Client: set `db: { schema: "<s>" }` so `.from()` resolves there with no per-call changes.
+5. Migrations: apply via `apply_migration`/CLI and version-match the committed filename (see Conventions).
+
+**Integrations (settled — don't relearn):**
+- **Supabase↔GitHub: keep DISCONNECTED** for the shared project. It's strictly
+  1-project-↔-1-repo, so a multi-app project always drifts → permanent `MIGRATIONS_FAILED`.
+  Drive migrations via `apply_migration` / `supabase db push` per repo. **Don't reconnect or repoint it.**
+- **Supabase↔Vercel: keep CONNECTED.** It only injects env vars (URL/keys) and can feed many
+  Vercel projects — no conflict. It **owns** the `SUPABASE_*` / `NEXT_PUBLIC_SUPABASE_*` var names;
+  don't hand-edit those to different values (two sources of truth).
+
 ## Shipped (recent)
 
 - **Move Kosmo Fit tables to `health` schema** — as part of the Supabase
@@ -90,4 +108,4 @@ schema is exposed to PostgREST via `ALTER ROLE authenticator SET pgrst.db_schema
 - No backwards-compat shims for removed code — just delete it.
 - Comments only when the *why* is non-obvious. Don't restate what the code does.
 - Test plan in every PR body as a checklist.
-- **Migrations**: `apply_migration` (Supabase MCP) stamps its OWN timestamp version, which won't match a hand-named file. After applying, run `list_migrations` and name the committed file `supabase/migrations/<recorded_version>_<name>.sql` EXACTLY. A mismatch puts the main-branch Supabase action into `MIGRATIONS_FAILED` ("Remote migration versions not found in local migrations directory"). Fixed twice now (#30, #39).
+- **Migrations**: `apply_migration` (Supabase MCP) stamps its OWN timestamp version, which won't match a hand-named file. After applying, run `list_migrations` and name the committed file `supabase/migrations/<recorded_version>_<name>.sql` EXACTLY. Version-match is still mandatory for `supabase db push` / any future reconnect; a mismatch historically threw `MIGRATIONS_FAILED` ("Remote migration versions not found in local migrations directory") via the Supabase↔GitHub integration (#30, #39) — that integration is now kept **disconnected** for the shared project (see Ecosystem architecture → Integrations), so apply migrations through the MCP/CLI, never by reconnecting it.

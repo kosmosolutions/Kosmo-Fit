@@ -34,6 +34,7 @@ Personal fitness OS — SaaS-style workout, nutrition, self-care tracker. Daily 
 ## Known Gotchas
 - **Supabase migrations**: `apply_migration` MCP stamps its OWN timestamp version. After applying, run `list_migrations` and rename committed file to `supabase/migrations/<recorded_version>_<name>.sql` EXACTLY — mismatch → `MIGRATIONS_FAILED` on prod (fixed twice: #30, #39)
 - **Non-`public` schema**: app tables are in `health`. A new table for Kosmo Fit must be created in `health` (or moved there) AND `health` must stay in PostgREST's exposed schemas; clients only see `health` (set in `src/lib/supabase/{server,client}.ts`). Storage/auth are schema-independent.
+- **Supabase integrations**: GitHub integration is kept **disconnected** for the shared project (1-repo-only → multi-app drift → permanent `MIGRATIONS_FAILED`); apply migrations via MCP/CLI, don't reconnect. Vercel integration stays **connected** (just injects `SUPABASE_*` env vars; feeds many projects fine). Full rules in CLAUDE.md "Ecosystem architecture → Integrations".
 - Sandbox git proxy blocks `git push --delete` (403); no MCP delete-branch tool — stale branches pile up. Real fix: repo setting "Automatically delete head branches"
 - `apply_migration` goes directly to remote — prefer local dev workflow first
 - USDA `/api/foods/search` falls back to `DEMO_KEY` (30 req/hr per IP) if `USDA_API_KEY` unset on Vercel
