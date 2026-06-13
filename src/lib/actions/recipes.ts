@@ -112,3 +112,43 @@ export async function saveCatalogRecipe(input: CatalogRecipeInput) {
   revalidatePath("/diet");
   revalidatePath("/diet/recipes");
 }
+
+// --- FatSecret favorites ---
+//
+// FatSecret's license forbids storing their recipe content, but the recipe_id
+// IS storable indefinitely. So a "favorite" is just a bookmark by id — the
+// recipe itself is always re-fetched live. No content is persisted.
+
+export async function getFatSecretFavorites(): Promise<string[]> {
+  const { supabase, userId } = await authed();
+  const { data, error } = await supabase
+    .from("fatsecret_favorites")
+    .select("recipe_id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => r.recipe_id as string);
+}
+
+export async function toggleFatSecretFavorite(
+  recipeId: string,
+  makeFavorite: boolean,
+): Promise<void> {
+  const { supabase, userId } = await authed();
+  if (makeFavorite) {
+    const { error } = await supabase
+      .from("fatsecret_favorites")
+      .upsert(
+        { user_id: userId, recipe_id: recipeId },
+        { onConflict: "user_id,recipe_id" },
+      );
+    if (error) throw new Error(error.message);
+  } else {
+    const { error } = await supabase
+      .from("fatsecret_favorites")
+      .delete()
+      .eq("user_id", userId)
+      .eq("recipe_id", recipeId);
+    if (error) throw new Error(error.message);
+  }
+}

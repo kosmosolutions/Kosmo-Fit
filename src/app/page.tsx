@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LogoMark } from "@/components/LogoMark";
 import { FeatureCarousel } from "@/components/landing/FeatureCarousel";
+import { FatSecretAttribution } from "@/components/FatSecretAttribution";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 
 const HERO_IMAGE =
@@ -133,8 +134,9 @@ export default async function Landing() {
         </section>
       </main>
 
-      <footer className="border-t border-white/[0.05] py-8 text-center text-xs uppercase tracking-[2px] text-chalk-500">
-        © {new Date().getFullYear()} Kosmo Fitness
+      <footer className="flex flex-col items-center gap-2 border-t border-white/[0.05] py-8 text-center text-xs uppercase tracking-[2px] text-chalk-500">
+        <span>© {new Date().getFullYear()} Kosmo Fitness</span>
+        <FatSecretAttribution className="normal-case tracking-normal" />
       </footer>
     </div>
   );
