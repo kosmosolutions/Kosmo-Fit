@@ -33,7 +33,7 @@ const blankIngredient = (): Ingredient => ({
 
 export function RecipeForm() {
   const [pending, start] = useTransition();
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerRow, setPickerRow] = useState<number | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -79,15 +79,10 @@ export function RecipeForm() {
     });
   }
 
-  function addPicked(ing: PickedIngredient) {
-    setIngredients((prev) => {
-      // Drop a leading blank placeholder row when adding the first real one.
-      const base =
-        prev.length === 1 && !prev[0].name.trim() && prev[0].kcal === 0
-          ? []
-          : prev;
-      return [...base, ing];
-    });
+  // Fill the row that opened the picker with the searched/scanned food, so
+  // search is a per-entry action rather than a separate "append a row" step.
+  function fillRow(i: number, ing: PickedIngredient) {
+    setIngredients((prev) => prev.map((row, idx) => (idx === i ? ing : row)));
   }
 
   function submit() {
@@ -207,6 +202,14 @@ export function RecipeForm() {
                 />
                 <button
                   type="button"
+                  onClick={() => setPickerRow(i)}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-cyan/10 text-accent-cyan transition-all duration-200 ease-ios active:scale-[0.92] hover:bg-accent-cyan/20"
+                  aria-label="Search foods or scan barcode for this ingredient"
+                >
+                  <Search className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
                   onClick={() =>
                     setIngredients(
                       ingredients.length === 1
@@ -228,24 +231,19 @@ export function RecipeForm() {
               )}
             </div>
           ))}
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setPickerOpen(true)}
-              className="btn-ghost"
-            >
-              <Search className="h-4 w-4" /> Search foods / barcode
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                setIngredients([...ingredients, blankIngredient()])
-              }
-              className="btn-ghost"
-            >
-              <Plus className="h-4 w-4" /> Blank row
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() =>
+              setIngredients([...ingredients, blankIngredient()])
+            }
+            className="btn-ghost"
+          >
+            <Plus className="h-4 w-4" /> Add ingredient
+          </button>
+          <p className="text-[11px] text-chalk-500">
+            Tap the search icon on any row to look up a food or scan a barcode —
+            its macros fill in automatically.
+          </p>
         </div>
       </div>
 
@@ -291,10 +289,10 @@ export function RecipeForm() {
         {pending ? "Saving…" : "Save recipe"}
       </button>
 
-      {pickerOpen && (
+      {pickerRow !== null && (
         <IngredientPicker
-          onAdd={addPicked}
-          onClose={() => setPickerOpen(false)}
+          onAdd={(ing) => fillRow(pickerRow, ing)}
+          onClose={() => setPickerRow(null)}
         />
       )}
     </div>
