@@ -67,11 +67,34 @@ const MEALS: MealType[] = ["breakfast", "snack", "lunch", "dinner"];
 const RECIPE_SEARCH_LIMIT = 30;
 const FOOD_SEARCH_DEBOUNCE_MS = 350;
 
-type Tab = "foods" | "recipes" | "new" | "saved";
+type Tab = "foods" | "recipes" | "new";
 
-// Recipes tab source: bundled static library, live FatSecret search, or the
-// user's FatSecret favorites (bookmarked by recipe_id, re-fetched live).
-type RecipeSource = "library" | "all" | "favorites";
+// Normalize a user's saved recipe into the shared CatalogRecipe shape so it can
+// live in the unified recipe search alongside the bundled library + FatSecret
+// results. Macros on a saved recipe are per-serving; CatalogRecipe wants totals.
+// The "saved:" id prefix marks it as already-owned (no Save button in detail).
+function savedRecipeToCatalog(r: Recipe): CatalogRecipe {
+  const s = Math.max(1, r.servings || 1);
+  return {
+    id: `saved:${r.id}`,
+    name: r.name,
+    source: null,
+    servings: s,
+    calories_total: Math.round((r.calories_per_serving || 0) * s),
+    protein_g: Math.round((r.protein_g || 0) * s),
+    carbs_g: Math.round((r.carbs_g || 0) * s),
+    fat_g: Math.round((r.fat_g || 0) * s),
+    fiber_g: 0,
+    sugar_g: 0,
+    total_minutes: 0,
+    instructions: r.instructions || "",
+    ingredients: (r.ingredients || []).map((i) =>
+      i.amount ? `${i.amount} ${i.name}` : i.name,
+    ),
+    tags: [],
+    image: null,
+  };
+}
 
 export function AddMealDialog({
   entryDate,
@@ -108,13 +131,14 @@ export function AddMealDialog({
   const [catalogQuery, setCatalogQuery] = useState("");
   const [pickedCatalog, setPickedCatalog] = useState<CatalogRecipe | null>(null);
 
-  // --- Recipes tab: live FatSecret search + favorites ---
-  const [recipeSource, setRecipeSource] = useState<RecipeSource>("library");
+  // --- Recipes tab: unified search (saved + library + live FatSecret) ---
+  // favFilter = the ★ Favorites filter; shows only favorited recipes.
+  const [favFilter, setFavFilter] = useState(false);
   const [fsResults, setFsResults] = useState<CatalogRecipe[]>([]);
   const [fsLoading, setFsLoading] = useState(false);
   const [fsError, setFsError] = useState<string | null>(null);
   // null until known; false once the proxy reports missing credentials, which
-  // hides the All/Favorites options entirely.
+  // hides the live FatSecret section entirely.
   const [fsAvailable, setFsAvailable] = useState<boolean | null>(null);
   const [fsDetailLoading, setFsDetailLoading] = useState(false);
   // Favorites are stored server-side as recipe_id only and re-fetched live.
@@ -152,6 +176,7 @@ export function AddMealDialog({
       setScanning(false);
       setScanLookupError(null);
       setQuickSaved(false);
+      setFavFilter(false);
       // Re-load favorites fresh next open (they may change across devices).
       setFavoritesLoaded(false);
     }
@@ -210,12 +235,38 @@ export function AddMealDialog({
       .slice(0, RECIPE_SEARCH_LIMIT);
   }, [catalog, catalogQuery]);
 
-  // Debounced FatSecret search, active only on the Recipes tab in "all" mode.
-  // Aborts in-flight requests when the query changes; reuses catalogQuery so
-  // flipping sources keeps the typed term.
+  // The user's saved recipes, normalized into the catalog shape and filtered by
+  // the same query. Shown first in the unified recipe list.
+  const savedAsCatalog = useMemo(
+    () => recipes.map(savedRecipeToCatalog),
+    [recipes],
+  );
+  const savedResults = useMemo(() => {
+    const q = catalogQuery.trim().toLowerCase();
+    if (!q) return savedAsCatalog;
+    return savedAsCatalog.filter((r) =>
+      `${r.name} ${r.ingredients.join(" ")}`.toLowerCase().includes(q),
+    );
+  }, [savedAsCatalog, catalogQuery]);
+  // Saved recipes the user flagged as favorites (for the ★ filter view).
+  const savedFavorites = useMemo(
+    () => recipes.filter((r) => r.is_favorite).map(savedRecipeToCatalog),
+    [recipes],
+  );
+  // The ★ view: saved favorites + hydrated FatSecret favorites, query-filtered.
+  const favoriteResults = useMemo(() => {
+    const q = catalogQuery.trim().toLowerCase();
+    const merged = [...savedFavorites, ...favRecipes];
+    return q ? merged.filter((r) => r.name.toLowerCase().includes(q)) : merged;
+  }, [savedFavorites, favRecipes, catalogQuery]);
+
+  // Debounced FatSecret search: runs on the Recipes tab (unless the ★ filter is
+  // on) so a single query also pulls live results. Aborts in-flight requests
+  // when the query changes.
   const fsAbortRef = useRef<AbortController | null>(null);
   useEffect(() => {
-    if (!open || tab !== "recipes" || recipeSource !== "all") return;
+    if (!open || tab !== "recipes" || favFilter || fsAvailable === false)
+      return;
     const q = catalogQuery.trim();
     if (q.length < 2) {
       setFsResults([]);
@@ -233,7 +284,6 @@ export function AddMealDialog({
           if (ctrl.signal.aborted) return;
           if (state.status === "not_configured") {
             setFsAvailable(false);
-            setRecipeSource("library");
             return;
           }
           setFsAvailable(true);
@@ -253,7 +303,7 @@ export function AddMealDialog({
         });
     }, FOOD_SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [open, tab, recipeSource, catalogQuery]);
+  }, [open, tab, favFilter, fsAvailable, catalogQuery]);
 
   // Load the user's favorite recipe_ids once per dialog open.
   useEffect(() => {
@@ -273,16 +323,10 @@ export function AddMealDialog({
     };
   }, [open, tab, favoritesLoaded]);
 
-  // Hydrate the favorites view by re-fetching each bookmarked recipe live
-  // (FatSecret content is never stored, only the id).
+  // Hydrate the ★ favorites view by re-fetching each bookmarked FatSecret
+  // recipe live (their content is never stored, only the id).
   useEffect(() => {
-    if (
-      !open ||
-      tab !== "recipes" ||
-      recipeSource !== "favorites" ||
-      !favoritesLoaded
-    )
-      return;
+    if (!open || tab !== "recipes" || !favFilter || !favoritesLoaded) return;
     const ids = [...favoriteIds];
     if (ids.length === 0) {
       setFavRecipes([]);
@@ -310,17 +354,21 @@ export function AddMealDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, tab, recipeSource, favoritesLoaded, favoriteIds]);
+  }, [open, tab, favFilter, favoritesLoaded, favoriteIds]);
 
-  // Picking a live FatSecret row resolves its full detail (search rows lack
-  // ingredients/instructions) before opening the detail view.
-  function pickFatSecret(row: CatalogRecipe) {
-    const rawId = row.id.replace(/^fs:/, "");
-    setFsDetailLoading(true);
-    getFatSecretRecipe(rawId)
-      .then((full) => setPickedCatalog(full))
-      .catch((err) => setFsError(String(err)))
-      .finally(() => setFsDetailLoading(false));
+  // Picking a recipe: live FatSecret search rows lack ingredients/instructions,
+  // so resolve their full detail first; everything else is already complete.
+  function selectRecipe(row: CatalogRecipe) {
+    if (row.id.startsWith("fs:") && row.ingredients.length === 0) {
+      const rawId = row.id.replace(/^fs:/, "");
+      setFsDetailLoading(true);
+      getFatSecretRecipe(rawId)
+        .then((full) => setPickedCatalog(full))
+        .catch((err) => setFsError(String(err)))
+        .finally(() => setFsDetailLoading(false));
+    } else {
+      setPickedCatalog(row);
+    }
   }
 
   // Optimistic favorite toggle; reverts on failure. `rawId` is the FatSecret
@@ -440,25 +488,12 @@ export function AddMealDialog({
     });
   }
 
-  function submitRecipe(recipe: Recipe, servings: number) {
-    start(async () => {
-      await addFoodEntry({
-        entry_date: entryDate,
-        meal_type: form.meal_type,
-        name: recipe.name,
-        servings,
-        calories: Math.round(recipe.calories_per_serving * servings),
-        protein_g: Math.round(recipe.protein_g * servings),
-        carbs_g: Math.round(recipe.carbs_g * servings),
-        fat_g: Math.round(recipe.fat_g * servings),
-        recipe_id: recipe.id,
-      });
-      setOpen(false);
-    });
-  }
-
   function submitCatalogRecipe(recipe: CatalogRecipe, servings: number) {
     const perServing = 1 / Math.max(1, recipe.servings);
+    // Preserve the link back to the user's own recipe when it came from there.
+    const recipeId = recipe.id.startsWith("saved:")
+      ? recipe.id.slice("saved:".length)
+      : null;
     start(async () => {
       await addFoodEntry({
         entry_date: entryDate,
@@ -469,6 +504,7 @@ export function AddMealDialog({
         protein_g: Math.round(recipe.protein_g * perServing * servings),
         carbs_g: Math.round(recipe.carbs_g * perServing * servings),
         fat_g: Math.round(recipe.fat_g * perServing * servings),
+        recipe_id: recipeId,
       });
       setOpen(false);
     });
@@ -616,18 +652,7 @@ export function AddMealDialog({
                   setScanning(false);
                 }}
               >
-                Quick
-              </TabButton>
-              <TabButton
-                active={tab === "saved"}
-                onClick={() => {
-                  setTab("saved");
-                  setPickedCatalog(null);
-                  setPickedFood(null);
-                  setScanning(false);
-                }}
-              >
-                Saved ({recipes.length})
+                Manual
               </TabButton>
             </div>
             </div>
@@ -748,7 +773,7 @@ export function AddMealDialog({
               </div>
             ) : null}
 
-            {/* ----- Recipes tab ----- */}
+            {/* ----- Recipes tab (unified: your recipes + library + FatSecret) ----- */}
             {tab === "recipes" && pickedCatalog ? (
               <CatalogDetail
                 recipe={pickedCatalog}
@@ -764,50 +789,38 @@ export function AddMealDialog({
               />
             ) : tab === "recipes" ? (
               <div className="space-y-3">
-                {/* Source toggle: bundled library, live FatSecret search, or
-                    favorites. Hidden once we learn FatSecret isn't configured. */}
-                {fsAvailable !== false && (
-                  <div className="flex rounded-xl border border-white/10 bg-white/[0.03] p-0.5 text-xs font-bold">
-                    <SourceToggle
-                      active={recipeSource === "library"}
-                      onClick={() => setRecipeSource("library")}
-                    >
-                      Library
-                    </SourceToggle>
-                    <SourceToggle
-                      active={recipeSource === "all"}
-                      onClick={() => setRecipeSource("all")}
-                    >
-                      All recipes
-                    </SourceToggle>
-                    <SourceToggle
-                      active={recipeSource === "favorites"}
-                      onClick={() => setRecipeSource("favorites")}
-                    >
-                      Favorites
-                    </SourceToggle>
-                  </div>
-                )}
-
-                {recipeSource !== "favorites" && (
-                  <div className="relative">
+                {/* One search box across your saved recipes, the bundled
+                    library, and live FatSecret. The ★ button filters to
+                    favorites only. */}
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-chalk-400" />
                     <input
                       type="search"
                       value={catalogQuery}
                       onChange={(e) => setCatalogQuery(e.target.value)}
-                      placeholder={
-                        recipeSource === "all"
-                          ? "Search thousands of recipes"
-                          : catalog
-                            ? `Search ${catalog.length} catalog recipes`
-                            : "Search catalog recipes"
-                      }
+                      placeholder="Search recipes"
                       className="field pl-9"
                       autoComplete="off"
                     />
                   </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => setFavFilter((v) => !v)}
+                    aria-pressed={favFilter}
+                    aria-label="Show favorites only"
+                    className={cn(
+                      "grid h-[42px] w-[42px] shrink-0 place-items-center rounded-xl border transition",
+                      favFilter
+                        ? "border-accent-amber/40 bg-accent-amber/10 text-accent-amber"
+                        : "border-white/10 bg-white/[0.03] text-chalk-300 hover:bg-white/[0.06]",
+                    )}
+                  >
+                    <Star
+                      className={cn("h-4 w-4", favFilter && "fill-accent-amber")}
+                    />
+                  </button>
+                </div>
 
                 {fsDetailLoading && (
                   <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-3 text-xs text-chalk-400">
@@ -815,105 +828,127 @@ export function AddMealDialog({
                   </div>
                 )}
 
-                {recipeSource === "all" ? (
-                  <div className="space-y-2">
-                    {catalogQuery.trim().length < 2 ? (
-                      <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
-                        <ChefHat className="mx-auto h-5 w-5 text-chalk-400" />
-                        <div className="mt-2 text-sm text-chalk-300">
-                          Search thousands of recipes with photos and full
-                          nutrition.
-                        </div>
-                        <FatSecretAttribution className="mt-0.5" />
+                {favFilter ? (
+                  /* ----- Favorites filter ----- */
+                  !favoritesLoaded ? (
+                    <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-6 text-xs text-chalk-400">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Loading
+                      favorites…
+                    </div>
+                  ) : favoriteResults.length === 0 && !favLoading ? (
+                    <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+                      <Star className="mx-auto h-5 w-5 text-chalk-400" />
+                      <div className="mt-2 text-sm text-chalk-300">
+                        No favorites yet. Open a recipe and tap the star to save
+                        it here.
                       </div>
-                    ) : fsError ? (
-                      <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
-                        {fsError}
-                      </div>
-                    ) : fsLoading ? (
-                      <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-6 text-xs text-chalk-400">
-                        <Loader2 className="h-4 w-4 animate-spin" /> Searching…
-                      </div>
-                    ) : fsResults.length === 0 ? (
-                      <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-chalk-400">
-                        No recipes found for &ldquo;{catalogQuery}&rdquo;.
-                      </div>
-                    ) : (
-                      <>
-                        {fsResults.map((r) => (
-                          <CatalogResultRow
-                            key={r.id}
-                            recipe={r}
-                            onSelect={() => pickFatSecret(r)}
-                          />
-                        ))}
-                        <div className="pt-1 text-center">
-                          <FatSecretAttribution />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : recipeSource === "favorites" ? (
-                  <div className="space-y-2">
-                    {!favoritesLoaded || favLoading ? (
-                      <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-6 text-xs text-chalk-400">
-                        <Loader2 className="h-4 w-4 animate-spin" /> Loading
-                        favorites…
-                      </div>
-                    ) : favoriteIds.size === 0 ? (
-                      <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
-                        <Star className="mx-auto h-5 w-5 text-chalk-400" />
-                        <div className="mt-2 text-sm text-chalk-300">
-                          No favorites yet. Open a recipe under &ldquo;All
-                          recipes&rdquo; and tap the star to save it here.
-                        </div>
-                        <FatSecretAttribution className="mt-0.5" />
-                      </div>
-                    ) : favError ? (
-                      <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
-                        {favError}
-                      </div>
-                    ) : (
-                      <>
-                        {favRecipes.map((r) => (
-                          <CatalogResultRow
-                            key={r.id}
-                            recipe={r}
-                            onSelect={() => setPickedCatalog(r)}
-                          />
-                        ))}
-                        <div className="pt-1 text-center">
-                          <FatSecretAttribution />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {catalogError ? (
-                      <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
-                        Failed to load catalog: {catalogError}
-                      </div>
-                    ) : !catalog ? (
-                      <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-chalk-400">
-                        Loading catalog…
-                      </div>
-                    ) : recipeResults.length === 0 ? (
-                      <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
-                        <ChefHat className="mx-auto h-5 w-5 text-chalk-400" />
-                        <div className="mt-2 text-sm text-chalk-300">
-                          No catalog recipes match.
-                        </div>
-                      </div>
-                    ) : (
-                      recipeResults.map((r) => (
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {favoriteResults.map((r) => (
                         <CatalogResultRow
                           key={r.id}
                           recipe={r}
-                          onSelect={() => setPickedCatalog(r)}
+                          onSelect={() => selectRecipe(r)}
                         />
-                      ))
+                      ))}
+                      {favLoading && (
+                        <div className="flex items-center justify-center gap-2 p-2 text-xs text-chalk-400">
+                          <Loader2 className="h-4 w-4 animate-spin" /> Loading
+                          more…
+                        </div>
+                      )}
+                      {favRecipes.length > 0 && (
+                        <div className="pt-1 text-center">
+                          <FatSecretAttribution />
+                        </div>
+                      )}
+                    </div>
+                  )
+                ) : catalogError ? (
+                  <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
+                    Failed to load catalog: {catalogError}
+                  </div>
+                ) : !catalog ? (
+                  <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-6 text-xs text-chalk-400">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Loading recipes…
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {/* Your saved recipes */}
+                    {savedResults.length > 0 && (
+                      <>
+                        <div className="label-tiny px-0.5">Your recipes</div>
+                        {savedResults.map((r) => (
+                          <CatalogResultRow
+                            key={r.id}
+                            recipe={r}
+                            onSelect={() => selectRecipe(r)}
+                          />
+                        ))}
+                      </>
                     )}
+
+                    {/* Bundled library */}
+                    {recipeResults.length > 0 && (
+                      <>
+                        {savedResults.length > 0 && (
+                          <div className="label-tiny px-0.5 pt-1">Library</div>
+                        )}
+                        {recipeResults.map((r) => (
+                          <CatalogResultRow
+                            key={r.id}
+                            recipe={r}
+                            onSelect={() => selectRecipe(r)}
+                          />
+                        ))}
+                      </>
+                    )}
+
+                    {/* Live FatSecret — only while actively searching */}
+                    {fsAvailable !== false &&
+                      catalogQuery.trim().length >= 2 && (
+                        <div className="space-y-2 pt-1">
+                          <div className="flex items-center gap-2 px-0.5">
+                            <div className="label-tiny">More recipes</div>
+                            <FatSecretAttribution />
+                          </div>
+                          {fsError ? (
+                            <div className="rounded-xl border border-dashed border-accent-rose/40 p-4 text-center text-xs text-accent-rose">
+                              {fsError}
+                            </div>
+                          ) : fsLoading ? (
+                            <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-4 text-xs text-chalk-400">
+                              <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                              Searching…
+                            </div>
+                          ) : fsResults.length === 0 ? (
+                            <div className="rounded-xl border border-dashed border-white/10 p-4 text-center text-xs text-chalk-400">
+                              No more recipes for &ldquo;{catalogQuery}&rdquo;.
+                            </div>
+                          ) : (
+                            fsResults.map((r) => (
+                              <CatalogResultRow
+                                key={r.id}
+                                recipe={r}
+                                onSelect={() => selectRecipe(r)}
+                              />
+                            ))
+                          )}
+                        </div>
+                      )}
+
+                    {/* Nothing anywhere (FatSecret off + no local match) */}
+                    {fsAvailable === false &&
+                      savedResults.length === 0 &&
+                      recipeResults.length === 0 && (
+                        <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+                          <ChefHat className="mx-auto h-5 w-5 text-chalk-400" />
+                          <div className="mt-2 text-sm text-chalk-300">
+                            No recipes match &ldquo;{catalogQuery}&rdquo;.
+                          </div>
+                        </div>
+                      )}
                   </div>
                 )}
               </div>
@@ -1002,28 +1037,6 @@ export function AddMealDialog({
               </div>
             )}
 
-            {/* ----- Saved recipes tab ----- */}
-            {tab === "saved" && (
-              <div className="space-y-2">
-                {recipes.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
-                    <ChefHat className="mx-auto h-5 w-5 text-chalk-400" />
-                    <div className="mt-2 text-sm text-chalk-300">
-                      No recipes saved yet.
-                    </div>
-                  </div>
-                ) : (
-                  recipes.map((r) => (
-                    <RecipePick
-                      key={r.id}
-                      recipe={r}
-                      onUse={(s) => submitRecipe(r, s)}
-                      disabled={pending}
-                    />
-                  ))
-                )}
-              </div>
-            )}
             </div>
           </div>
         </div>
@@ -1079,31 +1092,6 @@ function TabButton({
       className={cn(
         "flex min-h-[34px] flex-1 items-center justify-center gap-1 rounded-full px-2 text-[12px] font-semibold transition-all duration-200 ease-ios",
         active ? "bg-ink-700 text-white" : "text-chalk-300 hover:text-white",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-function SourceToggle({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex-1 rounded-lg px-2 py-1.5 text-center transition",
-        active
-          ? "bg-accent-cyan/15 text-accent-cyan"
-          : "text-chalk-400 hover:text-chalk-100",
       )}
     >
       {children}
@@ -1176,6 +1164,8 @@ function CatalogDetail({
   // they can be favorited (a recipe_id-only bookmark) and are always re-fetched
   // live. Logging stays allowed — it writes macros into the user's own diary.
   const isFatSecret = recipe.id.startsWith("fs:");
+  // Already one of the user's saved recipes — no point offering "save" again.
+  const isSaved = recipe.id.startsWith("saved:");
   const kcal = Math.round(recipe.calories_total * perServing * servings);
   const p = Math.round(recipe.protein_g * perServing * servings);
   const c = Math.round(recipe.carbs_g * perServing * servings);
@@ -1300,7 +1290,7 @@ function CatalogDetail({
               {favorited ? "In favorites" : "Add to favorites"}
             </button>
           )
-        ) : (
+        ) : isSaved ? null : (
           <button
             type="button"
             onClick={save}
@@ -1598,45 +1588,3 @@ function DetailStat({
   );
 }
 
-function RecipePick({
-  recipe,
-  onUse,
-  disabled,
-}: {
-  recipe: Recipe;
-  onUse: (s: number) => void;
-  disabled: boolean;
-}) {
-  const [s, setS] = useState(1);
-  return (
-    <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] p-3">
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-bold text-chalk-50">
-          {recipe.name}
-        </div>
-        <div className="text-[11px] text-chalk-400">
-          {recipe.calories_per_serving} cal · P{recipe.protein_g} C
-          {recipe.carbs_g} F{recipe.fat_g}
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          step={0.1}
-          min={0.1}
-          value={s}
-          onChange={(e) => setS(parseFloat(e.target.value) || 1)}
-          className="w-14 rounded-lg border border-white/10 bg-white/[0.03] px-2 py-1 text-sm text-chalk-50 outline-none"
-        />
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => onUse(s)}
-          className="rounded-lg bg-accent-cyan px-3 py-1 text-xs font-bold text-ink-950"
-        >
-          Use
-        </button>
-      </div>
-    </div>
-  );
-}
