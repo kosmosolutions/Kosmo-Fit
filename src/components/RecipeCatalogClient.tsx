@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -10,12 +10,24 @@ import {
   Clock,
   ExternalLink,
   LayoutGrid,
+  Loader2,
   Search,
+  Star,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { RecipeHero } from "@/components/RecipeHero";
-import { saveCatalogRecipe } from "@/lib/actions/recipes";
+import { FatSecretAttribution } from "@/components/FatSecretAttribution";
+import {
+  getFatSecretFavorites,
+  saveCatalogRecipe,
+  toggleFatSecretFavorite,
+} from "@/lib/actions/recipes";
+import {
+  searchFatSecret,
+  searchRowToCatalog,
+  getFatSecretRecipe,
+} from "@/lib/fatsecretClient";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import {
   CATEGORIES,
@@ -128,6 +140,14 @@ export function RecipeCatalogClient() {
   const [active, setActive] = useState<CatalogRecipe | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  // --- Live FatSecret search (appended below the bundled library) ---
+  const [fsResults, setFsResults] = useState<CatalogRecipe[]>([]);
+  const [fsLoading, setFsLoading] = useState(false);
+  const [fsError, setFsError] = useState<string | null>(null);
+  const [fsAvailable, setFsAvailable] = useState<boolean | null>(null);
+  const [fsDetailLoading, setFsDetailLoading] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     let cancelled = false;
     fetch("/recipe-catalog.json", { cache: "force-cache" })
@@ -149,6 +169,95 @@ export function RecipeCatalogClient() {
   useEffect(() => {
     setVisible(PAGE_SIZE);
   }, [query, category, diet, cuisine, macroLean, maxCals]);
+
+  // Load the user's FatSecret favorites once (recipe_id only).
+  useEffect(() => {
+    let cancelled = false;
+    getFatSecretFavorites()
+      .then((ids) => {
+        if (!cancelled) setFavoriteIds(new Set(ids));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Debounced live FatSecret search, appended below the bundled library when
+  // the user types a query. Aborts in-flight requests as the query changes.
+  const fsAbortRef = useRef<AbortController | null>(null);
+  useEffect(() => {
+    if (fsAvailable === false) return;
+    const q = query.trim();
+    if (q.length < 2) {
+      setFsResults([]);
+      setFsError(null);
+      setFsLoading(false);
+      return;
+    }
+    setFsLoading(true);
+    const handle = setTimeout(() => {
+      fsAbortRef.current?.abort();
+      const ctrl = new AbortController();
+      fsAbortRef.current = ctrl;
+      searchFatSecret(q, ctrl.signal)
+        .then((state) => {
+          if (ctrl.signal.aborted) return;
+          if (state.status === "not_configured") {
+            setFsAvailable(false);
+            return;
+          }
+          setFsAvailable(true);
+          if (state.status === "error") {
+            setFsError(state.message);
+            setFsResults([]);
+          } else {
+            setFsError(null);
+            setFsResults(state.recipes.map(searchRowToCatalog));
+          }
+        })
+        .catch((err) => {
+          if (!ctrl.signal.aborted) setFsError(String(err));
+        })
+        .finally(() => {
+          if (!ctrl.signal.aborted) setFsLoading(false);
+        });
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [query, fsAvailable]);
+
+  // Open a recipe: live FatSecret search rows are partial, so fetch full detail
+  // first; bundled/library recipes are already complete.
+  function openRecipe(r: CatalogRecipe) {
+    if (r.id.startsWith("fs:") && r.ingredients.length === 0) {
+      setFsDetailLoading(true);
+      getFatSecretRecipe(r.id.replace(/^fs:/, ""))
+        .then((full) => setActive(full))
+        .catch((err) => setFsError(String(err)))
+        .finally(() => setFsDetailLoading(false));
+    } else {
+      setActive(r);
+    }
+  }
+
+  // Optimistic favorite toggle for FatSecret recipes (reverts on failure).
+  function toggleFavorite(rawId: string) {
+    const makeFav = !favoriteIds.has(rawId);
+    setFavoriteIds((prev) => {
+      const next = new Set(prev);
+      if (makeFav) next.add(rawId);
+      else next.delete(rawId);
+      return next;
+    });
+    toggleFatSecretFavorite(rawId, makeFav).catch(() => {
+      setFavoriteIds((prev) => {
+        const next = new Set(prev);
+        if (makeFav) next.delete(rawId);
+        else next.add(rawId);
+        return next;
+      });
+    });
+  }
 
   // Pre-derive facets per recipe so filtering + tile counts share the work.
   const annotated = useMemo(() => {
@@ -452,8 +561,64 @@ export function RecipeCatalogClient() {
         </div>
       )}
 
+      {/* Live FatSecret results — appended when searching, since their ~19k
+          recipes are search-only (no category/facet browse). */}
+      {fsAvailable !== false && query.trim().length >= 2 && (
+        <section className="space-y-3 pt-2">
+          <div className="flex items-center gap-2 border-t border-white/[0.06] pt-4">
+            <h2 className="text-sm font-bold text-chalk-100">More recipes</h2>
+            <FatSecretAttribution />
+          </div>
+          {fsError ? (
+            <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
+              {fsError}
+            </div>
+          ) : fsLoading ? (
+            <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-6 text-xs text-chalk-400">
+              <Loader2 className="h-4 w-4 animate-spin" /> Searching more
+              recipes…
+            </div>
+          ) : fsResults.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-chalk-400">
+              No more recipes for &ldquo;{query}&rdquo;.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {fsResults.map((r) => (
+                <RecipeGridCard
+                  key={r.id}
+                  recipe={r}
+                  category={categoryFor(r)}
+                  cuisine={null}
+                  macroLean={null}
+                  kcalPerServing={Math.round(
+                    r.calories_total / Math.max(1, r.servings),
+                  )}
+                  onClick={() => openRecipe(r)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {fsDetailLoading && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 backdrop-blur-sm">
+          <div className="flex items-center gap-2 rounded-xl bg-ink-850 px-4 py-3 text-sm text-chalk-200">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading recipe…
+          </div>
+        </div>
+      )}
+
       {active && (
-        <RecipeDetail recipe={active} onClose={() => setActive(null)} />
+        <RecipeDetail
+          recipe={active}
+          onClose={() => setActive(null)}
+          favorited={favoriteIds.has(active.id.replace(/^fs:/, ""))}
+          onToggleFavorite={() =>
+            toggleFavorite(active.id.replace(/^fs:/, ""))
+          }
+        />
       )}
     </div>
   );
@@ -602,9 +767,13 @@ function Macro({
 function RecipeDetail({
   recipe,
   onClose,
+  favorited,
+  onToggleFavorite,
 }: {
   recipe: CatalogRecipe;
   onClose: () => void;
+  favorited?: boolean;
+  onToggleFavorite?: () => void;
 }) {
   const [meal, setMeal] = useState<MealType | "any">(
     defaultMealType(recipe.tags),
@@ -614,6 +783,9 @@ function RecipeDetail({
   const ps = perServingMacros(recipe);
   const cat = categoryFor(recipe);
   const catMeta = cat ? CATEGORY_BY_KEY.get(cat) : null;
+  // FatSecret recipes are search-only — their content can't be stored, so no
+  // "Save to my recipes"; they can be favorited (recipe_id-only bookmark).
+  const isFatSecret = recipe.id.startsWith("fs:");
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -734,7 +906,9 @@ function RecipeDetail({
             </section>
           )}
 
-          {recipe.source && (
+          {isFatSecret ? (
+            <FatSecretAttribution />
+          ) : recipe.source ? (
             <a
               href={
                 recipe.source.startsWith("http")
@@ -747,50 +921,72 @@ function RecipeDetail({
             >
               <ExternalLink className="h-3 w-3" /> Source: {recipe.source}
             </a>
-          )}
+          ) : null}
         </div>
 
         <div className="space-y-2 border-t border-white/10 px-4 py-3">
-          <div>
-            <div className="label-tiny mb-1.5">Best for</div>
-            <div className="flex flex-wrap gap-1.5">
-              {MEALS.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setMeal(m)}
-                  disabled={saved}
-                  className={cn(
-                    "rounded-lg border px-2.5 py-1 text-[11px] font-bold capitalize transition",
-                    meal === m
-                      ? "border-accent-cyan/50 bg-accent-cyan/15 text-accent-cyan"
-                      : "border-white/10 bg-white/[0.04] text-chalk-300",
-                  )}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={save}
-            disabled={pending || saved}
-            className={cn(
-              "btn-primary w-full py-2.5",
-              saved && "!bg-accent-green !text-ink-950",
-            )}
-          >
-            {saved ? (
-              "Saved ✓"
-            ) : pending ? (
-              "Saving…"
-            ) : (
-              <>
-                <BookmarkPlus className="h-4 w-4" /> Save to my recipes
-              </>
-            )}
-          </button>
+          {isFatSecret ? (
+            onToggleFavorite && (
+              <button
+                type="button"
+                onClick={onToggleFavorite}
+                className={cn(
+                  "flex w-full items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-bold transition",
+                  favorited
+                    ? "border-accent-amber/40 bg-accent-amber/10 text-accent-amber"
+                    : "border-white/10 bg-white/[0.04] text-chalk-200 hover:bg-white/[0.08]",
+                )}
+              >
+                <Star
+                  className={cn("h-4 w-4", favorited && "fill-accent-amber")}
+                />
+                {favorited ? "In favorites" : "Add to favorites"}
+              </button>
+            )
+          ) : (
+            <>
+              <div>
+                <div className="label-tiny mb-1.5">Best for</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {MEALS.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setMeal(m)}
+                      disabled={saved}
+                      className={cn(
+                        "rounded-lg border px-2.5 py-1 text-[11px] font-bold capitalize transition",
+                        meal === m
+                          ? "border-accent-cyan/50 bg-accent-cyan/15 text-accent-cyan"
+                          : "border-white/10 bg-white/[0.04] text-chalk-300",
+                      )}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={save}
+                disabled={pending || saved}
+                className={cn(
+                  "btn-primary w-full py-2.5",
+                  saved && "!bg-accent-green !text-ink-950",
+                )}
+              >
+                {saved ? (
+                  "Saved ✓"
+                ) : pending ? (
+                  "Saving…"
+                ) : (
+                  <>
+                    <BookmarkPlus className="h-4 w-4" /> Save to my recipes
+                  </>
+                )}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

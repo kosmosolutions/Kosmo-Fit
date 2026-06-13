@@ -136,11 +136,13 @@ export async function toggleFatSecretFavorite(
 ): Promise<void> {
   const { supabase, userId } = await authed();
   if (makeFavorite) {
+    // ON CONFLICT DO NOTHING (ignoreDuplicates) so this needs only INSERT, not
+    // UPDATE — favoriting an already-favorited recipe is a harmless no-op.
     const { error } = await supabase
       .from("fatsecret_favorites")
       .upsert(
         { user_id: userId, recipe_id: recipeId },
-        { onConflict: "user_id,recipe_id" },
+        { onConflict: "user_id,recipe_id", ignoreDuplicates: true },
       );
     if (error) throw new Error(error.message);
   } else {
