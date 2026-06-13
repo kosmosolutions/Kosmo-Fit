@@ -13,20 +13,32 @@ import {
   Loader2,
   Plus,
   Search,
+  Star,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { addFoodEntry, type RecentFood } from "@/lib/actions/entries";
-import { saveCatalogRecipe, saveRecipe } from "@/lib/actions/recipes";
+import {
+  getFatSecretFavorites,
+  saveCatalogRecipe,
+  saveRecipe,
+  toggleFatSecretFavorite,
+} from "@/lib/actions/recipes";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import { RecipeHero } from "@/components/RecipeHero";
 import { ServingPicker } from "@/components/ServingPicker";
+import { FatSecretAttribution } from "@/components/FatSecretAttribution";
 import {
   lookupBarcode,
   searchFoods,
   type FoodItem,
   type FoodUnit,
 } from "@/lib/foods";
+import {
+  searchFatSecret,
+  searchRowToCatalog,
+  getFatSecretRecipe,
+} from "@/lib/fatsecretClient";
 import {
   CATEGORY_BY_KEY,
   categoryFor,
@@ -56,6 +68,10 @@ const RECIPE_SEARCH_LIMIT = 30;
 const FOOD_SEARCH_DEBOUNCE_MS = 350;
 
 type Tab = "foods" | "recipes" | "new" | "saved";
+
+// Recipes tab source: bundled static library, live FatSecret search, or the
+// user's FatSecret favorites (bookmarked by recipe_id, re-fetched live).
+type RecipeSource = "library" | "all" | "favorites";
 
 export function AddMealDialog({
   entryDate,
@@ -92,6 +108,22 @@ export function AddMealDialog({
   const [catalogQuery, setCatalogQuery] = useState("");
   const [pickedCatalog, setPickedCatalog] = useState<CatalogRecipe | null>(null);
 
+  // --- Recipes tab: live FatSecret search + favorites ---
+  const [recipeSource, setRecipeSource] = useState<RecipeSource>("library");
+  const [fsResults, setFsResults] = useState<CatalogRecipe[]>([]);
+  const [fsLoading, setFsLoading] = useState(false);
+  const [fsError, setFsError] = useState<string | null>(null);
+  // null until known; false once the proxy reports missing credentials, which
+  // hides the All/Favorites options entirely.
+  const [fsAvailable, setFsAvailable] = useState<boolean | null>(null);
+  const [fsDetailLoading, setFsDetailLoading] = useState(false);
+  // Favorites are stored server-side as recipe_id only and re-fetched live.
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [favoritesLoaded, setFavoritesLoaded] = useState(false);
+  const [favRecipes, setFavRecipes] = useState<CatalogRecipe[]>([]);
+  const [favLoading, setFavLoading] = useState(false);
+  const [favError, setFavError] = useState<string | null>(null);
+
   // --- Foods tab state (OpenFoodFacts) ---
   const [foodQuery, setFoodQuery] = useState("");
   const [foodResults, setFoodResults] = useState<FoodItem[]>([]);
@@ -120,6 +152,8 @@ export function AddMealDialog({
       setScanning(false);
       setScanLookupError(null);
       setQuickSaved(false);
+      // Re-load favorites fresh next open (they may change across devices).
+      setFavoritesLoaded(false);
     }
   }, [open]);
 
@@ -175,6 +209,139 @@ export function AddMealDialog({
       )
       .slice(0, RECIPE_SEARCH_LIMIT);
   }, [catalog, catalogQuery]);
+
+  // Debounced FatSecret search, active only on the Recipes tab in "all" mode.
+  // Aborts in-flight requests when the query changes; reuses catalogQuery so
+  // flipping sources keeps the typed term.
+  const fsAbortRef = useRef<AbortController | null>(null);
+  useEffect(() => {
+    if (!open || tab !== "recipes" || recipeSource !== "all") return;
+    const q = catalogQuery.trim();
+    if (q.length < 2) {
+      setFsResults([]);
+      setFsError(null);
+      setFsLoading(false);
+      return;
+    }
+    setFsLoading(true);
+    const handle = setTimeout(() => {
+      fsAbortRef.current?.abort();
+      const ctrl = new AbortController();
+      fsAbortRef.current = ctrl;
+      searchFatSecret(q, ctrl.signal)
+        .then((state) => {
+          if (ctrl.signal.aborted) return;
+          if (state.status === "not_configured") {
+            setFsAvailable(false);
+            setRecipeSource("library");
+            return;
+          }
+          setFsAvailable(true);
+          if (state.status === "error") {
+            setFsError(state.message);
+            setFsResults([]);
+          } else {
+            setFsError(null);
+            setFsResults(state.recipes.map(searchRowToCatalog));
+          }
+        })
+        .catch((err) => {
+          if (!ctrl.signal.aborted) setFsError(String(err));
+        })
+        .finally(() => {
+          if (!ctrl.signal.aborted) setFsLoading(false);
+        });
+    }, FOOD_SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [open, tab, recipeSource, catalogQuery]);
+
+  // Load the user's favorite recipe_ids once per dialog open.
+  useEffect(() => {
+    if (!open || tab !== "recipes" || favoritesLoaded) return;
+    let cancelled = false;
+    getFatSecretFavorites()
+      .then((ids) => {
+        if (cancelled) return;
+        setFavoriteIds(new Set(ids));
+        setFavoritesLoaded(true);
+      })
+      .catch(() => {
+        if (!cancelled) setFavoritesLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, tab, favoritesLoaded]);
+
+  // Hydrate the favorites view by re-fetching each bookmarked recipe live
+  // (FatSecret content is never stored, only the id).
+  useEffect(() => {
+    if (
+      !open ||
+      tab !== "recipes" ||
+      recipeSource !== "favorites" ||
+      !favoritesLoaded
+    )
+      return;
+    const ids = [...favoriteIds];
+    if (ids.length === 0) {
+      setFavRecipes([]);
+      setFavError(null);
+      setFavLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setFavLoading(true);
+    setFavError(null);
+    Promise.allSettled(ids.map((id) => getFatSecretRecipe(id)))
+      .then((results) => {
+        if (cancelled) return;
+        const ok = results.flatMap((r) =>
+          r.status === "fulfilled" ? [r.value] : [],
+        );
+        setFavRecipes(ok);
+        if (ok.length === 0) {
+          setFavError("Couldn't load your favorites. Check your connection.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setFavLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, tab, recipeSource, favoritesLoaded, favoriteIds]);
+
+  // Picking a live FatSecret row resolves its full detail (search rows lack
+  // ingredients/instructions) before opening the detail view.
+  function pickFatSecret(row: CatalogRecipe) {
+    const rawId = row.id.replace(/^fs:/, "");
+    setFsDetailLoading(true);
+    getFatSecretRecipe(rawId)
+      .then((full) => setPickedCatalog(full))
+      .catch((err) => setFsError(String(err)))
+      .finally(() => setFsDetailLoading(false));
+  }
+
+  // Optimistic favorite toggle; reverts on failure. `rawId` is the FatSecret
+  // recipe_id without the "fs:" prefix.
+  function toggleFavorite(rawId: string) {
+    const makeFav = !favoriteIds.has(rawId);
+    setFavoriteIds((prev) => {
+      const next = new Set(prev);
+      if (makeFav) next.add(rawId);
+      else next.delete(rawId);
+      return next;
+    });
+    toggleFatSecretFavorite(rawId, makeFav).catch(() => {
+      setFavoriteIds((prev) => {
+        const next = new Set(prev);
+        if (makeFav) next.delete(rawId);
+        else next.add(rawId);
+        return next;
+      });
+    });
+  }
 
   // Debounced OpenFoodFacts search. Aborts any in-flight request when the
   // query changes so older responses can't clobber newer state.
@@ -588,50 +755,167 @@ export function AddMealDialog({
                 onBack={() => setPickedCatalog(null)}
                 onLog={(s) => submitCatalogRecipe(pickedCatalog, s)}
                 disabled={pending}
+                favorited={favoriteIds.has(
+                  pickedCatalog.id.replace(/^fs:/, ""),
+                )}
+                onToggleFavorite={() =>
+                  toggleFavorite(pickedCatalog.id.replace(/^fs:/, ""))
+                }
               />
             ) : tab === "recipes" ? (
               <div className="space-y-3">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-chalk-400" />
-                  <input
-                    type="search"
-                    value={catalogQuery}
-                    onChange={(e) => setCatalogQuery(e.target.value)}
-                    placeholder={
-                      catalog
-                        ? `Search ${catalog.length} catalog recipes`
-                        : "Search catalog recipes"
-                    }
-                    className="field pl-9"
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="space-y-2">
-                  {catalogError ? (
-                    <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
-                      Failed to load catalog: {catalogError}
-                    </div>
-                  ) : !catalog ? (
-                    <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-chalk-400">
-                      Loading catalog…
-                    </div>
-                  ) : recipeResults.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
-                      <ChefHat className="mx-auto h-5 w-5 text-chalk-400" />
-                      <div className="mt-2 text-sm text-chalk-300">
-                        No catalog recipes match.
+                {/* Source toggle: bundled library, live FatSecret search, or
+                    favorites. Hidden once we learn FatSecret isn't configured. */}
+                {fsAvailable !== false && (
+                  <div className="flex rounded-xl border border-white/10 bg-white/[0.03] p-0.5 text-xs font-bold">
+                    <SourceToggle
+                      active={recipeSource === "library"}
+                      onClick={() => setRecipeSource("library")}
+                    >
+                      Library
+                    </SourceToggle>
+                    <SourceToggle
+                      active={recipeSource === "all"}
+                      onClick={() => setRecipeSource("all")}
+                    >
+                      All recipes
+                    </SourceToggle>
+                    <SourceToggle
+                      active={recipeSource === "favorites"}
+                      onClick={() => setRecipeSource("favorites")}
+                    >
+                      Favorites
+                    </SourceToggle>
+                  </div>
+                )}
+
+                {recipeSource !== "favorites" && (
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-chalk-400" />
+                    <input
+                      type="search"
+                      value={catalogQuery}
+                      onChange={(e) => setCatalogQuery(e.target.value)}
+                      placeholder={
+                        recipeSource === "all"
+                          ? "Search thousands of recipes"
+                          : catalog
+                            ? `Search ${catalog.length} catalog recipes`
+                            : "Search catalog recipes"
+                      }
+                      className="field pl-9"
+                      autoComplete="off"
+                    />
+                  </div>
+                )}
+
+                {fsDetailLoading && (
+                  <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-3 text-xs text-chalk-400">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Loading recipe…
+                  </div>
+                )}
+
+                {recipeSource === "all" ? (
+                  <div className="space-y-2">
+                    {catalogQuery.trim().length < 2 ? (
+                      <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+                        <ChefHat className="mx-auto h-5 w-5 text-chalk-400" />
+                        <div className="mt-2 text-sm text-chalk-300">
+                          Search thousands of recipes with photos and full
+                          nutrition.
+                        </div>
+                        <FatSecretAttribution className="mt-0.5" />
                       </div>
-                    </div>
-                  ) : (
-                    recipeResults.map((r) => (
-                      <CatalogResultRow
-                        key={r.id}
-                        recipe={r}
-                        onSelect={() => setPickedCatalog(r)}
-                      />
-                    ))
-                  )}
-                </div>
+                    ) : fsError ? (
+                      <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
+                        {fsError}
+                      </div>
+                    ) : fsLoading ? (
+                      <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-6 text-xs text-chalk-400">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Searching…
+                      </div>
+                    ) : fsResults.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-chalk-400">
+                        No recipes found for &ldquo;{catalogQuery}&rdquo;.
+                      </div>
+                    ) : (
+                      <>
+                        {fsResults.map((r) => (
+                          <CatalogResultRow
+                            key={r.id}
+                            recipe={r}
+                            onSelect={() => pickFatSecret(r)}
+                          />
+                        ))}
+                        <div className="pt-1 text-center">
+                          <FatSecretAttribution />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : recipeSource === "favorites" ? (
+                  <div className="space-y-2">
+                    {!favoritesLoaded || favLoading ? (
+                      <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-white/10 p-6 text-xs text-chalk-400">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Loading
+                        favorites…
+                      </div>
+                    ) : favoriteIds.size === 0 ? (
+                      <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+                        <Star className="mx-auto h-5 w-5 text-chalk-400" />
+                        <div className="mt-2 text-sm text-chalk-300">
+                          No favorites yet. Open a recipe under &ldquo;All
+                          recipes&rdquo; and tap the star to save it here.
+                        </div>
+                        <FatSecretAttribution className="mt-0.5" />
+                      </div>
+                    ) : favError ? (
+                      <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
+                        {favError}
+                      </div>
+                    ) : (
+                      <>
+                        {favRecipes.map((r) => (
+                          <CatalogResultRow
+                            key={r.id}
+                            recipe={r}
+                            onSelect={() => setPickedCatalog(r)}
+                          />
+                        ))}
+                        <div className="pt-1 text-center">
+                          <FatSecretAttribution />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {catalogError ? (
+                      <div className="rounded-xl border border-dashed border-accent-rose/40 p-6 text-center text-xs text-accent-rose">
+                        Failed to load catalog: {catalogError}
+                      </div>
+                    ) : !catalog ? (
+                      <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-xs text-chalk-400">
+                        Loading catalog…
+                      </div>
+                    ) : recipeResults.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-white/10 p-6 text-center">
+                        <ChefHat className="mx-auto h-5 w-5 text-chalk-400" />
+                        <div className="mt-2 text-sm text-chalk-300">
+                          No catalog recipes match.
+                        </div>
+                      </div>
+                    ) : (
+                      recipeResults.map((r) => (
+                        <CatalogResultRow
+                          key={r.id}
+                          recipe={r}
+                          onSelect={() => setPickedCatalog(r)}
+                        />
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
             ) : null}
 
@@ -802,6 +1086,31 @@ function TabButton({
   );
 }
 
+function SourceToggle({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex-1 rounded-lg px-2 py-1.5 text-center transition",
+        active
+          ? "bg-accent-cyan/15 text-accent-cyan"
+          : "text-chalk-400 hover:text-chalk-100",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 function CatalogResultRow({
   recipe,
   onSelect,
@@ -848,16 +1157,25 @@ function CatalogDetail({
   onBack,
   onLog,
   disabled,
+  favorited,
+  onToggleFavorite,
 }: {
   recipe: CatalogRecipe;
   onBack: () => void;
   onLog: (s: number) => void;
   disabled: boolean;
+  favorited?: boolean;
+  onToggleFavorite?: () => void;
 }) {
   const [servings, setServings] = useState(1);
   const [saved, setSaved] = useState(false);
   const [saving, startSave] = useTransition();
   const perServing = 1 / Math.max(1, recipe.servings);
+  // FatSecret's license forbids storing their recipe content, so these are
+  // search-only: no "Save to my recipes" (that would persist content). Instead
+  // they can be favorited (a recipe_id-only bookmark) and are always re-fetched
+  // live. Logging stays allowed — it writes macros into the user's own diary.
+  const isFatSecret = recipe.id.startsWith("fs:");
   const kcal = Math.round(recipe.calories_total * perServing * servings);
   const p = Math.round(recipe.protein_g * perServing * servings);
   const c = Math.round(recipe.carbs_g * perServing * servings);
@@ -964,27 +1282,47 @@ function CatalogDetail({
         >
           {disabled ? "Logging…" : "Log meal"}
         </button>
-        <button
-          type="button"
-          onClick={save}
-          disabled={saving || saved}
-          className={cn(
-            "flex w-full items-center justify-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm font-bold transition disabled:opacity-60",
-            saved
-              ? "border-accent-green/40 bg-accent-green/10 text-accent-green"
-              : "border-white/10 bg-white/[0.04] text-chalk-200 hover:bg-white/[0.08]",
-          )}
-        >
-          {saved ? (
-            "Saved to your recipes ✓"
-          ) : saving ? (
-            "Saving…"
-          ) : (
-            <>
-              <BookmarkPlus className="h-4 w-4" /> Save to my recipes
-            </>
-          )}
-        </button>
+        {isFatSecret ? (
+          onToggleFavorite && (
+            <button
+              type="button"
+              onClick={onToggleFavorite}
+              className={cn(
+                "flex w-full items-center justify-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm font-bold transition",
+                favorited
+                  ? "border-accent-amber/40 bg-accent-amber/10 text-accent-amber"
+                  : "border-white/10 bg-white/[0.04] text-chalk-200 hover:bg-white/[0.08]",
+              )}
+            >
+              <Star
+                className={cn("h-4 w-4", favorited && "fill-accent-amber")}
+              />
+              {favorited ? "In favorites" : "Add to favorites"}
+            </button>
+          )
+        ) : (
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving || saved}
+            className={cn(
+              "flex w-full items-center justify-center gap-1.5 rounded-xl border px-4 py-2.5 text-sm font-bold transition disabled:opacity-60",
+              saved
+                ? "border-accent-green/40 bg-accent-green/10 text-accent-green"
+                : "border-white/10 bg-white/[0.04] text-chalk-200 hover:bg-white/[0.08]",
+            )}
+          >
+            {saved ? (
+              "Saved to your recipes ✓"
+            ) : saving ? (
+              "Saving…"
+            ) : (
+              <>
+                <BookmarkPlus className="h-4 w-4" /> Save to my recipes
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {recipe.ingredients.length > 0 && (
@@ -1010,7 +1348,9 @@ function CatalogDetail({
         </section>
       )}
 
-      {recipe.source && (
+      {isFatSecret ? (
+        <FatSecretAttribution />
+      ) : recipe.source ? (
         <a
           href={
             recipe.source.startsWith("http")
@@ -1023,7 +1363,7 @@ function CatalogDetail({
         >
           <ExternalLink className="h-3 w-3" /> Source: {recipe.source}
         </a>
-      )}
+      ) : null}
     </div>
   );
 }
