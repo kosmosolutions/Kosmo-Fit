@@ -20,6 +20,34 @@ export interface ActivityStats {
   totalSteps: number;
 }
 
+// food_entries has one row per LOGGED FOOD, so a year can exceed PostgREST's
+// 1000-row response cap (~3 items/day does it). Page through the window and
+// collapse to distinct days; without this the calendar's diet dots silently
+// drop an arbitrary subset of days.
+async function fetchDietDays(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  start: string,
+  end: string,
+): Promise<Set<string>> {
+  const PAGE = 1000;
+  const days = new Set<string>();
+  for (let from = 0; ; from += PAGE) {
+    const { data } = await supabase
+      .from("food_entries")
+      .select("entry_date")
+      .eq("user_id", userId)
+      .gte("entry_date", start)
+      .lte("entry_date", end)
+      .order("entry_date", { ascending: true })
+      .range(from, from + PAGE - 1);
+    const rows = data ?? [];
+    for (const r of rows) days.add(r.entry_date);
+    if (rows.length < PAGE) break;
+  }
+  return days;
+}
+
 // Fetches one year of activity for the current user. Returns ISO date strings
 // for days that have a completed workout or any food entry logged.
 //
@@ -35,7 +63,7 @@ export async function getActivityYear(year: number): Promise<YearActivity> {
   const start = `${year}-01-01`;
   const end = `${year}-12-31`;
 
-  const [workoutRes, dietRes] = await Promise.all([
+  const [workoutRes, dietDays] = await Promise.all([
     supabase
       .from("daily_entries")
       .select("entry_date")
@@ -43,21 +71,13 @@ export async function getActivityYear(year: number): Promise<YearActivity> {
       .eq("workout_completed", true)
       .gte("entry_date", start)
       .lte("entry_date", end),
-    supabase
-      .from("food_entries")
-      .select("entry_date")
-      .eq("user_id", user.id)
-      .gte("entry_date", start)
-      .lte("entry_date", end),
+    fetchDietDays(supabase, user.id, start, end),
   ]);
 
   return {
     year,
     workoutDays: (workoutRes.data ?? []).map((r) => r.entry_date),
-    // food_entries has one row per meal, so de-dupe to one entry per day.
-    dietDays: Array.from(
-      new Set((dietRes.data ?? []).map((r) => r.entry_date)),
-    ),
+    dietDays: Array.from(dietDays),
   };
 }
 
@@ -74,19 +94,14 @@ export async function getActivityStats(
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [dailyRes, dietRes] = await Promise.all([
+  const [dailyRes, dietDays] = await Promise.all([
     supabase
       .from("daily_entries")
       .select("entry_date, steps, workout_completed")
       .eq("user_id", user.id)
       .gte("entry_date", startISO)
       .lte("entry_date", endISO),
-    supabase
-      .from("food_entries")
-      .select("entry_date")
-      .eq("user_id", user.id)
-      .gte("entry_date", startISO)
-      .lte("entry_date", endISO),
+    fetchDietDays(supabase, user.id, startISO, endISO),
   ]);
 
   // daily_entries is unique per (user, date), so each row is already a distinct day.
@@ -102,7 +117,7 @@ export async function getActivityStats(
     totalDays,
     workoutDays: daily.filter((r) => r.workout_completed).length,
     stepDays: stepRows.length,
-    dietDays: new Set((dietRes.data ?? []).map((r) => r.entry_date)).size,
+    dietDays: dietDays.size,
     totalSteps: stepRows.reduce((s, r) => s + (r.steps ?? 0), 0),
   };
 }

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { calcStats, dailyCalorieTarget, dayIndexForDate } from "@/lib/calc";
+import { resolvePlanDay } from "@/lib/planDay";
 import { WorkoutClient } from "@/components/WorkoutClient";
 import { getUserPlanRows, getUserPlans } from "@/lib/actions/workout-plan";
 import { fromISODate } from "@/lib/dates";
@@ -79,17 +80,26 @@ export default async function WorkoutPage({
       ? dayIdx
       : 0;
 
+  // Price today plan-aware (same resolver as overview/diet) so the banner's
+  // completed-day target matches the rest of the app.
+  const resolved = resolvePlanDay({
+    date: today,
+    mode: initialMode,
+    activeTemplateId: effectiveTemplateId,
+    builtDays,
+  });
+
   return (
     <WorkoutClient
       initialMode={initialMode}
       initialDay={initialDay}
       todayTarget={dailyCalorieTarget(
         stats,
-        dayIdx,
+        resolved.burn,
         daily?.workout_completed ?? false,
         daily?.cardio_calories ?? 0,
       )}
-      todayBurn={dayIdx >= 0 ? stats.burns[dayIdx] : 0}
+      todayBurn={resolved.burn}
       dailyDeficit={stats.dailyDeficit}
       lifeTDEE={stats.lifeTDEE}
       weekTargets={stats.dayTargets}

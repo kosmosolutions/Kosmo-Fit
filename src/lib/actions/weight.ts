@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { localTodayISO } from "@/lib/serverDate";
+import { fromISODate, toISODate } from "@/lib/dates";
 
 export interface WeightPoint {
   date: string;
@@ -22,9 +24,11 @@ export async function getWeightHistory(
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const since = new Date();
+  // Window anchored on the user's LOCAL today (from the tz cookie), not the
+  // server's UTC date — otherwise evening users get tomorrow's boundary.
+  const since = fromISODate(await localTodayISO());
   since.setDate(since.getDate() - days);
-  const sinceISO = since.toISOString().slice(0, 10);
+  const sinceISO = toISODate(since);
 
   const { data, error } = await supabase
     .from("daily_entries")

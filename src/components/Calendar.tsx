@@ -43,6 +43,14 @@ export function Calendar({
   const [month, setMonth] = useState(initialDate.getMonth());
   const [showYears, setShowYears] = useState(false);
 
+  // Follow the selected date across client-side navigations (day-nav chips,
+  // calendar taps) — the component stays mounted, so state alone would leave
+  // the grid stuck on the mount-time month.
+  useEffect(() => {
+    setYear(initialDate.getFullYear());
+    setMonth(initialDate.getMonth());
+  }, [initialDate]);
+
   // Client-side per-year cache so navigating month-by-month (or back to a
   // previously-viewed year) doesn't refetch.
   const [cache, setCache] = useState<Record<number, YearActivity>>({

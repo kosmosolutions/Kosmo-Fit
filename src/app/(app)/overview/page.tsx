@@ -1,22 +1,22 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { calcStats, dailyCalorieTarget, dayIndexForDate } from "@/lib/calc";
+import { calcStats, dailyCalorieTarget } from "@/lib/calc";
+import { resolvePlanDay } from "@/lib/planDay";
 import { Ring } from "@/components/Ring";
 import { Calendar } from "@/components/Calendar";
 import { getActivityYear } from "@/lib/actions/activity";
 import { getWeightHistory } from "@/lib/actions/weight";
 import { DailyTrackerForm } from "@/components/DailyTrackerForm";
 import { GapMeter } from "@/components/GapMeter";
+import { FocusIcon } from "@/components/FocusIcon";
 import { WeightTrendChart } from "@/components/WeightTrendChart";
 import { fromISODate, toISODate } from "@/lib/dates";
 import { localTodayISO } from "@/lib/serverDate";
-import { getDays } from "@/data/workouts";
 import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  Footprints,
   Flame,
   Dumbbell,
 } from "lucide-react";
@@ -24,7 +24,6 @@ import {
 // Apple Fitness palette
 const MOVE = "#FF2D55";   // calories burned / movement
 const EXERCISE = "#30D158"; // strength / workout
-const STAND = "#0A84FF";  // hydration / activity
 const DIET = "#D9A441";   // nutrition / total cals — muted posh amber
 const PROTEIN = "#FF375F";
 const CARBS = "#D9A441";
@@ -54,7 +53,7 @@ export default async function OverviewPage({
 
   const heatmapYear = fromISODate(selected).getFullYear();
 
-  const [{ data: daily }, { data: food }, heatmapData, weightHistory] =
+  const [{ data: daily }, { data: food }, heatmapData, weightHistory, { data: activePlan }] =
     await Promise.all([
       supabase
         .from("daily_entries")
@@ -69,6 +68,14 @@ export default async function OverviewPage({
         .eq("entry_date", selected),
       getActivityYear(heatmapYear),
       getWeightHistory(90),
+      profile.active_plan_id
+        ? supabase
+            .from("workout_plans")
+            .select("id, base_template_id, is_built, days")
+            .eq("user_id", user.id)
+            .eq("id", profile.active_plan_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
 
   const eaten = (food ?? []).reduce((s, e) => s + e.calories, 0);
@@ -77,7 +84,6 @@ export default async function OverviewPage({
   const fat = (food ?? []).reduce((s, e) => s + e.fat_g, 0);
 
   const selectedDate = fromISODate(selected);
-  const dayIdx = dayIndexForDate(selectedDate);
 
   const prevDate = new Date(selectedDate);
   prevDate.setDate(prevDate.getDate() - 1);
@@ -88,15 +94,23 @@ export default async function OverviewPage({
   const isToday = selected === todayLocal;
   const mode = profile.workout_mode === "gym" ? ("gym" as const) : ("home" as const);
   const stats = calcStats(profile, mode);
-  const days = getDays(mode);
 
-  const burn = dayIdx >= 0 ? stats.burns[dayIdx] : 0;
-  const day = dayIdx >= 0 ? days[dayIdx] : null;
+  // Resolve the selected date against the user's ACTIVE plan (built plan,
+  // template, or legacy split) so this page agrees with the workout screen
+  // about which days train and what completing them earns.
+  const { day, burn } = resolvePlanDay({
+    date: selectedDate,
+    mode,
+    activeTemplateId: activePlan
+      ? activePlan.base_template_id
+      : (profile.active_template_id ?? null),
+    builtDays: activePlan?.is_built ? (activePlan.days ?? null) : null,
+  });
 
   const cardioBurn = daily?.cardio_calories ?? 0;
   const workoutDone = !!daily?.workout_completed;
   const totalBurn = (workoutDone ? burn : 0) + cardioBurn;
-  const target = dailyCalorieTarget(stats, dayIdx, workoutDone, cardioBurn);
+  const target = dailyCalorieTarget(stats, burn, workoutDone, cardioBurn);
   const earnable = !workoutDone && burn > 0 ? burn : 0;
 
   const protGoal = stats.proteinG;
@@ -104,7 +118,6 @@ export default async function OverviewPage({
   const fatGoal = stats.workoutMacros.fatG;
   const stepGoal = profile.daily_step_goal;
   const pctEaten = Math.min(1, eaten / target);
-  const stepPct = Math.min(100, ((daily?.steps ?? 0) / Math.max(1, stepGoal)) * 100);
 
   return (
     <div className="space-y-4">
@@ -153,11 +166,13 @@ export default async function OverviewPage({
               className="inline-flex items-center gap-1.5 text-xs font-semibold"
               style={{ color: day.color }}
             >
-              {day.icon} {day.focus} day · {day.duration}
+              <FocusIcon focus={day.focus} className="h-3.5 w-3.5" />
+              {day.focus} day · {day.duration}
             </div>
           ) : (
-            <div className="text-xs font-semibold text-chalk-400">
-              😴 Rest day
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-chalk-400">
+              <FocusIcon focus="Rest" className="h-3.5 w-3.5" />
+              Rest day
             </div>
           )}
           {!isToday && (
@@ -295,12 +310,15 @@ export default async function OverviewPage({
         currentWeight={Number(profile.current_weight) || 0}
         goalWeight={Number(profile.goal_weight) || 0}
         windowDays={90}
+        todayISO={todayLocal}
       />
 
       <DailyTrackerForm
+        key={selected}
         entryDate={selected}
         isToday={isToday}
         bodyWeightLbs={Number(profile.current_weight) || 0}
+        stepGoal={stepGoal}
         initial={{
           weight: daily?.weight ?? null,
           steps: daily?.steps ?? 0,
@@ -315,43 +333,6 @@ export default async function OverviewPage({
           photo_url: daily?.photo_url ?? null,
         }}
       />
-
-      {/* Steps bento */}
-      <section className="card p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className="grid h-11 w-11 place-items-center rounded-full"
-              style={{ background: `${STAND}22` }}
-            >
-              <Footprints className="h-5 w-5" style={{ color: STAND }} />
-            </div>
-            <div>
-              <div className="metric-label">Steps</div>
-              <div className="text-[28px] font-black leading-tight tracking-tightest text-white">
-                {(daily?.steps ?? 0).toLocaleString()}
-              </div>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-[18px] font-bold" style={{ color: STAND }}>
-              {Math.round(((daily?.steps ?? 0) / Math.max(1, stepGoal)) * 100)}%
-            </div>
-            <div className="text-[11px] font-medium text-chalk-400">
-              goal {stepGoal.toLocaleString()}
-            </div>
-          </div>
-        </div>
-        <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
-          <div
-            className="h-full rounded-full transition-all duration-500 ease-ios"
-            style={{
-              width: `${stepPct}%`,
-              background: `linear-gradient(90deg, ${STAND} 0%, #5AC8FA 100%)`,
-            }}
-          />
-        </div>
-      </section>
 
       <Calendar initial={heatmapData} selectedDate={selected} />
     </div>

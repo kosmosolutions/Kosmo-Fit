@@ -198,18 +198,20 @@ export function calcStats(
  * deficit-only target (Life TDEE − daily deficit) shown by default. Earned
  * burn — completed workout + logged cardio — is added on top, so the target
  * only rises once the work is actually done.
+ *
+ * The 1400 floor is applied once, after earned burn, so this agrees with
+ * `dayTargets` (which clamps the same way) even under aggressive deficits.
  */
 export function dailyCalorieTarget(
   stats: Stats,
-  dayIdx: number,
+  workoutBurn: number,
   workoutCompleted: boolean,
   cardioCalories: number,
 ): number {
-  const workoutBurn =
-    dayIdx >= 0 && workoutCompleted ? stats.burns[dayIdx] : 0;
+  const earned = workoutCompleted ? workoutBurn : 0;
   return Math.max(
     1400,
-    stats.restTarget + workoutBurn + (cardioCalories || 0),
+    stats.lifeTDEE - stats.dailyDeficit + earned + (cardioCalories || 0),
   );
 }
 

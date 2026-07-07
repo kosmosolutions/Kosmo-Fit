@@ -6,8 +6,12 @@ import {
   Bike,
   Dumbbell,
   Droplets,
+  Flame,
+  Frown,
+  Meh,
   Moon,
   Scale,
+  Smile,
   StickyNote,
   type LucideIcon,
 } from "lucide-react";
@@ -30,6 +34,8 @@ interface Props {
   entryDate: string;
   isToday?: boolean;
   bodyWeightLbs: number;
+  /** Daily step goal — renders a progress meter on the steps card. */
+  stepGoal?: number;
   initial: {
     weight: number | null;
     steps: number;
@@ -51,6 +57,7 @@ export function DailyTrackerForm({
   entryDate,
   isToday = true,
   bodyWeightLbs,
+  stepGoal,
   initial,
 }: Props) {
   const [open, setOpen] = useState<Popup | null>(null);
@@ -112,8 +119,15 @@ export function DailyTrackerForm({
           Icon={Footprints}
           label="Steps"
           value={initial.steps ? initial.steps.toLocaleString() : "—"}
-          unit={initial.steps ? "steps" : ""}
+          unit={
+            initial.steps && stepGoal
+              ? `/ ${stepGoal.toLocaleString()}`
+              : initial.steps
+                ? "steps"
+                : ""
+          }
           accent="#0A84FF"
+          progress={stepGoal ? initial.steps / stepGoal : undefined}
           onClick={() => setOpen("steps")}
         />
         <MetricCard
@@ -193,19 +207,26 @@ export function DailyTrackerForm({
       <div className="mt-4">
         <div className="metric-label mb-2">How did you feel?</div>
         <div className="grid grid-cols-4 gap-2">
-          {(["great", "good", "meh", "bad"] as const).map((m) => (
+          {(
+            [
+              { m: "great", Icon: Flame },
+              { m: "good", Icon: Smile },
+              { m: "meh", Icon: Meh },
+              { m: "bad", Icon: Frown },
+            ] as const
+          ).map(({ m, Icon }) => (
             <button
               key={m}
               type="button"
               onClick={() => pickMood(m)}
               className={cn(
-                "min-h-[44px] rounded-full text-[12px] font-semibold capitalize transition-all duration-200 ease-ios active:scale-[0.96]",
+                "inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-full text-[12px] font-semibold capitalize transition-all duration-200 ease-ios active:scale-[0.96]",
                 mood === m
                   ? "bg-accent-blue/20 text-accent-blue"
                   : "bg-ink-800 text-chalk-300 hover:bg-ink-700",
               )}
             >
-              {m === "great" ? "🔥 " : m === "good" ? "🙂 " : m === "meh" ? "😐 " : "😩 "}
+              <Icon className="h-4 w-4" strokeWidth={mood === m ? 2.4 : 2} />
               {m}
             </button>
           ))}
@@ -282,6 +303,7 @@ function MetricCard({
   value,
   unit,
   accent,
+  progress,
   onClick,
 }: {
   Icon: LucideIcon;
@@ -289,6 +311,8 @@ function MetricCard({
   value: string;
   unit: string;
   accent: string;
+  /** 0–1 goal completion; renders a slim meter under the value. */
+  progress?: number;
   onClick: () => void;
 }) {
   const hasValue = value !== "" && value !== "—";
@@ -317,6 +341,17 @@ function MetricCard({
             <span className="text-[11px] font-semibold text-chalk-400">{unit}</span>
           )}
         </span>
+        {progress != null && (
+          <span className="mt-2 block h-1 overflow-hidden rounded-full bg-white/[0.08]">
+            <span
+              className="block h-full rounded-full"
+              style={{
+                width: `${Math.min(100, Math.round(progress * 100))}%`,
+                background: accent,
+              }}
+            />
+          </span>
+        )}
       </span>
     </button>
   );

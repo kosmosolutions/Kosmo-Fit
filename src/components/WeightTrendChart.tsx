@@ -1,5 +1,6 @@
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { fromISODate, toISODate, todayISO as localToday } from "@/lib/dates";
 import type { WeightPoint } from "@/lib/actions/weight";
 
 interface Props {
@@ -8,6 +9,12 @@ interface Props {
   goalWeight: number;
   /** How many days back from today the chart covers. */
   windowDays?: number;
+  /**
+   * The user's local "today" (YYYY-MM-DD). Server-rendered pages must pass
+   * `localTodayISO()` — the server clock is UTC, so deriving today here
+   * would shift the window for users far from UTC.
+   */
+  todayISO?: string;
   className?: string;
 }
 
@@ -33,9 +40,15 @@ export function WeightTrendChart({
   currentWeight,
   goalWeight,
   windowDays = 90,
+  todayISO,
   className,
 }: Props) {
-  const series = buildDailySeries(points, currentWeight, windowDays);
+  const series = buildDailySeries(
+    points,
+    currentWeight,
+    windowDays,
+    todayISO ?? localToday(),
+  );
 
   // Value range — always include goal so the reference line stays in view.
   const allWeights = series
@@ -267,17 +280,18 @@ function buildDailySeries(
   points: WeightPoint[],
   fallbackWeight: number,
   windowDays: number,
+  todayISODate: string,
 ): DailyValue[] {
   const byDate = new Map<string, number>();
   for (const p of points) byDate.set(p.date, p.weight);
 
-  const today = new Date();
-  const start = new Date();
-  start.setDate(today.getDate() - (windowDays - 1));
+  const today = fromISODate(todayISODate);
+  const start = fromISODate(todayISODate);
+  start.setDate(start.getDate() - (windowDays - 1));
 
   // Seed: most recent logged value BEFORE the window, if any. Lets the
   // line begin at the right level rather than the profile-set default.
-  const startISO = start.toISOString().slice(0, 10);
+  const startISO = toISODate(start);
   const earlierLogs = points.filter((p) => p.date < startISO);
   let last =
     earlierLogs.length > 0
@@ -289,7 +303,7 @@ function buildDailySeries(
   const out: DailyValue[] = [];
   const d = new Date(start);
   while (d <= today) {
-    const iso = d.toISOString().slice(0, 10);
+    const iso = toISODate(d);
     const logged = byDate.has(iso);
     if (logged) last = byDate.get(iso)!;
     out.push({

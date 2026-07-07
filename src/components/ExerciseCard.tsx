@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Play, ExternalLink, X } from "lucide-react";
+import { Play, ExternalLink, X, Dumbbell, Lightbulb } from "lucide-react";
 import { useBodyScrollLock } from "@/lib/useBodyScrollLock";
 import {
   type CatalogExercise,
@@ -29,12 +29,35 @@ function FrameLoop({
   images,
   alt,
   className,
+  fallbackColor = "#0A84FF",
 }: {
   images: string[];
   alt: string;
   className?: string;
+  fallbackColor?: string;
 }) {
   const frame = useFrameCycle(images.length);
+  const [failed, setFailed] = useState(false);
+  // A dead CDN/offline network otherwise renders the browser's broken-image
+  // glyph + alt text inside the tile — swap to a clean tinted placeholder.
+  if (failed) {
+    return (
+      <div
+        className={`grid place-items-center ${className ?? ""}`}
+        style={{
+          background: `linear-gradient(135deg, ${fallbackColor}33, ${fallbackColor}11)`,
+        }}
+        role="img"
+        aria-label={alt}
+      >
+        <Dumbbell
+          className="h-6 w-6"
+          style={{ color: `${fallbackColor}aa` }}
+          aria-hidden
+        />
+      </div>
+    );
+  }
   return (
     <div className={`relative ${className ?? ""}`}>
       {images.map((src, i) => (
@@ -46,6 +69,7 @@ function FrameLoop({
           className="absolute inset-0 h-full w-full object-cover transition-opacity duration-150"
           style={{ opacity: i === frame ? 1 : 0 }}
           loading="lazy"
+          onError={() => setFailed(true)}
         />
       ))}
     </div>
@@ -142,8 +166,9 @@ export function ExerciseCard({
             </div>
           </div>
           {exercise.note ? (
-            <div className="mt-1 text-[12px] font-medium text-chalk-400">
-              💡 {exercise.note}
+            <div className="mt-1 flex items-start gap-1 text-[12px] font-medium text-chalk-400">
+              <Lightbulb className="mt-0.5 h-3 w-3 shrink-0 text-accent-amber" aria-hidden />
+              {exercise.note}
             </div>
           ) : null}
 
@@ -158,6 +183,7 @@ export function ExerciseCard({
                 images={exercise.images!}
                 alt={exercise.name}
                 className="h-full w-full"
+                fallbackColor={color}
               />
             ) : ytThumb ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -239,6 +265,7 @@ export function ExerciseCard({
                   images={exercise.images!}
                   alt={exercise.name}
                   className="h-full w-full"
+                  fallbackColor={color}
                 />
               ) : exercise.youtubeId ? (
                 <iframe
