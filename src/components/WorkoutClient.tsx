@@ -34,6 +34,8 @@ import {
 } from "@/data/workouts";
 import { getTemplate } from "@/data/workout-templates";
 import { estimateSessionBurn } from "@/lib/calc";
+import { weekdayFromLabel } from "@/lib/planDay";
+import { fromISODate } from "@/lib/dates";
 import { cn } from "@/lib/cn";
 import type { WorkoutMode } from "@/lib/types";
 import {
@@ -44,6 +46,9 @@ import {
 } from "@/lib/actions/workout-plan";
 import type { BuiltDay } from "@/lib/workout-plan-types";
 import { WEEKDAY_LABELS } from "@/data/focus-presets";
+
+// Picker order: Monday-first week.
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 type AddTarget =
   | { kind: "add" }
@@ -176,7 +181,6 @@ function focusToPicker(focus: string): {
 
 interface Props {
   initialMode: WorkoutMode;
-  initialDay: number;
   todayTarget: number;
   todayBurn: number;
   dailyDeficit: number;
@@ -215,7 +219,6 @@ function rowToExercise(r: UserExerciseRow): Exercise {
 
 export function WorkoutClient({
   initialMode,
-  initialDay,
   todayTarget,
   todayBurn,
   dailyDeficit,
@@ -242,7 +245,10 @@ export function WorkoutClient({
   const [cardioOpen, setCardioOpen] = useState(false);
   const [view, setView] = useState<"training" | "wellness">("training");
   const [mode, setMode] = useState<WorkoutMode>(initialMode);
-  const [wDay, setWDay] = useState(Math.max(0, initialDay));
+  // Selection is a weekday (JS getDay), not a plan slot: the picker shows the
+  // full week, so every weekday is selectable — including rest days the plan
+  // doesn't schedule. Defaults to the viewed date's weekday.
+  const [selWd, setSelWd] = useState(() => fromISODate(todayDate).getDay());
   const [expanded, setExpanded] = useState(false);
   const [addTarget, setAddTarget] = useState<AddTarget | null>(null);
   const [openPos, setOpenPos] = useState<number | null>(null);
@@ -275,11 +281,39 @@ export function WorkoutClient({
       : mode === "gym"
         ? GYM_DAYS
         : HOME_DAYS;
-  // Clamp to the current layout: switching to a plan with fewer days would
-  // otherwise leave a stale out-of-range selection (no highlighted day, writes
-  // to a day slot the plan doesn't have).
-  const wIdx = Math.min(wDay, days.length - 1);
-  const d: WorkoutDay = days[wIdx] ?? days[0];
+  // Map each weekday to the plan slot anchored on it (built plans store a
+  // weekday number; template/legacy days declare a weekday label). Weekdays
+  // with no slot are rest days the plan simply doesn't schedule.
+  const slotByWeekday = useMemo(() => {
+    const map: (number | null)[] = Array(7).fill(null);
+    if (isBuilt) {
+      builtDays.forEach((bd, i) => {
+        if (map[bd.weekday] == null) map[bd.weekday] = i;
+      });
+    } else {
+      days.forEach((dd, i) => {
+        const wd = weekdayFromLabel(dd.weekday);
+        if (wd != null && map[wd] == null) map[wd] = i;
+      });
+    }
+    return map;
+  }, [isBuilt, builtDays, days]);
+
+  const slot = slotByWeekday[selWd];
+  const d: WorkoutDay =
+    slot != null
+      ? days[slot]
+      : {
+          day: "Rest",
+          weekday: WEEKDAY_LABELS[selWd] ?? "—",
+          focus: "Rest",
+          icon: "",
+          color: "#64748b",
+          duration: "—",
+          epoc: false,
+          calNote: "Recovery day. Sleep, hydrate, light walking.",
+          exercises: [],
+        };
 
   // Show picker automatically on first /workout visit (no template selected
   // and no customizations). Existing users were backfilled to "custom-6day"
@@ -305,29 +339,31 @@ export function WorkoutClient({
   // tracks what's really scheduled.
   const isLegacyPlan =
     !isBuilt && (!activeTemplate || activeTemplate.id === "custom-6day");
-  const dayRowCount = planRows.filter((r) => r.day_index === wIdx).length;
+  const dayRowCount =
+    slot != null ? planRows.filter((r) => r.day_index === slot).length : 0;
   const effectiveCount = dayRowCount > 0 ? dayRowCount : d.exercises.length;
   const isRestDay = effectiveCount === 0 || d.focus === "Rest";
-  const selectedBurn = isLegacyPlan
-    ? (weekBurns[wIdx] ?? todayBurn)
-    : isRestDay
-      ? 0
+  const selectedBurn = isRestDay
+    ? 0
+    : isLegacyPlan && slot != null
+      ? (weekBurns[slot] ?? todayBurn)
       : estimateSessionBurn({
           duration: d.duration,
           focus: d.focus,
           exercises: new Array(effectiveCount),
         });
-  const todayDayTarget = isLegacyPlan
-    ? (weekTargets[wIdx] ?? todayTarget)
-    : isRestDay
-      ? restTarget
+  const todayDayTarget = isRestDay
+    ? restTarget
+    : isLegacyPlan && slot != null
+      ? (weekTargets[slot] ?? todayTarget)
       : Math.max(1400, lifeTDEE + selectedBurn - dailyDeficit);
 
   // Per (mode, dayIndex), if the user has ANY rows we treat the day as
   // customized and render only those rows. Otherwise we render the
   // hardcoded defaults from GYM_DAYS / HOME_DAYS.
   const { displayExercises, customized } = useMemo(() => {
-    const userForThisDay = planRows.filter((r) => r.day_index === wIdx);
+    const userForThisDay =
+      slot != null ? planRows.filter((r) => r.day_index === slot) : [];
     if (userForThisDay.length > 0) {
       return {
         displayExercises: userForThisDay.map<DisplayExercise>((r) => ({
@@ -344,12 +380,14 @@ export function WorkoutClient({
       })),
       customized: false,
     };
-  }, [planRows, wIdx, d.exercises]);
+  }, [planRows, slot, d.exercises]);
 
   function handleDelete(position: number) {
+    if (slot == null) return;
+    const s = slot;
     setOpenPos(null);
     startMut(async () => {
-      await removeExerciseFromDay(mode, wIdx, position);
+      await removeExerciseFromDay(mode, s, position);
     });
   }
 
@@ -359,8 +397,10 @@ export function WorkoutClient({
   }
 
   function handleReset() {
+    if (slot == null) return;
+    const s = slot;
     startMut(async () => {
-      await resetDayToDefaults(mode, wIdx);
+      await resetDayToDefaults(mode, s);
     });
   }
 
@@ -466,33 +506,43 @@ export function WorkoutClient({
       {view === "wellness" && <WellnessSection />}
 
       {view === "training" && <>
-      {/* Day picker */}
-      <div className="flex gap-1.5">
-        {days.map((dd, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => {
-              setWDay(i);
-              setExpanded(false);
-            }}
-            className={cn(
-              "flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-2.5 transition-all duration-200 ease-ios active:scale-[0.96]",
-              wIdx === i ? "text-black" : "bg-ink-800 text-chalk-300 hover:bg-ink-700",
-            )}
-            style={wIdx === i ? { background: dd.color } : undefined}
-          >
-            <span
-              className="text-[10px] font-bold uppercase tracking-[0.06em]"
-              style={{ opacity: wIdx === i ? 0.7 : 1 }}
+      {/* Day picker — the full week; weekdays the plan doesn't schedule
+          render as rest days so the whole week is always visible. */}
+      <div className="flex gap-1">
+        {WEEK_ORDER.map((wd) => {
+          const s = slotByWeekday[wd];
+          const dd = s != null ? days[s] : null;
+          const active = selWd === wd;
+          return (
+            <button
+              key={wd}
+              type="button"
+              onClick={() => {
+                setSelWd(wd);
+                setExpanded(false);
+              }}
+              className={cn(
+                "flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-0.5 py-2.5 transition-all duration-200 ease-ios active:scale-[0.96]",
+                active
+                  ? "text-black"
+                  : dd
+                    ? "bg-ink-800 text-chalk-300 hover:bg-ink-700"
+                    : "bg-ink-900 text-chalk-500 hover:bg-ink-800",
+              )}
+              style={active ? { background: dd?.color ?? "#64748b" } : undefined}
             >
-              {dd.weekday}
-            </span>
-            <span className="whitespace-nowrap text-[12px] font-bold leading-tight">
-              {dd.day}
-            </span>
-          </button>
-        ))}
+              <span
+                className="text-[10px] font-bold uppercase tracking-[0.06em]"
+                style={{ opacity: active ? 0.7 : 1 }}
+              >
+                {WEEKDAY_LABELS[wd]}
+              </span>
+              <span className="whitespace-nowrap text-[11px] font-bold leading-tight">
+                {dd ? dd.day : "Rest"}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Calorie scoreboard */}
@@ -564,13 +614,13 @@ export function WorkoutClient({
       </button>
 
       {/* Session controls (skip on rest days) */}
-      {d.focus !== "Rest" && (
+      {slot != null && d.focus !== "Rest" && (
         <div className="space-y-2">
           <SessionTimer color={d.color} />
           <MarkCompleteToggle
             entryDate={todayDate}
-            completed={todayCompleted && completedDayIndex === wIdx}
-            dayIndex={wIdx}
+            completed={todayCompleted && completedDayIndex === slot}
+            dayIndex={slot}
             mode={mode}
             color={d.color}
           />
@@ -672,7 +722,9 @@ export function WorkoutClient({
         </div>
       </div>
 
-      {/* Add CTA + Reset */}
+      {/* Add CTA + Reset — only for days the plan actually schedules;
+          unscheduled weekdays have no slot to attach exercises to. */}
+      {slot != null && (
       <div className="space-y-3">
         <button
           type="button"
@@ -712,6 +764,7 @@ export function WorkoutClient({
           </div>
         </div>
       </div>
+      )}
 
       {/* Cardio: the day's prescription doubles as the log trigger. Days
           without a prescription get a plain log card so logging stays
@@ -765,7 +818,7 @@ export function WorkoutClient({
         return (
           <AddExerciseSheet
             mode={mode}
-            dayIndex={wIdx}
+            dayIndex={slot ?? 0}
             dayLabel={`${d.day} · ${d.focus}`}
             dayColor={d.color}
             focusMuscles={picker.muscles}

@@ -1,6 +1,6 @@
 import { GYM_DAYS, HOME_DAYS } from "@/data/workouts";
 import { getTemplate } from "@/data/workout-templates";
-import { BURNS, dayIndexForDate, estimateSessionBurn } from "./calc";
+import { BURNS, estimateSessionBurn } from "./calc";
 import type { BuiltDay } from "./workout-plan-types";
 import type { WorkoutMode } from "./types";
 
@@ -14,6 +14,26 @@ export interface ResolvedPlanDay {
 }
 
 const REST: ResolvedPlanDay = { dayIndex: -1, day: null, burn: 0 };
+
+const WEEKDAY_BY_LABEL: Record<string, number> = {
+  sun: 0,
+  mon: 1,
+  tue: 2,
+  wed: 3,
+  thu: 4,
+  fri: 5,
+  sat: 6,
+};
+
+/**
+ * JS getDay() index for a day's weekday label ("Mon", "Wed", …), or null for
+ * unanchored labels (template rest fillers use "—"). Template and legacy days
+ * declare which weekday they belong to via this label, so it — not a global
+ * hard-coded week map — decides which calendar dates train.
+ */
+export function weekdayFromLabel(label: string): number | null {
+  return WEEKDAY_BY_LABEL[label.slice(0, 3).toLowerCase()] ?? null;
+}
 
 /**
  * Resolve what a calendar date means under the user's active plan — which
@@ -59,39 +79,32 @@ export function resolvePlanDay(opts: {
     };
   }
 
-  const slot = dayIndexForDate(date);
-  if (slot < 0) return REST;
-
   const template =
     activeTemplateId && activeTemplateId !== "custom-6day"
       ? getTemplate(activeTemplateId)
       : null;
+  const isLegacy = !template;
+  const planDays = template
+    ? template.days[mode]
+    : mode === "gym"
+      ? GYM_DAYS
+      : HOME_DAYS;
 
-  if (template) {
-    const td = template.days[mode][slot];
-    if (!td || td.exercises.length === 0 || td.focus === "Rest") return REST;
-    return {
-      dayIndex: slot,
-      day: {
-        focus: td.focus,
-        icon: td.icon,
-        color: td.color,
-        duration: td.duration,
-      },
-      burn: estimateSessionBurn(td),
-    };
-  }
+  const slot = planDays.findIndex(
+    (d) => weekdayFromLabel(d.weekday) === date.getDay(),
+  );
+  if (slot < 0) return REST;
+  const td = planDays[slot];
+  if (td.exercises.length === 0 || td.focus === "Rest") return REST;
 
-  const legacy = (mode === "gym" ? GYM_DAYS : HOME_DAYS)[slot];
-  if (!legacy) return REST;
   return {
     dayIndex: slot,
     day: {
-      focus: legacy.focus,
-      icon: legacy.icon,
-      color: legacy.color,
-      duration: legacy.duration,
+      focus: td.focus,
+      icon: td.icon,
+      color: td.color,
+      duration: td.duration,
     },
-    burn: BURNS[mode][slot] ?? 0,
+    burn: isLegacy ? (BURNS[mode][slot] ?? 0) : estimateSessionBurn(td),
   };
 }
