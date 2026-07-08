@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { calcStats, dailyCalorieTarget, dayIndexForDate } from "@/lib/calc";
+import { calcStats, dailyCalorieTarget } from "@/lib/calc";
 import { resolvePlanDay } from "@/lib/planDay";
 import { WorkoutClient } from "@/components/WorkoutClient";
 import { getUserPlanRows, getUserPlans } from "@/lib/actions/workout-plan";
@@ -35,7 +35,6 @@ export default async function WorkoutPage({
   const selectedDate = dateParam ?? localToday;
   const isToday = selectedDate === localToday;
   const today = fromISODate(selectedDate);
-  const dayIdx = dayIndexForDate(today);
   const todayDate = selectedDate;
 
   // Fetch both modes up-front so the user can switch home<->gym without
@@ -69,17 +68,6 @@ export default async function WorkoutPage({
       ? activePlan.base_template_id
       : (profile.active_template_id ?? null);
 
-  // Default the day picker to today: for a built plan, the training day whose
-  // weekday matches; for template/legacy layouts, the legacy weekday map.
-  const initialDay = builtDays
-    ? Math.max(
-        0,
-        builtDays.findIndex((bd) => bd.weekday === today.getDay()),
-      )
-    : dayIdx >= 0
-      ? dayIdx
-      : 0;
-
   // Price today plan-aware (same resolver as overview/diet) so the banner's
   // completed-day target matches the rest of the app.
   const resolved = resolvePlanDay({
@@ -92,7 +80,6 @@ export default async function WorkoutPage({
   return (
     <WorkoutClient
       initialMode={initialMode}
-      initialDay={initialDay}
       todayTarget={dailyCalorieTarget(
         stats,
         resolved.burn,

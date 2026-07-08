@@ -248,19 +248,3 @@ export function closeTheGap(
     status: "over" as const,
   };
 }
-
-/** Map JS Date day-of-week to the workout day index (0..5) or -1 for rest. */
-export function dayIndexForDate(d: Date): number {
-  // Existing app: Day 1=Wed, 2=Thu, 3=Fri, 4=Sat, 5=Sun, 6=Mon. Tuesday=rest.
-  // getDay(): Sun=0, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6
-  const map: Record<number, number> = {
-    3: 0, // Wed
-    4: 1, // Thu
-    5: 2, // Fri
-    6: 3, // Sat
-    0: 4, // Sun
-    1: 5, // Mon
-    2: -1, // Tue = rest
-  };
-  return map[d.getDay()] ?? -1;
-}
