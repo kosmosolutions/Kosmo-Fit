@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { LogoMark } from "@/components/LogoMark";
@@ -270,13 +270,13 @@ export function OnboardingFlow({
                 ))}
               </div>
               <div className="mt-3 text-sm text-chalk-300">
-                {form.weeks_to_goal} weeks Â·{" "}
+                {form.weeks_to_goal} weeks ·{" "}
                 <span className="font-bold text-accent-blue">
                   {stats.weeklyLoss} lbs/week
                 </span>
                 {stats.aggressive && (
                   <span className="ml-2 text-accent-orange">
-                    âš  aggressive â€” try a longer timeframe
+                    Aggressive — try a longer timeframe
                   </span>
                 )}
               </div>
@@ -321,7 +321,7 @@ export function OnboardingFlow({
                         <div className="text-xs text-chalk-400">{opt.desc}</div>
                       </div>
                       <div className="text-xs text-chalk-400">
-                        Ã—{opt.multiplier}
+                        ×{opt.multiplier}
                       </div>
                     </button>
                   );
@@ -365,7 +365,7 @@ export function OnboardingFlow({
                 {(
                   [
                     { v: "beginner", label: "Beginner", sub: "<6 mo lifting" },
-                    { v: "intermediate", label: "Intermediate", sub: "6 mo â€“ 2 yrs" },
+                    { v: "intermediate", label: "Intermediate", sub: "6 mo – 2 yrs" },
                     { v: "advanced", label: "Advanced", sub: "2+ yrs lifting" },
                   ] as const
                 ).map((e) => {
@@ -419,7 +419,7 @@ export function OnboardingFlow({
                 {stats.avgWorkoutTarget.toLocaleString()}
               </div>
               <div className="text-xs text-chalk-400">
-                on workout days Â· {stats.restTarget.toLocaleString()} on rest
+                on workout days · {stats.restTarget.toLocaleString()} on rest
               </div>
 
               <div className="mt-4 grid grid-cols-3 gap-3">
@@ -474,7 +474,7 @@ export function OnboardingFlow({
             className="btn-primary flex-1"
             disabled={pending}
           >
-            {pending ? "Savingâ€¦" : "Start tracking"}
+            {pending ? "Saving…" : "Start tracking"}
           </button>
         )}
       </div>
@@ -564,22 +564,58 @@ function HeightTile({
           <span className="text-[11px] text-chalk-400">in</span>
         </div>
       ) : (
-        <div className="mt-1 flex items-baseline gap-1.5">
-          <input
-            type="number"
-            inputMode="numeric"
-            value={ftInToCm(ft, inch)}
-            min={120}
-            max={220}
-            onChange={(e) => {
-              const { ft: nf, inch: ni } = cmToFtIn(Number(e.target.value) || 0);
-              onChange(nf, ni);
-            }}
-            className={cn(cls, "w-20")}
-          />
-          <span className="text-[11px] text-chalk-400">cm</span>
-        </div>
+        <CmField
+          cm={ftInToCm(ft, inch)}
+          onCommit={(cm) => {
+            const { ft: nf, inch: ni } = cmToFtIn(cm);
+            onChange(nf, ni);
+          }}
+          className={cn(cls, "w-20")}
+        />
       )}
+    </div>
+  );
+}
+
+/**
+ * The cm field keeps its own text state while focused: the canonical value
+ * is ft/in, and converting cm → ft/in → cm on every keystroke rounds the
+ * value out from under the caret. Convert once, on blur.
+ */
+function CmField({
+  cm,
+  onCommit,
+  className,
+}: {
+  cm: number;
+  onCommit: (cm: number) => void;
+  className?: string;
+}) {
+  const [text, setText] = useState(String(cm));
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="mt-1 flex items-baseline gap-1.5">
+      <input
+        type="number"
+        inputMode="numeric"
+        value={focused ? text : String(cm)}
+        min={120}
+        max={220}
+        onFocus={() => {
+          setText(String(cm));
+          setFocused(true);
+        }}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={() => {
+          setFocused(false);
+          const n = parseInt(text);
+          if (Number.isFinite(n) && n > 0) {
+            onCommit(Math.min(220, Math.max(120, n)));
+          }
+        }}
+        className={className}
+      />
+      <span className="text-[11px] text-chalk-400">cm</span>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { calcStats, dailyCalorieTarget, dayIndexForDate } from "@/lib/calc";
+import { calcStats, dailyCalorieTarget } from "@/lib/calc";
+import { resolvePlanDay } from "@/lib/planDay";
 import { fromISODate } from "@/lib/dates";
 import { localTodayISO } from "@/lib/serverDate";
 import { AddMealDialog } from "@/components/AddMealDialog";
@@ -52,7 +53,7 @@ export default async function DietPage({
     .single();
   if (!profile) redirect("/onboarding");
 
-  const [{ data: food }, { data: recipes }, { data: daily }, recentFoods] =
+  const [{ data: food }, { data: recipes }, { data: daily }, recentFoods, { data: activePlan }] =
     await Promise.all([
       supabase
         .from("food_entries")
@@ -73,6 +74,14 @@ export default async function DietPage({
         .eq("entry_date", today)
         .maybeSingle(),
       getRecentFoods(8),
+      profile.active_plan_id
+        ? supabase
+            .from("workout_plans")
+            .select("id, base_template_id, is_built, days")
+            .eq("user_id", user.id)
+            .eq("id", profile.active_plan_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
 
   const entries = (food ?? []) as FoodEntry[];
@@ -83,12 +92,19 @@ export default async function DietPage({
     entries: entries.filter((e) => e.meal_type === meal),
   }));
 
-  const dayIdx = dayIndexForDate(fromISODate(today));
   const mode = profile.workout_mode === "gym" ? ("gym" as const) : ("home" as const);
   const stats = calcStats(profile, mode);
+  const { burn } = resolvePlanDay({
+    date: fromISODate(today),
+    mode,
+    activeTemplateId: activePlan
+      ? activePlan.base_template_id
+      : (profile.active_template_id ?? null),
+    builtDays: activePlan?.is_built ? (activePlan.days ?? null) : null,
+  });
   const target = dailyCalorieTarget(
     stats,
-    dayIdx,
+    burn,
     !!daily?.workout_completed,
     daily?.cardio_calories ?? 0,
   );

@@ -579,22 +579,58 @@ function HeightTile({
           <span className="text-[11px] font-medium text-chalk-400">in</span>
         </div>
       ) : (
-        <div className="mt-1 flex items-baseline gap-1">
-          <input
-            type="number"
-            inputMode="numeric"
-            value={ftInToCm(ft, inch)}
-            min={120}
-            max={220}
-            onChange={(e) => {
-              const { ft: nf, inch: ni } = cmToFtIn(parseInt(e.target.value) || 0);
-              onChange(nf, ni);
-            }}
-            className={cn(inputCls, "w-20")}
-          />
-          <span className="text-[11px] font-medium text-chalk-400">cm</span>
-        </div>
+        <CmInput
+          cm={ftInToCm(ft, inch)}
+          onCommit={(cm) => {
+            const { ft: nf, inch: ni } = cmToFtIn(cm);
+            onChange(nf, ni);
+          }}
+          className={cn(inputCls, "w-20")}
+        />
       )}
+    </div>
+  );
+}
+
+/**
+ * The cm field keeps its own text state while focused: the canonical value
+ * is ft/in, and a keystroke-by-keystroke cm → ft/in → cm round-trip rounds
+ * mid-typing (typing "175" lands on 84). Convert once, on blur.
+ */
+function CmInput({
+  cm,
+  onCommit,
+  className,
+}: {
+  cm: number;
+  onCommit: (cm: number) => void;
+  className?: string;
+}) {
+  const [text, setText] = useState(String(cm));
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="mt-1 flex items-baseline gap-1">
+      <input
+        type="number"
+        inputMode="numeric"
+        value={focused ? text : String(cm)}
+        min={120}
+        max={220}
+        onFocus={() => {
+          setText(String(cm));
+          setFocused(true);
+        }}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={() => {
+          setFocused(false);
+          const n = parseInt(text);
+          if (Number.isFinite(n) && n > 0) {
+            onCommit(Math.min(220, Math.max(120, n)));
+          }
+        }}
+        className={className}
+      />
+      <span className="text-[11px] font-medium text-chalk-400">cm</span>
     </div>
   );
 }

@@ -429,10 +429,11 @@ export function AddMealDialog({
     };
   }, [foodQuery, open, tab, pickedFood, scanning]);
 
-  // Cleanup the abort controller on unmount.
+  // Cleanup the abort controllers on unmount.
   useEffect(
     () => () => {
       foodAbortRef.current?.abort();
+      fsAbortRef.current?.abort();
     },
     [],
   );
@@ -1266,7 +1267,7 @@ function CatalogDetail({
       <div className="space-y-2">
         <button
           type="button"
-          disabled={disabled}
+          disabled={disabled || servings <= 0}
           onClick={() => onLog(servings)}
           className="btn-primary w-full py-3"
         >

@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { ExerciseCard } from "./ExerciseCard";
+import { FocusIcon } from "./FocusIcon";
 import { WellnessSection } from "./WellnessSection";
 import { SessionTimer } from "./SessionTimer";
 import { AddExerciseSheet } from "./AddExerciseSheet";
@@ -274,7 +275,11 @@ export function WorkoutClient({
       : mode === "gym"
         ? GYM_DAYS
         : HOME_DAYS;
-  const d: WorkoutDay = days[wDay] ?? days[0];
+  // Clamp to the current layout: switching to a plan with fewer days would
+  // otherwise leave a stale out-of-range selection (no highlighted day, writes
+  // to a day slot the plan doesn't have).
+  const wIdx = Math.min(wDay, days.length - 1);
+  const d: WorkoutDay = days[wIdx] ?? days[0];
 
   // Show picker automatically on first /workout visit (no template selected
   // and no customizations). Existing users were backfilled to "custom-6day"
@@ -300,11 +305,11 @@ export function WorkoutClient({
   // tracks what's really scheduled.
   const isLegacyPlan =
     !isBuilt && (!activeTemplate || activeTemplate.id === "custom-6day");
-  const dayRowCount = planRows.filter((r) => r.day_index === wDay).length;
+  const dayRowCount = planRows.filter((r) => r.day_index === wIdx).length;
   const effectiveCount = dayRowCount > 0 ? dayRowCount : d.exercises.length;
   const isRestDay = effectiveCount === 0 || d.focus === "Rest";
   const selectedBurn = isLegacyPlan
-    ? (weekBurns[wDay] ?? todayBurn)
+    ? (weekBurns[wIdx] ?? todayBurn)
     : isRestDay
       ? 0
       : estimateSessionBurn({
@@ -313,7 +318,7 @@ export function WorkoutClient({
           exercises: new Array(effectiveCount),
         });
   const todayDayTarget = isLegacyPlan
-    ? (weekTargets[wDay] ?? todayTarget)
+    ? (weekTargets[wIdx] ?? todayTarget)
     : isRestDay
       ? restTarget
       : Math.max(1400, lifeTDEE + selectedBurn - dailyDeficit);
@@ -322,7 +327,7 @@ export function WorkoutClient({
   // customized and render only those rows. Otherwise we render the
   // hardcoded defaults from GYM_DAYS / HOME_DAYS.
   const { displayExercises, customized } = useMemo(() => {
-    const userForThisDay = planRows.filter((r) => r.day_index === wDay);
+    const userForThisDay = planRows.filter((r) => r.day_index === wIdx);
     if (userForThisDay.length > 0) {
       return {
         displayExercises: userForThisDay.map<DisplayExercise>((r) => ({
@@ -339,12 +344,12 @@ export function WorkoutClient({
       })),
       customized: false,
     };
-  }, [planRows, wDay, d.exercises]);
+  }, [planRows, wIdx, d.exercises]);
 
   function handleDelete(position: number) {
     setOpenPos(null);
     startMut(async () => {
-      await removeExerciseFromDay(mode, wDay, position);
+      await removeExerciseFromDay(mode, wIdx, position);
     });
   }
 
@@ -355,7 +360,7 @@ export function WorkoutClient({
 
   function handleReset() {
     startMut(async () => {
-      await resetDayToDefaults(mode, wDay);
+      await resetDayToDefaults(mode, wIdx);
     });
   }
 
@@ -382,7 +387,7 @@ export function WorkoutClient({
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="metric-label">
+            <div className="metric-label truncate">
               {activePlanName
                 ? isBuilt
                   ? `Custom program · ${days.length}-day`
@@ -391,7 +396,7 @@ export function WorkoutClient({
                   ? `${activeTemplate.dayCount}-day · ${activeTemplate.tagline}`
                   : "6-day split"}
             </div>
-            <h1 className="display truncate text-[28px] leading-tight text-white">
+            <h1 className="display text-balance text-[24px] leading-tight text-white sm:text-[28px]">
               {activePlanName ?? (activeTemplate ? activeTemplate.name : "Workout plan")}
             </h1>
           </div>
@@ -473,13 +478,13 @@ export function WorkoutClient({
             }}
             className={cn(
               "flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-2.5 transition-all duration-200 ease-ios active:scale-[0.96]",
-              wDay === i ? "text-black" : "bg-ink-800 text-chalk-300 hover:bg-ink-700",
+              wIdx === i ? "text-black" : "bg-ink-800 text-chalk-300 hover:bg-ink-700",
             )}
-            style={wDay === i ? { background: dd.color } : undefined}
+            style={wIdx === i ? { background: dd.color } : undefined}
           >
             <span
               className="text-[10px] font-bold uppercase tracking-[0.06em]"
-              style={{ opacity: wDay === i ? 0.7 : 1 }}
+              style={{ opacity: wIdx === i ? 0.7 : 1 }}
             >
               {dd.weekday}
             </span>
@@ -564,8 +569,8 @@ export function WorkoutClient({
           <SessionTimer color={d.color} />
           <MarkCompleteToggle
             entryDate={todayDate}
-            completed={todayCompleted && completedDayIndex === wDay}
-            dayIndex={wDay}
+            completed={todayCompleted && completedDayIndex === wIdx}
+            dayIndex={wIdx}
             mode={mode}
             color={d.color}
           />
@@ -576,10 +581,14 @@ export function WorkoutClient({
       <div className="overflow-hidden rounded-2xl bg-ink-850 shadow-bento">
         <div className="flex items-center gap-3 px-4 py-3.5">
           <div
-            className="grid h-11 w-11 place-items-center rounded-full text-lg"
+            className="grid h-11 w-11 place-items-center rounded-full"
             style={{ background: `${d.color}22` }}
           >
-            {d.icon}
+            <FocusIcon
+              focus={d.focus}
+              className="h-5 w-5"
+              style={{ color: d.color }}
+            />
           </div>
           <div>
             <div
@@ -599,7 +608,9 @@ export function WorkoutClient({
         <div className="bg-ink-850 px-1 py-1">
           {displayExercises.length === 0 && d.focus === "Rest" && (
             <div className="px-4 py-8 text-center">
-              <div className="text-4xl">😴</div>
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-accent-violet/15">
+                <FocusIcon focus="Rest" className="h-6 w-6 text-accent-violet" />
+              </div>
               <div className="mt-3 text-[17px] font-bold text-white">
                 Rest day
               </div>
@@ -754,7 +765,7 @@ export function WorkoutClient({
         return (
           <AddExerciseSheet
             mode={mode}
-            dayIndex={wDay}
+            dayIndex={wIdx}
             dayLabel={`${d.day} · ${d.focus}`}
             dayColor={d.color}
             focusMuscles={picker.muscles}

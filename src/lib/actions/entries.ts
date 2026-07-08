@@ -128,8 +128,12 @@ export async function getRecentFoods(limit = 8): Promise<RecentFood[]> {
 }
 
 export async function deleteFoodEntry(id: string) {
-  const { supabase } = await authed();
-  const { error } = await supabase.from("food_entries").delete().eq("id", id);
+  const { supabase, userId } = await authed();
+  const { error } = await supabase
+    .from("food_entries")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", userId);
   if (error) throw new Error(error.message);
   revalidatePath("/diet");
   revalidatePath("/overview");
