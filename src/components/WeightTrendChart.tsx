@@ -1,6 +1,7 @@
-import { TrendingDown, TrendingUp, Minus } from "lucide-react";
+import { TrendingDown, TrendingUp, Minus, Target } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { fromISODate, toISODate, todayISO as localToday } from "@/lib/dates";
+import { projectGoalEta, type GoalEta } from "@/lib/goalEta";
 import type { WeightPoint } from "@/lib/actions/weight";
 
 interface Props {
@@ -15,6 +16,11 @@ interface Props {
    * would shift the window for users far from UTC.
    */
   todayISO?: string;
+  /**
+   * The pace the user planned at onboarding (lbs/week). Enables the
+   * goal-ETA footer: pass `stats.weeklyLoss`.
+   */
+  plannedWeeklyLoss?: number;
   className?: string;
 }
 
@@ -41,14 +47,18 @@ export function WeightTrendChart({
   goalWeight,
   windowDays = 90,
   todayISO,
+  plannedWeeklyLoss = 0,
   className,
 }: Props) {
-  const series = buildDailySeries(
+  const today = todayISO ?? localToday();
+  const series = buildDailySeries(points, currentWeight, windowDays, today);
+  const eta = projectGoalEta({
     points,
     currentWeight,
-    windowDays,
-    todayISO ?? localToday(),
-  );
+    goalWeight,
+    plannedWeeklyLoss,
+    todayISO: today,
+  });
 
   // Value range — always include goal so the reference line stays in view.
   const allWeights = series
@@ -267,8 +277,124 @@ export function WeightTrendChart({
           </div>
         )}
       </div>
+
+      <GoalEtaFooter eta={eta} todayISO={today} />
     </div>
   );
+}
+
+/**
+ * "When do I actually get there?" — projected from logged weights, anchored
+ * at the last log so it only moves when new weights arrive; falls back to
+ * the planned pace until enough logs exist.
+ */
+function GoalEtaFooter({ eta, todayISO }: { eta: GoalEta; todayISO: string }) {
+  if (eta.kind === "none") return null;
+
+  const tone =
+    eta.kind === "reached"
+      ? "text-accent-green"
+      : eta.kind === "stalled"
+        ? "text-chalk-300"
+        : "text-white";
+
+  let title: React.ReactNode;
+  let sub: string;
+  if (eta.kind === "reached") {
+    title = "Goal reached";
+    sub = "Time to set the next one";
+  } else if (eta.kind === "stalled") {
+    title = "No ETA at current trend";
+    sub = "Recent logs aren't moving toward your goal";
+  } else {
+    title = (
+      <>
+        Goal by {formatEtaDate(eta.etaISO, todayISO)}
+        <span className="font-semibold text-chalk-400">
+          {" "}
+          · ~{eta.daysFromToday} day{eta.daysFromToday === 1 ? "" : "s"}
+        </span>
+      </>
+    );
+    sub =
+      eta.kind === "projected"
+        ? `At your logged pace — ${eta.ratePerWeek.toFixed(1)} lb/wk`
+        : "At your planned pace — log weights to track your real pace";
+  }
+
+  return (
+    <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3.5">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span
+          className={cn(
+            "grid h-8 w-8 shrink-0 place-items-center rounded-full",
+            eta.kind === "stalled" ? "bg-white/[0.06]" : "bg-accent-green/15",
+          )}
+        >
+          <Target
+            className={cn(
+              "h-4 w-4",
+              eta.kind === "stalled" ? "text-chalk-400" : "text-accent-green",
+            )}
+          />
+        </span>
+        <div className="min-w-0">
+          <div className={cn("text-[14px] font-bold leading-tight", tone)}>
+            {title}
+          </div>
+          <div className="mt-0.5 text-[11px] font-medium text-chalk-400">
+            {sub}
+          </div>
+        </div>
+      </div>
+      <PaceChip eta={eta} />
+    </div>
+  );
+}
+
+function PaceChip({ eta }: { eta: GoalEta }) {
+  let label: string;
+  let tone: string;
+  if (eta.kind === "projected") {
+    if (eta.pace === "ahead") {
+      label = "Ahead of plan";
+      tone = "border-accent-green/30 bg-accent-green/10 text-accent-green";
+    } else if (eta.pace === "behind") {
+      label = "Behind plan";
+      tone = "border-accent-orange/40 bg-accent-orange/10 text-accent-orange";
+    } else {
+      label = "On pace";
+      tone = "border-accent-blue/30 bg-accent-blue/10 text-accent-blue";
+    }
+  } else if (eta.kind === "planned") {
+    label = "Plan";
+    tone = "border-white/10 bg-white/[0.04] text-chalk-300";
+  } else if (eta.kind === "stalled") {
+    label = "Stalled";
+    tone = "border-white/10 bg-white/[0.04] text-chalk-300";
+  } else {
+    return null;
+  }
+  return (
+    <div
+      className={cn(
+        "inline-flex shrink-0 items-center rounded-full border px-2 py-1 text-[10px] font-bold uppercase tracking-wider",
+        tone,
+      )}
+    >
+      {label}
+    </div>
+  );
+}
+
+function formatEtaDate(iso: string, todayISO: string): string {
+  const d = fromISODate(iso);
+  const sameYear = iso.slice(0, 4) === todayISO.slice(0, 4);
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
 }
 
 /**
