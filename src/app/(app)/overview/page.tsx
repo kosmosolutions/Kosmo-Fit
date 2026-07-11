@@ -311,6 +311,7 @@ export default async function OverviewPage({
         goalWeight={Number(profile.goal_weight) || 0}
         windowDays={90}
         todayISO={todayLocal}
+        plannedWeeklyLoss={stats.weeklyLoss}
       />
 
       <DailyTrackerForm

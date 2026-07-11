@@ -201,6 +201,7 @@ export function ProfileEditor({
         currentWeight={Number(f.current_weight) || 0}
         goalWeight={Number(f.goal_weight) || 0}
         windowDays={90}
+        plannedWeeklyLoss={stats.weeklyLoss}
       />
 
       <Section title="About you">
