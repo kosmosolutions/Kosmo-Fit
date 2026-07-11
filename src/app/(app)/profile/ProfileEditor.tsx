@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowRight, LogOut, Sparkles } from "lucide-react";
 import { LIFESTYLE, calcStats } from "@/lib/calc";
 import { saveProfile } from "@/lib/actions/profile";
@@ -32,6 +33,7 @@ export function ProfileEditor({
   email: string;
   weightHistory: WeightPoint[];
 }) {
+  const router = useRouter();
   const [pending, start] = useTransition();
   const [saved, setSaved] = useState(false);
   const [wUnit, setWUnit] = useUnitPref<WeightUnit>("weight", "lb");
@@ -82,7 +84,7 @@ export function ProfileEditor({
     start(async () => {
       await saveProfile(f);
       setSaved(true);
-      setTimeout(() => setSaved(false), 1500);
+      router.push("/overview");
     });
   }
 
@@ -308,6 +310,22 @@ export function ProfileEditor({
               {w}w
             </button>
           ))}
+        </div>
+        <div className="text-[13px] font-medium text-chalk-300">
+          {f.weeks_to_goal} weeks ·{" "}
+          <span
+            className={cn(
+              "font-bold",
+              stats.aggressive ? "text-accent-orange" : "text-accent-blue",
+            )}
+          >
+            {stats.weeklyLoss} lb/wk
+          </span>
+          {stats.aggressive && (
+            <span className="ml-2 font-semibold text-accent-orange">
+              Aggressive — consider a longer timeframe
+            </span>
+          )}
         </div>
       </Section>
 

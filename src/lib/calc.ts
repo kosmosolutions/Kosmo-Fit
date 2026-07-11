@@ -143,7 +143,13 @@ export function calcStats(
   const weeklyDeficit = (lbsToLose * 3500) / Math.max(1, p.weeks_to_goal);
   const dailyDeficit = Math.round(weeklyDeficit / 7);
   const weeklyLoss = +(weeklyDeficit / 3500).toFixed(1);
-  const aggressive = dailyDeficit > 1000 || weeklyLoss > 2;
+  // Aggressive when losing faster than ~1% of body weight per week (the
+  // usual sustainable ceiling), or past the absolute 2 lb/wk / 1000 cal/day
+  // marks. The old absolute-only rule never fired for lighter users.
+  const aggressive =
+    dailyDeficit > 1000 ||
+    weeklyLoss > 2 ||
+    weeklyLoss > p.current_weight * 0.01;
 
   const burns = BURNS[mode];
   const dayTargets = burns.map((b) =>
