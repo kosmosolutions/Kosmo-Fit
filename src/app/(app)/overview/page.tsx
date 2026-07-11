@@ -312,6 +312,7 @@ export default async function OverviewPage({
         windowDays={90}
         todayISO={todayLocal}
         plannedWeeklyLoss={stats.weeklyLoss}
+        planHref="/profile"
       />
 
       <DailyTrackerForm

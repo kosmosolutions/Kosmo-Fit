@@ -1,4 +1,5 @@
-import { TrendingDown, TrendingUp, Minus, Target } from "lucide-react";
+import Link from "next/link";
+import { TrendingDown, TrendingUp, Minus, Target, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { fromISODate, toISODate, todayISO as localToday } from "@/lib/dates";
 import { projectGoalEta, type GoalEta } from "@/lib/goalEta";
@@ -21,6 +22,12 @@ interface Props {
    * goal-ETA footer: pass `stats.weeklyLoss`.
    */
   plannedWeeklyLoss?: number;
+  /**
+   * Where the footer's "Adjust plan" chip navigates (the plan-settings
+   * screen). Omit on the profile page itself — the chip renders as a
+   * static label there.
+   */
+  planHref?: string;
   className?: string;
 }
 
@@ -48,6 +55,7 @@ export function WeightTrendChart({
   windowDays = 90,
   todayISO,
   plannedWeeklyLoss = 0,
+  planHref,
   className,
 }: Props) {
   const today = todayISO ?? localToday();
@@ -278,7 +286,7 @@ export function WeightTrendChart({
         )}
       </div>
 
-      <GoalEtaFooter eta={eta} todayISO={today} />
+      <GoalEtaFooter eta={eta} todayISO={today} planHref={planHref} />
     </div>
   );
 }
@@ -288,7 +296,15 @@ export function WeightTrendChart({
  * at the last log so it only moves when new weights arrive; falls back to
  * the planned pace until enough logs exist.
  */
-function GoalEtaFooter({ eta, todayISO }: { eta: GoalEta; todayISO: string }) {
+function GoalEtaFooter({
+  eta,
+  todayISO,
+  planHref,
+}: {
+  eta: GoalEta;
+  todayISO: string;
+  planHref?: string;
+}) {
   if (eta.kind === "none") return null;
 
   const tone =
@@ -347,12 +363,12 @@ function GoalEtaFooter({ eta, todayISO }: { eta: GoalEta; todayISO: string }) {
           </div>
         </div>
       </div>
-      <PaceChip eta={eta} />
+      <PaceChip eta={eta} planHref={planHref} />
     </div>
   );
 }
 
-function PaceChip({ eta }: { eta: GoalEta }) {
+function PaceChip({ eta, planHref }: { eta: GoalEta; planHref?: string }) {
   let label: string;
   let tone: string;
   if (eta.kind === "projected") {
@@ -375,6 +391,27 @@ function PaceChip({ eta }: { eta: GoalEta }) {
   } else {
     return null;
   }
+
+  // Where the ETA reflects the plan (or the lack of one), the chip acts as
+  // the entry point to change it; pace verdicts stay read-only labels.
+  const actionable =
+    planHref && (eta.kind === "planned" || eta.kind === "stalled");
+  if (actionable) {
+    return (
+      <Link
+        href={planHref}
+        aria-label="Adjust your plan"
+        className={cn(
+          "inline-flex min-h-[32px] shrink-0 items-center gap-0.5 rounded-full border px-2.5 text-[10px] font-bold uppercase tracking-wider transition-all duration-200 ease-ios active:scale-[0.96] hover:bg-white/[0.08]",
+          tone,
+        )}
+      >
+        Adjust plan
+        <ChevronRight className="h-3 w-3" />
+      </Link>
+    );
+  }
+
   return (
     <div
       className={cn(
