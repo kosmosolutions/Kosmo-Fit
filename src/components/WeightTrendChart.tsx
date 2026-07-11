@@ -393,10 +393,12 @@ function PaceChip({ eta, planHref }: { eta: GoalEta; planHref?: string }) {
   }
 
   // Where the ETA reflects the plan (or the lack of one), the chip acts as
-  // the entry point to change it; pace verdicts stay read-only labels.
-  const actionable =
-    planHref && (eta.kind === "planned" || eta.kind === "stalled");
-  if (actionable) {
+  // the entry point to change it — and only exists when there's somewhere
+  // to go (the footer's sub-line already explains the state, so a static
+  // "Plan" label adds nothing on the plan-settings screen itself). Pace
+  // verdicts stay read-only labels.
+  if (eta.kind === "planned" || eta.kind === "stalled") {
+    if (!planHref) return null;
     return (
       <Link
         href={planHref}
